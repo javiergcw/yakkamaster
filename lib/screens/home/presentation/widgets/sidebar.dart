@@ -45,7 +45,7 @@ class Sidebar extends StatelessWidget {
                 vertical: verticalSpacing * 2,
               ),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
               ),
               child: Row(
                 children: [

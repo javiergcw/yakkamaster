@@ -6,6 +6,7 @@ import '../../../../features/widgets/custom_button.dart';
 import '../widgets/activity_item.dart';
 import '../widgets/profile_item.dart';
 import '../widgets/sidebar.dart';
+import 'digital_id_screen.dart';
 import '../../../job_listings/presentation/pages/job_listings_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
@@ -37,7 +38,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
+  AppFlavor get _currentFlavor => widget.flavor ?? (AppFlavorConfig.currentFlavor);
   int _selectedIndex = 0; // Home tab selected
   bool _isSidebarOpen = false; // Control del sidebar
   
@@ -158,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
             vertical: verticalSpacing * 2.5,
           ),
           decoration: BoxDecoration(
-            color: Colors.grey[800],
+            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -290,7 +291,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: "Show your QR",
                   subtitle: "Share your profile to get hired",
                   onTap: () {
-                    print('Show QR pressed');
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => DigitalIdScreen(flavor: _currentFlavor),
+                      ),
+                    );
                   },
                 ),
                 
