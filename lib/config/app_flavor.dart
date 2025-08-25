@@ -32,7 +32,7 @@ class AppFlavorConfig {
   static int getPrimaryColor(AppFlavor flavor) {
     switch (flavor) {
       case AppFlavor.labour:
-        return 0xFF1976D2; // Azul
+        return 0xFFFFD700; // Azul
       case AppFlavor.sport:
         return 0xFF06AB24; // Verde deportivo
       case AppFlavor.hospitality:

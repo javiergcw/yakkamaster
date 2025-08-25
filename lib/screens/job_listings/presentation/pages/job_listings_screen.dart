@@ -66,11 +66,12 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
             size: iconSize,
           ),
           onPressed: () {
-            // Siempre navegar a home
-            Navigator.of(context).pushReplacement(
+            // Navegar a home usando navegación estándar de Flutter
+            Navigator.of(context).pushAndRemoveUntil(
               MaterialPageRoute(
                 builder: (context) => HomeScreen(flavor: _currentFlavor),
               ),
+              (route) => false,
             );
           },
         ),

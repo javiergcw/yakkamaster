@@ -22,9 +22,12 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
   AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
 
   void _handleExploreYakka() {
-    // Navegar a la pantalla home de YAKKA
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => HomeScreen(flavor: _currentFlavor)),
+    // Navegar a la pantalla home de YAKKA usando navegación estándar de Flutter
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => HomeScreen(flavor: _currentFlavor),
+      ),
+      (route) => false,
     );
   }
 

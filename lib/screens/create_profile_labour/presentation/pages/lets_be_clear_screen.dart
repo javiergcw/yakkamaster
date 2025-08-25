@@ -23,9 +23,12 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
 
   void _handleAccept() {
     // Navegar a la pantalla de perfil creado después de aceptar los términos
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => ProfileCreatedScreen(flavor: _currentFlavor)),
-    );
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => ProfileCreatedScreen(flavor: _currentFlavor)),
+        (route) => false, // Esto elimina todas las rutas anteriores del stack
+      );
+    }
   }
 
   @override
@@ -54,7 +57,11 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () {
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -178,7 +185,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                      // Botón de aceptación usando CustomButton
                      CustomButton(
                        text: "I understand and accept",
-                       onPressed: _handleAccept,
+                       onPressed: mounted ? _handleAccept : null,
                        isLoading: false,
                      ),
                      
