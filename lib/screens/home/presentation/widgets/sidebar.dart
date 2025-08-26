@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../job_listings/presentation/pages/job_listings_screen.dart';
+import '../pages/wallet_screen.dart';
 
 class Sidebar extends StatelessWidget {
   final AppFlavor? flavor;
@@ -184,8 +185,12 @@ class Sidebar extends StatelessWidget {
                       icon: Icons.attach_money,
                       title: "See your earnings",
                       onTap: () {
-                        // TODO: Implementar navegación
-                        print('See your earnings pressed');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WalletScreen(flavor: _currentFlavor),
+                          ),
+                        );
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
