@@ -316,11 +316,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: "Report harassment",
                   subtitle: "You can remain anonymous",
                   onTap: () async {
-                    final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                    } else {
-                      print('Could not launch $url');
+                    try {
+                      final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
+                      final bool launched = await launchUrl(
+                        url,
+                        mode: LaunchMode.platformDefault,
+                      );
+                      
+                      if (!launched) {
+                        _showUrlDialog(AppConstants.reportHarassmentUrl);
+                      }
+                    } catch (e) {
+                      print('Error launching URL: $e');
+                      _showUrlDialog(AppConstants.reportHarassmentUrl);
                     }
                   },
                 ),
@@ -370,6 +378,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildMessagesView() {
     return MessagesScreen(flavor: _currentFlavor);
+  }
+
+  void _showUrlDialog(String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Report Harassment'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Please copy and paste this URL in your browser:'),
+              SizedBox(height: 8),
+              SelectableText(
+                url,
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildApplyForJobBanner() {

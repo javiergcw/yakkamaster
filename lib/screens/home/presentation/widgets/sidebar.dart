@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
+import '../../../../config/constants.dart';
 import '../../../job_listings/presentation/pages/job_listings_screen.dart';
 import '../pages/wallet_screen.dart';
+import '../pages/applied_jobs_screen.dart';
+import '../pages/notifications_screen.dart';
+import '../pages/messages_screen.dart';
+import '../../data/applied_job_dto.dart';
 
 class Sidebar extends StatelessWidget {
   final AppFlavor? flavor;
@@ -16,6 +22,26 @@ class Sidebar extends StatelessWidget {
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
+
+  // Datos de ejemplo para las aplicaciones
+  List<AppliedJobDto> get _appliedJobs => [
+    AppliedJobDto(
+      id: '1',
+      companyName: 'ABC Construction',
+      jobTitle: 'Construction Worker',
+      location: 'Sydney, NSW',
+      status: 'Applied',
+      appliedDate: DateTime.now().subtract(Duration(days: 1)),
+    ),
+    AppliedJobDto(
+      id: '2',
+      companyName: 'XYZ Renovations',
+      jobTitle: 'Renovation Specialist',
+      location: 'Melbourne, VIC',
+      status: 'Applied',
+      appliedDate: DateTime.now().subtract(Duration(days: 3)),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -157,8 +183,12 @@ class Sidebar extends StatelessWidget {
                       icon: Icons.chat_bubble_outline,
                       title: "My chats",
                       onTap: () {
-                        // TODO: Implementar navegación
-                        print('My chats pressed');
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => MessagesScreen(flavor: _currentFlavor),
+                          ),
+                        );
+                        onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -171,8 +201,15 @@ class Sidebar extends StatelessWidget {
                       icon: Icons.calendar_today,
                       title: "Applications",
                       onTap: () {
-                        // TODO: Implementar navegación
-                        print('Applications pressed');
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => AppliedJobsScreen(
+                              flavor: _currentFlavor,
+                              appliedJobs: _appliedJobs,
+                            ),
+                          ),
+                        );
+                        onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -202,9 +239,22 @@ class Sidebar extends StatelessWidget {
                     _buildMenuItem(
                       icon: Icons.warning,
                       title: "Report a problem",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Report a problem pressed');
+                      onTap: () async {
+                        try {
+                          final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
+                          final bool launched = await launchUrl(
+                            url,
+                            mode: LaunchMode.platformDefault,
+                          );
+                          
+                          if (!launched) {
+                            _showUrlDialog(context, AppConstants.reportHarassmentUrl);
+                          }
+                        } catch (e) {
+                          print('Error launching URL: $e');
+                          _showUrlDialog(context, AppConstants.reportHarassmentUrl);
+                        }
+                        onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -346,6 +396,38 @@ class Sidebar extends StatelessWidget {
       ),
       height: 1,
       color: Colors.grey[300],
+    );
+  }
+
+  void _showUrlDialog(BuildContext context, String url) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Report a Problem'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Please copy and paste this URL in your browser:'),
+              SizedBox(height: 8),
+              SelectableText(
+                url,
+                style: TextStyle(
+                  color: Colors.blue,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
