@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import '../../../../config/app_flavor.dart';
 import '../data/dto/job_dto.dart';
+import '../data/dto/job_details_dto.dart';
+import '../presentation/pages/job_details_screen.dart';
 
 class JobListingsController {
   // Data
@@ -17,10 +21,19 @@ class JobListingsController {
   Function()? onSearchChanged;
   Function()? onLoadingChanged;
   Function()? onCountdownChanged;
+  
+  // Navigation context
+  BuildContext? _context;
+  AppFlavor? _flavor;
 
   void initialize() {
     loadJobs();
     startCountdown();
+  }
+  
+  void setNavigationContext(BuildContext context, AppFlavor flavor) {
+    _context = context;
+    _flavor = flavor;
   }
 
   void dispose() {
@@ -132,8 +145,47 @@ class JobListingsController {
   }
 
   void showMoreDetails(JobDto job) {
-    // TODO: Navigate to job details screen
-    print('Showing details for job: ${job.title}');
+    if (_context == null) {
+      print('Context not set for navigation');
+      return;
+    }
+    
+    // Convertir JobDto a JobDetailsDto para la navegación
+    final jobDetails = JobDetailsDto(
+      id: job.id,
+      title: job.title,
+      hourlyRate: job.hourlyRate,
+      location: job.location,
+      dateRange: job.dateRange,
+      jobType: job.jobType,
+      source: job.source,
+      postedDate: job.postedDate,
+      company: job.source,
+      address: job.location,
+      suburb: '',
+      city: '',
+      startDate: job.dateRange.split(' - ')[0],
+      time: '9:00 AM - 5:00 PM',
+      paymentExpected: 'Within 7 days',
+      aboutJob: 'This is a detailed description of the job position.',
+      requirements: [
+        'Valid driver license',
+        'Previous experience required',
+        'Good communication skills',
+      ],
+      latitude: -33.8688,
+      longitude: 151.2093,
+    );
+    
+    Navigator.of(_context!).push(
+      MaterialPageRoute(
+        builder: (context) => JobDetailsScreen(
+          jobDetails: jobDetails,
+          flavor: _flavor,
+          isFromAppliedJobs: false,
+        ),
+      ),
+    );
   }
 
   List<JobDto> get filteredJobs {

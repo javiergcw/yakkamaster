@@ -98,6 +98,95 @@ class AppFlavorConfig {
     }
   }
 
+  // Timesheet specific methods
+  static Color getTimesheetPrimaryColor(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return const Color(0xFFFFD700); // Amarillo
+      case AppFlavor.sport:
+        return const Color(0xFF06AB24); // Verde deportivo
+      case AppFlavor.hospitality:
+        return const Color(0xFFFF6B35); // Naranja
+    }
+  }
+
+  static Color getTimesheetAccentColor(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return const Color(0xFFFFE082); // Amarillo claro
+      case AppFlavor.sport:
+        return const Color(0xFF81C784); // Verde claro
+      case AppFlavor.hospitality:
+        return const Color(0xFFFFAB91); // Naranja claro
+    }
+  }
+
+  static String getTimesheetTitle(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Work Timesheet";
+      case AppFlavor.sport:
+        return "Training Timesheet";
+      case AppFlavor.hospitality:
+        return "Shift Timesheet";
+    }
+  }
+
+  static String getWorkTimeTitle(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Work time";
+      case AppFlavor.sport:
+        return "Training time";
+      case AppFlavor.hospitality:
+        return "Shift time";
+    }
+  }
+
+  static String getWorkTimeSubtitle(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Add your working hours";
+      case AppFlavor.sport:
+        return "Add your training hours";
+      case AppFlavor.hospitality:
+        return "Add your shift hours";
+    }
+  }
+
+  static String getOvertimeQuestion(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Any work beyond your scheduled shift?";
+      case AppFlavor.sport:
+        return "Any training beyond your scheduled session?";
+      case AppFlavor.hospitality:
+        return "Any work beyond your scheduled shift?";
+    }
+  }
+
+  static String getAllowanceQuestion(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Do you have any additional Allowance?";
+      case AppFlavor.sport:
+        return "Do you have any additional Bonus?";
+      case AppFlavor.hospitality:
+        return "Do you have any additional Tips?";
+    }
+  }
+
+  static String getSubmitButtonText(AppFlavor flavor) {
+    switch (flavor) {
+      case AppFlavor.labour:
+        return "Submit Timesheet";
+      case AppFlavor.sport:
+        return "Submit Training";
+      case AppFlavor.hospitality:
+        return "Submit Shift";
+    }
+  }
+
   // Getters originales (para compatibilidad)
   static String get appName => getAppName(currentFlavor);
   static String get tagline => getTagline(currentFlavor);
@@ -161,5 +250,15 @@ class AppFlavorConfig {
   static String get loginGreeting => getLoginGreeting(currentFlavor);
   static String get loginSubtitle => getLoginSubtitle(currentFlavor);
   static String get continueButtonText => getContinueButtonText(currentFlavor);
+
+  // Timesheet getters
+  static Color get timesheetPrimaryColor => getTimesheetPrimaryColor(currentFlavor);
+  static Color get timesheetAccentColor => getTimesheetAccentColor(currentFlavor);
+  static String get timesheetTitle => getTimesheetTitle(currentFlavor);
+  static String get workTimeTitle => getWorkTimeTitle(currentFlavor);
+  static String get workTimeSubtitle => getWorkTimeSubtitle(currentFlavor);
+  static String get overtimeQuestion => getOvertimeQuestion(currentFlavor);
+  static String get allowanceQuestion => getAllowanceQuestion(currentFlavor);
+  static String get submitButtonText => getSubmitButtonText(currentFlavor);
 
 }

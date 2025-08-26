@@ -5,15 +5,29 @@ import '../../../../config/assets_config.dart';
 import '../../data/dto/job_details_dto.dart';
 import '../widgets/job_map.dart';
 import '../widgets/application_success_modal.dart';
+import '../../../home/presentation/pages/edit_bank_details_screen.dart';
+
+/*
+ * CONFIGURACIÓN DE VERIFICACIÓN BANCARIA EN JOB DETAILS:
+ * 
+ * Para activar/desactivar la verificación de datos bancarios antes de aplicar:
+ * - Cambiar _enableBankVerification a true: El usuario debe configurar datos bancarios antes de aplicar
+ * - Cambiar _enableBankVerification a false: El usuario puede aplicar sin verificación bancaria
+ * 
+ * Para simular que el usuario tiene datos bancarios configurados:
+ * - Cambiar _hasBankDetails() para retornar true
+ */
 
 class JobDetailsScreen extends StatefulWidget {
   final JobDetailsDto jobDetails;
   final AppFlavor? flavor;
+  final bool isFromAppliedJobs;
 
   const JobDetailsScreen({
     super.key,
     required this.jobDetails,
     this.flavor,
+    this.isFromAppliedJobs = false,
   });
 
   @override
@@ -25,13 +39,182 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   bool _hasApplied = false; // Estado para controlar si ya se aplicó
   bool _showSuccessModal = false; // Estado para mostrar el modal
 
+  @override
+  void initState() {
+    super.initState();
+    // Si viene de trabajos aplicados, marcar como ya aplicado
+    _hasApplied = widget.isFromAppliedJobs;
+  }
+
+  // Variable para activar/desactivar la verificación bancaria
+  static const bool _enableBankVerification = true; // Cambiar a false para desactivar
+
+  // Función para verificar si el usuario tiene datos bancarios configurados
+  bool _hasBankDetails() {
+    // TODO: Implementar verificación real de datos bancarios
+    // Por ahora, simulamos que no tiene datos bancarios para probar el flujo
+    return false; // Cambiar a true cuando tenga datos bancarios reales
+  }
+
   void _handleApply() {
-    // TODO: Implementar lógica de aplicación
+    // Verificar si el usuario tiene datos bancarios configurados (solo si está habilitado)
+    if (_enableBankVerification && !_hasBankDetails()) {
+      // Mostrar diálogo para configurar datos bancarios
+      _showBankDetailsDialog();
+      return;
+    }
+    
+    // Si tiene datos bancarios o la verificación está deshabilitada, proceder con la aplicación
     setState(() {
       _hasApplied = true;
       _showSuccessModal = true;
     });
     print('Apply for job: ${widget.jobDetails.title}');
+  }
+
+  void _showBankDetailsDialog() {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    
+    // Calcular tamaños responsive
+    final dialogWidth = screenWidth * 0.85;
+    final titleFontSize = screenWidth * 0.045;
+    final bodyFontSize = screenWidth * 0.035;
+    final buttonFontSize = screenWidth * 0.035;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            width: dialogWidth,
+            constraints: BoxConstraints(
+              maxHeight: screenHeight * 0.4,
+            ),
+            padding: EdgeInsets.all(screenWidth * 0.05),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icono y título
+                Container(
+                  width: screenWidth * 0.12,
+                  height: screenWidth * 0.12,
+                  decoration: BoxDecoration(
+                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.account_balance,
+                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                    size: screenWidth * 0.06,
+                  ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.02),
+                
+                // Título
+                Text(
+                  'Bank Details Required',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.015),
+                
+                // Mensaje
+                Text(
+                  'You need to configure your bank details before applying for this job. This ensures you can receive payments.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: bodyFontSize,
+                    color: Colors.black54,
+                    height: 1.4,
+                  ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.025),
+                
+                // Botones
+                Row(
+                  children: [
+                    // Botón Cancel
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          side: BorderSide(
+                            color: Colors.grey[400]!,
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: GoogleFonts.poppins(
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(width: screenWidth * 0.03),
+                    
+                    // Botón Configure Now
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => EditBankDetailsScreen(
+                                flavor: _currentFlavor,
+                              ),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          foregroundColor: Colors.black87,
+                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          'Configure Now',
+                          style: GoogleFonts.poppins(
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _handleCloseModal() {

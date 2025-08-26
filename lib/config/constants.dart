@@ -7,6 +7,7 @@ class AppConstants {
   // Constantes de URLs
   static const String termsAndConditionsUrl = 'https://yakkalabour.com.au/terms-and-conditions/';
   static const String deleteAccountUrl = 'https://ramiro41.typeform.com/to/uVpMQCrZ?typeform-source=www.google.com';
+  static const String reportHarassmentUrl = 'https://ramiro41.typeform.com/to/r0Kq0u4X';
   
   // Constructor privado para evitar instanciación
   AppConstants._();

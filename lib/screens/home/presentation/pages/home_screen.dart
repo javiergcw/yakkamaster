@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
+import '../../../../config/constants.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../widgets/activity_item.dart';
 import 'invoice_screen.dart';
@@ -11,6 +13,10 @@ import 'digital_id_screen.dart';
 import '../../../job_listings/presentation/pages/job_listings_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
+import '../../data/applied_job_dto.dart';
+import '../widgets/applied_job_card.dart';
+import 'applied_jobs_screen.dart';
+import 'notifications_screen.dart';
 
 class Shift {
   final String companyName;
@@ -51,6 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
   // Datos de ejemplo de shifts
   late final Map<String, List<Shift>> _shiftsData;
   
+  // Datos de ejemplo de trabajos aplicados
+  late final List<AppliedJobDto> _appliedJobs;
+  
+  // Variable para alternar entre estados (true = con trabajos, false = sin trabajos)
+  bool _hasAppliedJobs = true;
+  
   @override
   void initState() {
     super.initState();
@@ -84,6 +96,26 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     };
+    
+    // Datos de ejemplo de trabajos aplicados
+    _appliedJobs = [
+      AppliedJobDto(
+        id: '1',
+        companyName: 'Test company by yakka',
+        jobTitle: 'Truck Driver',
+        location: 'Sydney',
+        status: 'Active',
+        appliedDate: DateTime.now().subtract(Duration(days: 5)),
+      ),
+      AppliedJobDto(
+        id: '2',
+        companyName: 'Construction Corp',
+        jobTitle: 'Laborer',
+        location: 'Melbourne',
+        status: 'Active',
+        appliedDate: DateTime.now().subtract(Duration(days: 3)),
+      ),
+    ];
   }
 
   void _handleApplyForJob() {
@@ -204,7 +236,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Notification Icon
                   IconButton(
                     onPressed: () {
-                      print('Notifications pressed');
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => NotificationsScreen(
+                            flavor: _currentFlavor,
+                          ),
+                        ),
+                      );
                     },
                     icon: Icon(
                       Icons.notifications,
@@ -218,16 +256,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         
-        // Spacer para el contenido principal
-        SizedBox(height: verticalSpacing * 8),
-        
         // Main Content (Scrollable)
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            padding: EdgeInsets.only(
+              left: horizontalPadding,
+              right: horizontalPadding,
+              top: verticalSpacing * 2,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ACTIVE JOBS Section (solo si hay trabajos aplicados)
+                if (_hasAppliedJobs && _appliedJobs.isNotEmpty) _buildActiveJobsSection(),
+                
+                SizedBox(height: verticalSpacing * 1.5),
+                
                 // ACTIVITY Section
                 Text(
                   "ACTIVITY",
@@ -271,8 +315,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.warning,
                   title: "Report harassment",
                   subtitle: "You can remain anonymous",
-                  onTap: () {
-                    print('Report harassment pressed');
+                  onTap: () async {
+                    final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    } else {
+                      print('Could not launch $url');
+                    }
                   },
                 ),
                 
@@ -323,6 +372,154 @@ class _HomeScreenState extends State<HomeScreen> {
     return MessagesScreen(flavor: _currentFlavor);
   }
 
+  Widget _buildApplyForJobBanner() {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    
+    final horizontalPadding = screenWidth * 0.06;
+    final verticalSpacing = screenHeight * 0.025;
+    final bodyFontSize = screenWidth * 0.035;
+
+    return GestureDetector(
+      onTap: _handleApplyForJob,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding * 0.6,
+          vertical: verticalSpacing * 1.2,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, 2),
+              blurRadius: 8,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.search,
+              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              size: bodyFontSize * 1.3,
+            ),
+            SizedBox(width: horizontalPadding * 0.4),
+            Expanded(
+              child: Text(
+                'Apply for a job',
+                style: GoogleFonts.poppins(
+                  fontSize: bodyFontSize,
+                  fontWeight: FontWeight.w600,
+                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              size: bodyFontSize * 1.1,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveJobsSection() {
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    
+    final horizontalPadding = screenWidth * 0.06;
+    final verticalSpacing = screenHeight * 0.025;
+    final sectionTitleFontSize = screenWidth * 0.045;
+    final bodyFontSize = screenWidth * 0.035;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header con título y "Show all"
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "ACTIVE JOBS",
+              style: GoogleFonts.poppins(
+                fontSize: sectionTitleFontSize,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                letterSpacing: 0.5,
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => AppliedJobsScreen(
+                      flavor: _currentFlavor,
+                      appliedJobs: _appliedJobs,
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Show all',
+                style: GoogleFonts.poppins(
+                  fontSize: bodyFontSize * 0.9,
+                  fontWeight: FontWeight.w500,
+                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ],
+        ),
+        
+        SizedBox(height: verticalSpacing * 0.8),
+        
+        // Instrucción
+        Text(
+          'In order to get paid submit your timesheet daily',
+          style: GoogleFonts.poppins(
+            fontSize: bodyFontSize * 0.85,
+            color: Colors.grey[600],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+        
+        SizedBox(height: verticalSpacing * 1.5),
+        
+                  // Swiper con cards de trabajos aplicados
+          Container(
+            height: screenHeight * 0.28, // Altura reducida para cards más compactas
+            child: PageView.builder(
+            itemCount: _appliedJobs.length,
+            itemBuilder: (context, index) {
+              final job = _appliedJobs[index];
+              return AppliedJobCard(
+                job: job,
+                onShowDetails: () {
+                  print('Show details for job: ${job.companyName}');
+                },
+                onSubmitTimesheet: () {
+                  print('Submit timesheet for job: ${job.companyName}');
+                },
+                onQuickNotify: () {
+                  print('Quick notify for job: ${job.companyName}');
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildFloatingBanner() {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
@@ -338,71 +535,73 @@ class _HomeScreenState extends State<HomeScreen> {
       top: verticalSpacing * 6,
       left: horizontalPadding,
       right: horizontalPadding,
-      child: Container(
-        padding: EdgeInsets.all(horizontalPadding * 0.4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-              spreadRadius: 0,
+      child: _hasAppliedJobs && _appliedJobs.isNotEmpty 
+        ? _buildApplyForJobBanner()
+        : Container(
+            padding: EdgeInsets.all(horizontalPadding * 0.4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: const Offset(0, 2),
+                  blurRadius: 8,
+                  spreadRadius: 0,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              "No active jobs yet",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: sectionTitleFontSize * 0.85,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            SizedBox(height: verticalSpacing * 0.2),
-            Text(
-              "Once you get hired, you'll see your timesheets to submit here",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: bodyFontSize * 0.8,
-                color: Colors.grey[700],
-                height: 1.1,
-              ),
-            ),
-            SizedBox(height: verticalSpacing * 1.0),
-            Center(
-              child: SizedBox(
-                width: screenWidth * 0.45,
-                height: screenHeight * 0.05,
-                child: ElevatedButton(
-                  onPressed: _handleApplyForJob,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  "No active jobs yet",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: sectionTitleFontSize * 0.85,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                  child: Text(
-                    "Apply for a job now",
-                    style: GoogleFonts.poppins(
-                      fontSize: buttonFontSize * 0.75,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                ),
+                SizedBox(height: verticalSpacing * 0.2),
+                Text(
+                  "Once you get hired, you'll see your timesheets to submit here",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: bodyFontSize * 0.8,
+                    color: Colors.grey[700],
+                    height: 1.1,
+                  ),
+                ),
+                SizedBox(height: verticalSpacing * 1.0),
+                Center(
+                  child: SizedBox(
+                    width: screenWidth * 0.45,
+                    height: screenHeight * 0.05,
+                    child: ElevatedButton(
+                      onPressed: _handleApplyForJob,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(
+                        "Apply for a job now",
+                        style: GoogleFonts.poppins(
+                          fontSize: buttonFontSize * 0.75,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
@@ -431,7 +630,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Main Content basado en el tab seleccionado
                 _buildCurrentView(),
                 
-                // Banner flotante solo para Home tab
+                // Banner flotante para Home tab
                 if (_selectedIndex == 0) _buildFloatingBanner(),
               ],
             ),

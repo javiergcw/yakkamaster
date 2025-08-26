@@ -140,18 +140,7 @@ class JobCard extends StatelessWidget {
               ),
               const Spacer(),
               GestureDetector(
-                onTap: () {
-                  // Navegar a la pantalla de detalles
-                  final jobDetails = JobDetailsDto.fromJobDto(job);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => JobDetailsScreen(
-                        jobDetails: jobDetails,
-                        flavor: _currentFlavor,
-                      ),
-                    ),
-                  );
-                },
+                onTap: onShowMore,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: horizontalPadding * 0.8,

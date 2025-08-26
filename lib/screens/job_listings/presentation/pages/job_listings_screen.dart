@@ -33,6 +33,13 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
     _controller.onCountdownChanged = () => setState(() {});
     _controller.initialize();
   }
+  
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pasar el contexto al controlador para navegación
+    _controller.setNavigationContext(context, _currentFlavor);
+  }
 
   @override
   void dispose() {

@@ -4,6 +4,16 @@ import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../../../../features/widgets/custom_text_field.dart';
+import 'edit_bank_details_no_payid_screen.dart';
+
+/*
+ * CONFIGURACIÓN DE VERIFICACIÓN BANCARIA:
+ * 
+ * Para activar/desactivar el comportamiento de verificación de datos bancarios:
+ * - Cambiar _enableBankVerification a true: Cuando el usuario marca "I don't have a Pay ID",
+ *   será redirigido a la pantalla de detalles bancarios tradicionales (BSB, Account Number, etc.)
+ * - Cambiar _enableBankVerification a false: El comportamiento normal se mantiene sin redirección
+ */
 
 class EditBankDetailsScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -26,7 +36,10 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
   
   // Variables para el estado
   String _selectedPayIdType = 'EMAIL';
-  bool _dontHavePayId = false;
+  bool _dontHavePayId = false; // Cambiar a false para que el campo Pay ID esté habilitado por defecto
+  
+  // Variable para activar/desactivar el comportamiento de verificación
+  static const bool _enableBankVerification = true; // Cambiar a false para desactivar
   
   final List<String> _payIdTypes = [
     'EMAIL',
@@ -34,6 +47,20 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
     'ABN',
     'ORGANISATION_ID'
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Agregar listeners para actualizar el estado en tiempo real
+    _abnController.addListener(() {
+      setState(() {});
+    });
+    
+    _payIdController.addListener(() {
+      setState(() {});
+    });
+  }
 
   void _showPayIdTypeDropdown() {
     final mediaQuery = MediaQuery.of(context);
@@ -104,6 +131,12 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
     );
   }
 
+  // Función para verificar si el usuario tiene datos bancarios configurados
+  bool _hasBankDetails() {
+    return _abnController.text.isNotEmpty && 
+           (!_dontHavePayId ? _payIdController.text.isNotEmpty : true);
+  }
+
   void _handleSave() {
     // Validar campos requeridos
     if (_abnController.text.isEmpty) {
@@ -126,6 +159,19 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
       return;
     }
     
+    // Verificar si el usuario no tiene Pay ID y la verificación está habilitada
+    if (_dontHavePayId && _enableBankVerification) {
+      // Navegar a la pantalla de detalles bancarios tradicionales
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => EditBankDetailsNoPayIdScreen(
+            flavor: _currentFlavor,
+          ),
+        ),
+      );
+      return;
+    }
+    
     // Mostrar mensaje de éxito
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -141,6 +187,8 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
 
   @override
   void dispose() {
+    _abnController.removeListener(() {});
+    _payIdController.removeListener(() {});
     _abnController.dispose();
     _payIdController.dispose();
     super.dispose();
@@ -204,6 +252,47 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                     ),
 
                     SizedBox(height: verticalSpacing * 3),
+
+                    // Indicador de estado de datos bancarios
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(horizontalPadding * 0.8),
+                      decoration: BoxDecoration(
+                        color: _hasBankDetails() 
+                          ? Colors.green.withOpacity(0.1)
+                          : Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _hasBankDetails() 
+                            ? Colors.green.withOpacity(0.3)
+                            : Colors.orange.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _hasBankDetails() ? Icons.check_circle : Icons.warning,
+                            color: _hasBankDetails() ? Colors.green : Colors.orange,
+                            size: screenWidth * 0.05,
+                          ),
+                          SizedBox(width: horizontalPadding * 0.5),
+                          Expanded(
+                            child: Text(
+                              _hasBankDetails() 
+                                ? 'Bank details are configured'
+                                : 'Bank details need to be configured',
+                              style: GoogleFonts.poppins(
+                                fontSize: noteFontSize,
+                                fontWeight: FontWeight.w500,
+                                color: _hasBankDetails() ? Colors.green[700] : Colors.orange[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing * 2),
 
                     // Campo ABN
                     Text(
