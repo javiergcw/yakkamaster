@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'config/app_flavor.dart';
 import 'config/assets_config.dart';
 import 'screens/join_splash_screen.dart';
@@ -22,7 +23,7 @@ class YakkaSportsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: AppFlavorConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(

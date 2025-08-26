@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'assets_config.dart';
 
+// Re-export AppFlavor enum for easier access
+export 'assets_config.dart' show AppFlavor;
+
 // Usar el enum de AssetsConfig
 
 class AppFlavorConfig {

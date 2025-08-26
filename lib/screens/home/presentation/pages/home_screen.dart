@@ -4,6 +4,7 @@ import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../widgets/activity_item.dart';
+import 'invoice_screen.dart';
 import '../widgets/profile_item.dart';
 import '../widgets/sidebar.dart';
 import 'digital_id_screen.dart';
@@ -245,7 +246,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.receipt,
                   title: "Invoices",
                   onTap: () {
-                    print('Invoices pressed');
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InvoiceScreen(flavor: _currentFlavor),
+                      ),
+                    );
                   },
                 ),
                 

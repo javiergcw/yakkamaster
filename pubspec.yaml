@@ -46,6 +46,9 @@ dependencies:
   qr_flutter: ^4.1.0
   share_plus: ^7.2.1
   path_provider: ^2.1.1
+  http: ^1.1.0
+  dio: ^5.4.0
+  mime: ^1.0.4
 
 dev_dependencies:
   flutter_test:

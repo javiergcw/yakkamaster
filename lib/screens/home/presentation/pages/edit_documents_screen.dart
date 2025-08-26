@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../../features/widgets/custom_button.dart';
+import '../../../../features/widgets/upload_progress_widget.dart';
+import '../../home_module.dart';
 
 class EditDocumentsScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -18,24 +21,8 @@ class EditDocumentsScreen extends StatefulWidget {
 }
 
 class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
-  String? _selectedCredential;
-  final List<String> _credentials = [
-    'Driver License',
-    'Forklift License',
-    'White Card',
-    'First Aid Certificate',
-    'Working at Heights',
-    'Confined Spaces',
-    'Other'
-  ];
-
-  final List<Map<String, dynamic>> _documents = [
-    {'type': 'Resume', 'file': 'resume.pdf', 'uploaded': true, 'path': '/path/to/resume.pdf', 'size': 1024000},
-    {'type': 'Cover letter', 'file': null, 'uploaded': false},
-    {'type': 'Police check', 'file': 'police_check.pdf', 'uploaded': true, 'path': '/path/to/police_check.pdf', 'size': 512000},
-    {'type': 'Other', 'file': null, 'uploaded': false},
-  ];
-
+  final DocumentController _documentController = Get.put(DocumentController());
+  
   AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
 
   void _showCredentialDropdown() {
@@ -81,20 +68,18 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: _credentials.length,
+                itemCount: _documentController.credentials.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(
-                      _credentials[index],
+                      _documentController.credentials[index],
                       style: GoogleFonts.poppins(
                         fontSize: itemFontSize,
                         color: Colors.black87,
                       ),
                     ),
                     onTap: () {
-                      setState(() {
-                        _selectedCredential = _credentials[index];
-                      });
+                      _documentController.setSelectedCredential(_documentController.credentials[index]);
                       Navigator.pop(context);
                     },
                   );
@@ -108,123 +93,23 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
   }
 
   void _addLicense() {
-    if (_selectedCredential == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona un tipo de credencial'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Credencial $_selectedCredential agregada'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
+    _documentController.addCredential();
   }
 
   Future<void> _uploadDocument(int index) async {
-    try {
-      // Abrir selector de archivos
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
-        allowMultiple: false,
-      );
-
-      if (result != null) {
-        PlatformFile file = result.files.first;
-        
-        setState(() {
-          _documents[index]['uploaded'] = true;
-          _documents[index]['file'] = file.name;
-          _documents[index]['path'] = file.path;
-          _documents[index]['size'] = file.size;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_documents[index]['type']} subido exitosamente: ${file.name}'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-          ),
-        );
-      } else {
-        // Usuario canceló la selección
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Selección de archivo cancelada'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar archivo: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    await _documentController.uploadDocument(index);
   }
 
   void _deleteDocument(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Eliminar documento'),
-          content: Text('¿Estás seguro de que quieres eliminar ${_documents[index]['type']}?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _documents[index]['uploaded'] = false;
-                  _documents[index]['file'] = null;
-                  _documents[index]['path'] = null;
-                  _documents[index]['size'] = null;
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${_documents[index]['type']} eliminado'),
-                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                  ),
-                );
-              },
-              child: const Text('Eliminar'),
-            ),
-          ],
-        );
-      },
-    );
+    _documentController.deleteDocument(index);
   }
 
   String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+    return _documentController.formatFileSize(bytes);
   }
 
   void _handleSave() {
-    // Mostrar mensaje de éxito
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Documents updated successfully'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-    
-    // Navegar de vuelta
-    Navigator.of(context).pop();
+    _documentController.saveDocuments();
   }
 
   @override
@@ -283,14 +168,55 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   
                   SizedBox(height: verticalSpacing * 3),
                   
+                  // Widget de progreso de subida
+                  Obx(() {
+                    if (_documentController.isUploading.value) {
+                      return UploadProgressWidget(
+                        progress: _documentController.uploadProgress.value,
+                        fileName: _documentController.uploadingFileName.value,
+                        onCancel: () {
+                          // Aquí podrías implementar la cancelación de la subida
+                          _documentController.isUploading.value = false;
+                        },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                  
+                  SizedBox(height: verticalSpacing * 2),
+                  
                   // Sección Add Credentials
-                  Text(
-                    "Add your Credentials",
-                    style: GoogleFonts.poppins(
-                      fontSize: sectionFontSize,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          "Add your Credentials",
+                          style: GoogleFonts.poppins(
+                            fontSize: sectionFontSize,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      Obx(() => Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding * 0.5,
+                          vertical: verticalSpacing * 0.3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${_documentController.uploadedDocumentsCount} subidos',
+                          style: GoogleFonts.poppins(
+                            fontSize: buttonFontSize * 0.8,
+                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )),
+                    ],
                   ),
                   
                   SizedBox(height: verticalSpacing * 2),
@@ -314,13 +240,17 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    _selectedCredential ?? "Select credential",
+                                  child: Obx(() => Text(
+                                    _documentController.selectedCredential.value.isNotEmpty 
+                                        ? _documentController.selectedCredential.value 
+                                        : "Select credential",
                                     style: GoogleFonts.poppins(
                                       fontSize: buttonFontSize,
-                                      color: _selectedCredential != null ? Colors.black : Colors.grey[600],
+                                      color: _documentController.selectedCredential.value.isNotEmpty 
+                                          ? Colors.black 
+                                          : Colors.grey[600],
                                     ),
-                                  ),
+                                  )),
                                 ),
                                 Icon(
                                   Icons.keyboard_arrow_down,
@@ -379,123 +309,125 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   SizedBox(height: verticalSpacing * 3),
                   
                   // Documentos opcionales
-                  ...List.generate(_documents.length, (index) {
-                    final document = _documents[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () async => await _uploadDocument(index),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: horizontalPadding * 0.8,
-                                    vertical: verticalSpacing * 1.2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.3)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.upload_file,
-                                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                        size: screenWidth * 0.05,
-                                      ),
-                                      SizedBox(width: horizontalPadding * 0.5),
-                                      Expanded(
-                                        child: Text(
-                                          "Upload ${document['type'].toString().toLowerCase()}",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: buttonFontSize,
-                                            fontWeight: FontWeight.w500,
-                                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  Obx(() => Column(
+                    children: List.generate(_documentController.documents.length, (index) {
+                      final document = _documentController.documents[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () async => await _uploadDocument(index),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: horizontalPadding * 0.8,
+                                      vertical: verticalSpacing * 1.2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.3)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.upload_file,
+                                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                          size: screenWidth * 0.05,
+                                        ),
+                                        SizedBox(width: horizontalPadding * 0.5),
+                                        Expanded(
+                                          child: Text(
+                                            "Upload ${document.type.toLowerCase()}",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: buttonFontSize,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: horizontalPadding * 0.5),
-                            Text(
-                              "(Optional)",
+                              SizedBox(width: horizontalPadding * 0.5),
+                              Text(
+                                "(Optional)",
+                                style: GoogleFonts.poppins(
+                                  fontSize: buttonFontSize * 0.8,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          Padding(
+                            padding: EdgeInsets.only(left: horizontalPadding * 0.8),
+                            child: Text(
+                              ".pdf .doc .docx",
                               style: GoogleFonts.poppins(
                                 fontSize: buttonFontSize * 0.8,
                                 color: Colors.grey[600],
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: verticalSpacing * 0.5),
-                        Padding(
-                          padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                          child: Text(
-                            ".pdf .doc .docx",
-                            style: GoogleFonts.poppins(
-                              fontSize: buttonFontSize * 0.8,
-                              color: Colors.grey[600],
-                            ),
                           ),
-                        ),
-                        if (document['uploaded'] == true) ...[
-                          SizedBox(height: verticalSpacing * 0.5),
-                          Padding(
-                            padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                      size: screenWidth * 0.04,
-                                    ),
-                                    SizedBox(width: horizontalPadding * 0.3),
-                                    Expanded(
-                                      child: Text(
-                                        document['file'],
-                                        style: GoogleFonts.poppins(
-                                          fontSize: buttonFontSize * 0.8,
-                                          color: Colors.green[700],
-                                          fontWeight: FontWeight.w500,
+                          if (_documentController.isDocumentReallyUploaded(document)) ...[
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Padding(
+                              padding: EdgeInsets.only(left: horizontalPadding * 0.8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                        size: screenWidth * 0.04,
+                                      ),
+                                      SizedBox(width: horizontalPadding * 0.3),
+                                      Expanded(
+                                        child: Text(
+                                          document.fileName,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: buttonFontSize * 0.8,
+                                            color: Colors.green[700],
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () => _deleteDocument(index),
-                                      child: Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                        size: screenWidth * 0.04,
+                                      GestureDetector(
+                                        onTap: () => _deleteDocument(index),
+                                        child: Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                          size: screenWidth * 0.04,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (document.fileSize != null) ...[
+                                    SizedBox(height: verticalSpacing * 0.3),
+                                    Text(
+                                      'Tamaño: ${_formatFileSize(document.fileSize!)}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: buttonFontSize * 0.7,
+                                        color: Colors.grey[600],
                                       ),
                                     ),
                                   ],
-                                ),
-                                if (document['size'] != null) ...[
-                                  SizedBox(height: verticalSpacing * 0.3),
-                                  Text(
-                                    'Tamaño: ${_formatFileSize(document['size'])}',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: buttonFontSize * 0.7,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
+                          SizedBox(height: verticalSpacing * 2),
                         ],
-                        SizedBox(height: verticalSpacing * 2),
-                      ],
-                    );
-                  }),
+                      );
+                    }),
+                  )),
                   
                   const Spacer(),
                   
