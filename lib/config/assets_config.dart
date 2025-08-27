@@ -7,6 +7,7 @@ enum AssetType {
   background,
   respect,
   logoMiddle,
+  employees,
 }
 
 enum AppFlavor {
@@ -24,6 +25,7 @@ class AssetsConfig {
       AssetType.background: 'assets/backgrounds/labour_bg.png',
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
+      AssetType.employees: 'assets/employees.png',
     },
     AppFlavor.sport: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -32,6 +34,7 @@ class AssetsConfig {
       AssetType.background: 'assets/backgrounds/sport_bg.png',
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
+      AssetType.employees: 'assets/employees.png',
     },
     AppFlavor.hospitality: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -40,6 +43,7 @@ class AssetsConfig {
       AssetType.background: 'assets/backgrounds/hospitality_bg.png',
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
+      AssetType.employees: 'assets/employees.png',
     },
   };
 
@@ -69,5 +73,9 @@ class AssetsConfig {
 
   static String getLogoMiddle(AppFlavor flavor) {
     return getAsset(flavor, AssetType.logoMiddle);
+  }
+
+  static String getEmployees(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.employees);
   }
 }

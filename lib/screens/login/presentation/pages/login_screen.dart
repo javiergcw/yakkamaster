@@ -8,7 +8,7 @@ import '../../../../features/widgets/phone_input.dart';
 import '../widgets/login_header.dart';
 import '../widgets/terms_conditions.dart';
 import '../widgets/login_divider.dart';
-import '../../../create_profile_labour/presentation/pages/stepper_selection_screen.dart';
+import 'stepper_selection_screen.dart';
 import 'email_login_screen.dart';
 
 class LoginScreen extends StatefulWidget {

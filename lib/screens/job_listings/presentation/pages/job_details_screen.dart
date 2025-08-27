@@ -5,7 +5,7 @@ import '../../../../config/assets_config.dart';
 import '../../data/dto/job_details_dto.dart';
 import '../widgets/job_map.dart';
 import '../widgets/application_success_modal.dart';
-import '../../../home/presentation/pages/edit_bank_details_screen.dart';
+import '../../../labour/home/presentation/pages/edit_bank_details_screen.dart';
 
 /*
  * CONFIGURACIÓN DE VERIFICACIÓN BANCARIA EN JOB DETAILS:

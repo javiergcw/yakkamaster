@@ -5,7 +5,7 @@ import '../../../../config/assets_config.dart';
 import '../../logic/job_listings_controller.dart';
 import '../widgets/job_card.dart';
 import '../widgets/search_bar.dart';
-import '../../../home/presentation/pages/home_screen.dart';
+import '../../../labour/home/presentation/pages/home_screen.dart';
 
 class JobListingsScreen extends StatefulWidget {
   final AppFlavor? flavor;

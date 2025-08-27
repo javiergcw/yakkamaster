@@ -6,7 +6,7 @@ import '../../../../features/widgets/custom_button.dart';
 import '../../../../features/widgets/custom_text_field.dart';
 import '../widgets/login_tabs.dart';
 import '../widgets/terms_conditions.dart';
-import '../../../create_profile_labour/presentation/pages/stepper_selection_screen.dart';
+import 'stepper_selection_screen.dart';
 
 class EmailLoginScreen extends StatefulWidget {
   final AppFlavor? flavor;
