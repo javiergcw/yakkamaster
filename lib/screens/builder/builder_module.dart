@@ -12,3 +12,4 @@ export 'home/home_module.dart';
 
 // Post Job Module
 export 'post_job/post_job_module.dart';
+export 'my_jobs/my_jobs_module.dart';

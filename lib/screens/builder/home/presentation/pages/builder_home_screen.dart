@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../widgets/sidebar.dart';
 import '../../../post_job/presentation/pages/job_sites_screen.dart';
 import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
+import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
+import '../../../applicants/presentation/pages/applicants_screen.dart';
+import '../../../applicants/logic/controllers/applicant_controller.dart';
 
 class BuilderHomeScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -22,6 +26,13 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
   
   int _selectedIndex = 0; // Home tab selected
   bool _isSidebarOpen = false; // Control del sidebar
+
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar el controlador de applicants para el punto rojo
+    Get.put(ApplicantController());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +316,14 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
                 icon: Icons.work,
                 title: "Jobs",
                 onTap: () {
-                  // TODO: Navegar a jobs
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MyJobsScreen(
+                        flavor: _currentFlavor,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -315,7 +333,14 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
                 icon: Icons.people,
                 title: "Applicants",
                 onTap: () {
-                  // TODO: Navegar a applicants
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ApplicantsScreen(
+                        flavor: _currentFlavor,
+                      ),
+                    ),
+                  );
                 },
               ),
             ),
@@ -445,24 +470,49 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey[300]!),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
+        alignment: Alignment.center, // Centrar todo el contenido del contenedor
+        child: Stack(
           children: [
-            Icon(
-              icon,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-              size: 40, // Icono más grande
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
+              crossAxisAlignment: CrossAxisAlignment.center, // Centrar horizontalmente
+              children: [
+                Icon(
+                  icon,
+                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  size: 40, // Icono más grande
+                ),
+                const SizedBox(height: 12), // Más espacio entre icono y texto
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 12), // Más espacio entre icono y texto
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+            // Punto rojo para nuevos applicants
+            if (title == "Applicants")
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Obx(() {
+                  final controller = Get.find<ApplicantController>();
+                  return controller.hasNewApplicants
+                      ? Container(
+                          width: 12,
+                          height: 12,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : const SizedBox.shrink();
+                }),
               ),
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
       ),
