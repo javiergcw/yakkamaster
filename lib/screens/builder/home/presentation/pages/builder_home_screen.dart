@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../widgets/sidebar.dart';
+import '../../../post_job/presentation/pages/job_sites_screen.dart';
+import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 
 class BuilderHomeScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -212,7 +214,11 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
 
     return GestureDetector(
       onTap: () {
-        // TODO: Navegar a post job
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PostJobStepperScreen(flavor: _currentFlavor),
+          ),
+        );
       },
       child: Container(
         width: double.infinity,
@@ -369,7 +375,11 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           title: "See your job sites",
           subtitle: "Get report by workplaces",
           onTap: () {
-            // TODO: Navegar a job sites
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => JobSitesScreen(flavor: _currentFlavor),
+              ),
+            );
           },
         ),
       ],

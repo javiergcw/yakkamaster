@@ -18,6 +18,7 @@ class CustomButton extends StatelessWidget {
   final double? width;
   final double? height;
   final AppFlavor? flavor;
+  final bool showShadow;
 
   const CustomButton({
     super.key,
@@ -29,6 +30,7 @@ class CustomButton extends StatelessWidget {
     this.width,
     this.height,
     this.flavor,
+    this.showShadow = true,
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
@@ -50,7 +52,7 @@ class CustomButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          boxShadow: type == ButtonType.primary ? [
+          boxShadow: (type == ButtonType.primary && showShadow) ? [
             BoxShadow(
               color: const Color(0xFF000000),
               offset: const Offset(0, 8),

@@ -6,12 +6,14 @@ class CompanySelectionDialog extends StatefulWidget {
   final AppFlavor? flavor;
   final Function(String) onCompanySelected;
   final Function() onRegisterNewCompany;
+  final List<String>? additionalCompanies;
 
   const CompanySelectionDialog({
     super.key,
     this.flavor,
     required this.onCompanySelected,
     required this.onRegisterNewCompany,
+    this.additionalCompanies,
   });
 
   @override
@@ -32,6 +34,10 @@ class _CompanySelectionDialogState extends State<CompanySelectionDialog> {
   @override
   void initState() {
     super.initState();
+    // Agregar empresas adicionales si se proporcionan
+    if (widget.additionalCompanies != null) {
+      _availableCompanies.addAll(widget.additionalCompanies!);
+    }
     _filteredCompanies = List.from(_availableCompanies);
   }
 
@@ -49,6 +55,15 @@ class _CompanySelectionDialogState extends State<CompanySelectionDialog> {
         _filteredCompanies = _availableCompanies
             .where((company) => company.toLowerCase().contains(query.toLowerCase()))
             .toList();
+      }
+    });
+  }
+
+  void addNewCompany(String companyName) {
+    setState(() {
+      if (!_availableCompanies.contains(companyName)) {
+        _availableCompanies.add(companyName);
+        _filteredCompanies = List.from(_availableCompanies);
       }
     });
   }

@@ -11,6 +11,7 @@ import '../../../../../features/widgets/phone_input.dart';
 import '../widgets/company_selection_dialog.dart';
 import '../widgets/profile_image_section.dart';
 import 'employee_selection_screen.dart';
+import 'register_new_company_screen.dart';
 
 class CreateProfileBuilderScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -37,6 +38,9 @@ class _CreateProfileBuilderScreenState extends State<CreateProfileBuilderScreen>
   // Variables para la imagen de perfil
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
+  
+  // Lista de empresas creadas por el usuario
+  final List<String> _userCreatedCompanies = [];
 
 
 
@@ -294,10 +298,25 @@ class _CreateProfileBuilderScreenState extends State<CreateProfileBuilderScreen>
               },
               onRegisterNewCompany: () {
                 print('Register new company tapped');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Register new company functionality coming soon!')),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RegisterNewCompanyScreen(
+                      flavor: _currentFlavor,
+                      onCompanyCreated: (String newCompany) {
+                        // Agregar la nueva empresa a la lista y seleccionarla
+                        setState(() {
+                          if (!_userCreatedCompanies.contains(newCompany)) {
+                            _userCreatedCompanies.add(newCompany);
+                          }
+                          _companyNameController.text = newCompany;
+                        });
+                      },
+                    ),
+                  ),
                 );
               },
+              additionalCompanies: _userCreatedCompanies,
             ),
           );
         },
