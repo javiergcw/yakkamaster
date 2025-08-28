@@ -4,6 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../config/app_flavor.dart';
 import 'builder_home_screen.dart';
 import 'worker_list_screen.dart';
+import 'messages_screen.dart';
 
 class MapScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -538,7 +539,12 @@ class _MapScreenState extends State<MapScreen> {
         } else if (index == 1) { // Map - already here
           // Do nothing, we're already on map
         } else if (index == 2) { // Messages
-          // TODO: Navigate to Messages screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessagesScreen(flavor: widget.flavor),
+            ),
+          );
         } else if (index == 3) { // Profile
           // TODO: Navigate to Profile screen
         }

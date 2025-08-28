@@ -86,9 +86,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 horizontal: horizontalPadding,
                 vertical: verticalSpacing * 2,
               ),
-                             decoration: BoxDecoration(
-                 color: Colors.grey[800],
-               ),
+                                                          decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                ),
               child: Row(
                 children: [
                   IconButton(

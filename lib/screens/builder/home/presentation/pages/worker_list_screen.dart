@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import 'builder_home_screen.dart';
+import 'messages_screen.dart';
 
 class WorkerListScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -499,7 +500,12 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
         } else if (index == 1) { // Map
           Navigator.pop(context); // Go back to map
         } else if (index == 2) { // Messages
-          // TODO: Navigate to Messages screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessagesScreen(flavor: widget.flavor),
+            ),
+          );
         } else if (index == 3) { // Profile
           // TODO: Navigate to Profile screen
         }

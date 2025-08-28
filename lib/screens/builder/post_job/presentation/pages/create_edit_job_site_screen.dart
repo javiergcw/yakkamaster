@@ -35,6 +35,11 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Registrar el controlador si no existe
+    if (!Get.isRegistered<JobSiteController>()) {
+      Get.put(JobSiteController());
+    }
     _controller = Get.find<JobSiteController>();
     
     // Si estamos editando, llenar los campos con los datos existentes

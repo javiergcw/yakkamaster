@@ -9,6 +9,8 @@ import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
 import '../../../applicants/presentation/pages/applicants_screen.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
 import 'map_screen.dart';
+import '../../../staff/presentation/pages/staff_screen.dart';
+import 'messages_screen.dart';
 
 class BuilderHomeScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -392,7 +394,12 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           title: "Staff",
           subtitle: "Chat, review or unhire workers",
           onTap: () {
-            // TODO: Navegar a staff
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => StaffScreen(flavor: _currentFlavor),
+              ),
+            );
           },
         ),
         
@@ -662,8 +669,15 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
               builder: (context) => MapScreen(flavor: _currentFlavor),
             ),
           );
+        } else if (index == 2) { // Messages
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MessagesScreen(flavor: _currentFlavor),
+            ),
+          );
         }
-        // TODO: Add navigation for Messages and Profile
+        // TODO: Add navigation for Profile
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
