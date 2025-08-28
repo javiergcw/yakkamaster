@@ -8,6 +8,7 @@ import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
 import '../../../applicants/presentation/pages/applicants_screen.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
+import 'map_screen.dart';
 
 class BuilderHomeScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -32,6 +33,8 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
     super.initState();
     // Inicializar el controlador de applicants para el punto rojo
     Get.put(ApplicantController());
+    // Asegurar que Home esté seleccionado cuando se navega desde Map
+    _selectedIndex = 0;
   }
 
   @override
@@ -470,29 +473,31 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey[300]!),
         ),
-        alignment: Alignment.center, // Centrar todo el contenido del contenedor
         child: Stack(
           children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
-              crossAxisAlignment: CrossAxisAlignment.center, // Centrar horizontalmente
-              children: [
-                Icon(
-                  icon,
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                  size: 40, // Icono más grande
-                ),
-                const SizedBox(height: 12), // Más espacio entre icono y texto
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+            // Contenido principal centrado
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center, // Centrar contenido verticalmente
+                crossAxisAlignment: CrossAxisAlignment.center, // Centrar contenido horizontalmente
+                children: [
+                  Icon(
+                    icon,
+                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                    size: 40, // Icono más grande
                   ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                  const SizedBox(height: 12), // Más espacio entre icono y texto
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
             // Punto rojo para nuevos applicants
             if (title == "Applicants")
@@ -633,10 +638,10 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildBottomNavItem(Icons.grid_view, 'Home', 0, true),
-          _buildBottomNavItem(Icons.map, 'Map', 1, false),
-          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, false),
-          _buildBottomNavItem(Icons.person, 'Profile', 3, false),
+          _buildBottomNavItem(Icons.grid_view, 'Home', 0, _selectedIndex == 0),
+          _buildBottomNavItem(Icons.map, 'Map', 1, _selectedIndex == 1),
+          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, _selectedIndex == 2),
+          _buildBottomNavItem(Icons.person, 'Profile', 3, _selectedIndex == 3),
         ],
       ),
     );
@@ -648,6 +653,17 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
         setState(() {
           _selectedIndex = index;
         });
+        
+        // Navigate to different screens based on index
+        if (index == 1) { // Map
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MapScreen(flavor: _currentFlavor),
+            ),
+          );
+        }
+        // TODO: Add navigation for Messages and Profile
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
