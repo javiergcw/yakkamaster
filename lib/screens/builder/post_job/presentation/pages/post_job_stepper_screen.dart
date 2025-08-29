@@ -10,10 +10,12 @@ import '../../logic/controllers/post_job_controller.dart';
 
 class PostJobStepperScreen extends StatefulWidget {
   final AppFlavor? flavor;
+  final List<dynamic>? selectedJobSites;
 
   const PostJobStepperScreen({
     super.key,
     this.flavor,
+    this.selectedJobSites,
   });
 
   @override
@@ -62,6 +64,12 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
     // Asegurar que el controlador esté en el paso correcto
     _controller.goToStep(1);
     _filteredSkills = List.from(_allSkills);
+    
+    // Si hay jobsites seleccionados, inicializarlos en el controlador
+    if (widget.selectedJobSites != null && widget.selectedJobSites!.isNotEmpty) {
+      // TODO: Pasar los jobsites seleccionados al controlador
+      print('Selected job sites: ${widget.selectedJobSites}');
+    }
   }
 
   @override

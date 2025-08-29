@@ -7,10 +7,12 @@ import '../../data/data.dart';
 
 class UnhireWorkersStepper extends StatefulWidget {
   final AppFlavor? flavor;
+  final List<JobsiteWorkersDto> workers;
 
   const UnhireWorkersStepper({
     super.key,
     this.flavor,
+    required this.workers,
   });
 
   @override
@@ -20,38 +22,13 @@ class UnhireWorkersStepper extends StatefulWidget {
 class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
   int _currentStep = 0;
   List<String> _selectedWorkerIds = [];
-  final List<WorkerDto> _mockWorkers = [
-    WorkerDto(
-      id: '1',
-      name: 'davide rinaldo',
-      role: 'General Labourer',
-      hourlyRate: '\$32.00/hr',
-      imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      isActive: true,
-      jobsiteId: '1',
-      jobsiteName: 'Pyrmont',
-    ),
-    WorkerDto(
-      id: '2',
-      name: 'Pietro Giuffre',
-      role: 'Carpenter',
-      hourlyRate: '\$45.00/hr',
-      imageUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isActive: true,
-      jobsiteId: '1',
-      jobsiteName: 'Pyrmont',
-    ),
-    WorkerDto(
-      id: '3',
-      name: 'Ramiro Ignacio Arevalo',
-      role: 'Electrician',
-      hourlyRate: '\$50.00/hr',
-      imageUrl: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      isActive: true,
-      jobsiteId: '1',
-      jobsiteName: 'Pyrmont',
-    ),
-  ];
+  List<WorkerDto> get _allWorkers {
+    List<WorkerDto> allWorkers = [];
+    for (var jobsite in widget.workers) {
+      allWorkers.addAll(jobsite.workers);
+    }
+    return allWorkers;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -199,11 +176,11 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
               GestureDetector(
                 onTap: () {
                   setState(() {
-                    if (_selectedWorkerIds.length == _mockWorkers.length) {
-                      _selectedWorkerIds.clear();
-                    } else {
-                      _selectedWorkerIds = _mockWorkers.map((w) => w.id).toList();
-                    }
+                            if (_selectedWorkerIds.length == _allWorkers.length) {
+          _selectedWorkerIds.clear();
+        } else {
+          _selectedWorkerIds = _allWorkers.map((w) => w.id).toList();
+        }
                   });
                 },
                 child: Row(
@@ -223,11 +200,11 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[400]!),
                         borderRadius: BorderRadius.circular(4),
-                        color: _selectedWorkerIds.length == _mockWorkers.length 
+                        color: _selectedWorkerIds.length == _allWorkers.length 
                             ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
                             : Colors.transparent,
                       ),
-                      child: _selectedWorkerIds.length == _mockWorkers.length
+                      child: _selectedWorkerIds.length == _allWorkers.length
                           ? Icon(
                               Icons.check,
                               size: 16,
@@ -244,9 +221,9 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
            // Workers list
           Expanded(
             child: ListView.builder(
-              itemCount: _mockWorkers.length,
-              itemBuilder: (context, index) {
-                final worker = _mockWorkers[index];
+                              itemCount: _allWorkers.length,
+                itemBuilder: (context, index) {
+                  final worker = _allWorkers[index];
                 final isSelected = _selectedWorkerIds.contains(worker.id);
                 
                 return Container(
@@ -399,7 +376,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                   spacing: 12,
                   runSpacing: 12,
                   children: _selectedWorkerIds.map((workerId) {
-                    final worker = _mockWorkers.firstWhere((w) => w.id == workerId);
+                    final worker = _allWorkers.firstWhere((w) => w.id == workerId);
                     return Stack(
                       children: [
                         Container(

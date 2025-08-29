@@ -12,6 +12,7 @@ import '../widgets/feedback_modal.dart';
 import '../widgets/extend_shifts_modal.dart';
 import '../widgets/unhire_confirmation_modal.dart';
 import '../../../home/presentation/pages/chat_screen.dart';
+import 'worker_profile_screen.dart';
 
 class StaffScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -118,48 +119,60 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                                             _buildQuickActionButton(
-                         icon: Icons.people,
-                         label: 'Move Workers',
-                         onTap: () {
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder: (context) => MoveWorkersStepper(
-                                 flavor: widget.flavor,
-                               ),
-                             ),
-                           );
-                         },
-                       ),
-                                             _buildQuickActionButton(
-                         icon: Icons.access_time,
-                         label: 'Extend shifts',
-                         onTap: () {
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder: (context) => ExtendShiftsStepper(
-                                 flavor: widget.flavor,
-                               ),
-                             ),
-                           );
-                         },
-                       ),
-                                             _buildQuickActionButton(
-                         icon: Icons.person_remove,
-                         label: 'Unhire workers',
-                         onTap: () {
-                           Navigator.push(
-                             context,
-                             MaterialPageRoute(
-                               builder: (context) => UnhireWorkersStepper(
-                                 flavor: widget.flavor,
-                               ),
-                             ),
-                           );
-                         },
-                       ),
+                      _buildQuickActionButton(
+                        icon: Icons.people,
+                        label: 'Move Workers',
+                        onTap: () {
+                          final currentWorkers = _tabController.index == 0 
+                              ? _staffController.getActiveJobsiteWorkers()
+                              : _staffController.getInactiveJobsiteWorkers();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MoveWorkersStepper(
+                                flavor: widget.flavor,
+                                workers: currentWorkers,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildQuickActionButton(
+                        icon: Icons.access_time,
+                        label: 'Extend shifts',
+                        onTap: () {
+                          final currentWorkers = _tabController.index == 0 
+                              ? _staffController.getActiveJobsiteWorkers()
+                              : _staffController.getInactiveJobsiteWorkers();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ExtendShiftsStepper(
+                                flavor: widget.flavor,
+                                workers: currentWorkers,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildQuickActionButton(
+                        icon: Icons.person_remove,
+                        label: 'Unhire workers',
+                        onTap: () {
+                          final currentWorkers = _tabController.index == 0 
+                              ? _staffController.getActiveJobsiteWorkers()
+                              : _staffController.getInactiveJobsiteWorkers();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UnhireWorkersStepper(
+                                flavor: widget.flavor,
+                                workers: currentWorkers,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -408,7 +421,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                   itemCount: jobsite.workers.length,
                   itemBuilder: (context, workerIndex) {
                     final worker = jobsite.workers[workerIndex];
-                    return _buildWorkerCard(worker);
+                    return _buildWorkerCard(worker, isActive: isActive);
                   },
                 ),
               ),
@@ -419,7 +432,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
     });
   }
 
-  Widget _buildWorkerCard(WorkerDto worker) {
+  Widget _buildWorkerCard(WorkerDto worker, {bool isActive = true}) {
     return Container(
       width: 280,
       margin: EdgeInsets.only(right: 16),
@@ -543,154 +556,253 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
           
           SizedBox(height: 12),
           
-          // Action Buttons
-          Row(
-            children: [
-                            // Rate Button
-              Expanded(
-                child: SizedBox(
-                  height: 32,
-                  child: OutlinedButton(
-                    onPressed: () {
-                                             showModalBottomSheet(
-                         context: context,
-                         isScrollControlled: true,
-                         backgroundColor: Colors.transparent,
-                         builder: (context) => FeedbackModal(
-                           workerName: worker.name,
-                           flavor: widget.flavor,
-                           onSubmit: (rating, feedback) {
-                             _staffController.rateWorker(worker.id, rating);
-                             // TODO: Handle feedback submission
-                             print('Rating: $rating, Feedback: $feedback for ${worker.name}');
-                           },
-                         ),
-                       );
-                    },
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.grey[300]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.star, size: 14, color: Colors.grey[600]),
-                        SizedBox(width: 3),
-                        Text(
-                          'Rate',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey[600],
+          // Action Buttons - Different for active vs inactive
+          if (isActive) ...[
+            // Active workers: Rate, Extend, Unhire
+            Row(
+              children: [
+                // Rate Button
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => FeedbackModal(
+                            workerName: worker.name,
+                            flavor: widget.flavor,
+                            onSubmit: (rating, feedback) {
+                              _staffController.rateWorker(worker.id, rating);
+                              // TODO: Handle feedback submission
+                              print('Rating: $rating, Feedback: $feedback for ${worker.name}');
+                            },
                           ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ],
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star, size: 14, color: Colors.grey[600]),
+                          SizedBox(width: 3),
+                          Text(
+                            'Rate',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              
-              SizedBox(width: 6),
-              
-                             // Extend Button
-               Expanded(
-                 child: SizedBox(
-                   height: 32,
-                   child: ElevatedButton(
-                     onPressed: () {
-                       showModalBottomSheet(
-                         context: context,
-                         isScrollControlled: true,
-                         backgroundColor: Colors.transparent,
-                         builder: (context) => ExtendShiftsModal(
-                           workerName: worker.name,
-                           flavor: widget.flavor,
-                           onSubmit: (startDate, endDate, isOngoing, workSaturdays, workSundays) {
-                             _staffController.extendWorker(worker.id, endDate);
-                             // TODO: Handle extended shift submission with all parameters
-                             print('Extend shift for ${worker.name}: Start: $startDate, End: $endDate, Ongoing: $isOngoing, Saturdays: $workSaturdays, Sundays: $workSundays');
-                           },
-                         ),
-                       );
-                     },
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
-                       foregroundColor: Colors.white,
-                       shape: RoundedRectangleBorder(
-                         borderRadius: BorderRadius.circular(6),
-                       ),
-                       padding: EdgeInsets.zero,
-                     ),
-                     child: Row(
-                       mainAxisAlignment: MainAxisAlignment.center,
-                       children: [
-                         Icon(Icons.calendar_today, size: 14),
-                         SizedBox(width: 3),
-                         Text(
-                           'Extend',
-                           style: GoogleFonts.poppins(
-                             fontSize: 11,
-                             fontWeight: FontWeight.w600,
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
-                 ),
-               ),
-              
-              SizedBox(width: 6),
-              
-              // Unhire Button
-              Expanded(
-                child: SizedBox(
-                  height: 32,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => UnhireConfirmationModal(
-                          workerName: worker.name,
-                          workerRole: worker.role,
-                          flavor: widget.flavor,
-                          onConfirm: () {
-                            _staffController.unhireWorker(worker.id);
-                          },
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[800],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      padding: EdgeInsets.zero,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.close, size: 14),
-                        SizedBox(width: 3),
-                        Text(
-                          'Unhire',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                
+                SizedBox(width: 6),
+                
+                // Extend Button
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => ExtendShiftsModal(
+                            workerName: worker.name,
+                            flavor: widget.flavor,
+                            onSubmit: (startDate, endDate, isOngoing, workSaturdays, workSundays) {
+                              _staffController.extendWorker(worker.id, endDate);
+                              // TODO: Handle extended shift submission with all parameters
+                              print('Extend shift for ${worker.name}: Start: $startDate, End: $endDate, Ongoing: $isOngoing, Saturdays: $workSaturdays, Sundays: $workSundays');
+                            },
                           ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ],
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.calendar_today, size: 14),
+                          SizedBox(width: 3),
+                          Text(
+                            'Extend',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                
+                SizedBox(width: 6),
+                
+                // Unhire Button
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => UnhireConfirmationModal(
+                            workerName: worker.name,
+                            workerRole: worker.role,
+                            flavor: widget.flavor,
+                            onConfirm: () {
+                              _staffController.unhireWorker(worker.id);
+                            },
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[800],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.close, size: 14),
+                          SizedBox(width: 3),
+                          Text(
+                            'Unhire',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Inactive workers: Rate, Rehire
+            Row(
+              children: [
+                // Rate Button
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => FeedbackModal(
+                            workerName: worker.name,
+                            flavor: widget.flavor,
+                            onSubmit: (rating, feedback) {
+                              _staffController.rateWorker(worker.id, rating);
+                              // TODO: Handle feedback submission
+                              print('Rating: $rating, Feedback: $feedback for ${worker.name}');
+                            },
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.grey[300]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star, size: 14, color: Colors.grey[600]),
+                          SizedBox(width: 3),
+                          Text(
+                            'Rate',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                
+                SizedBox(width: 6),
+                
+                // Rehire Button
+                Expanded(
+                  child: SizedBox(
+                    height: 32,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WorkerProfileScreen(
+                              worker: worker,
+                              flavor: widget.flavor,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_add, size: 14),
+                          SizedBox(width: 3),
+                          Text(
+                            'Rehire',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

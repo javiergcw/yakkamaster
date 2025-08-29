@@ -5,6 +5,7 @@ import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/job_site_controller.dart';
 import '../widgets/job_site_card.dart';
 import 'create_edit_job_site_screen.dart';
+import 'post_job_stepper_screen.dart';
 
 class JobSitesScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -298,15 +299,16 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
    }
 
      void _handleRequestWorkers() {
-     // TODO: Navegar a pantalla de request workers
-     print('Request workers for selected job sites');
-     ScaffoldMessenger.of(context).showSnackBar(
-       SnackBar(
-         content: Text('Request workers functionality coming soon!'),
-         duration: const Duration(seconds: 2),
-       ),
-     );
-   }
+       // Navegar al stepper de post job con los jobsites seleccionados
+       Navigator.of(context).push(
+         MaterialPageRoute(
+           builder: (context) => PostJobStepperScreen(
+             flavor: _currentFlavor,
+             selectedJobSites: _controller.selectedJobSites.toList(),
+           ),
+         ),
+       );
+     }
 
    void _handleCreateJobSite() {
      Navigator.of(context).push(

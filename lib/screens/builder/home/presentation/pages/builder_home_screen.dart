@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../widgets/sidebar.dart';
 import '../../../post_job/presentation/pages/job_sites_screen.dart';
+import 'job_sites_list_screen.dart';
 import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
 import '../../../applicants/presentation/pages/applicants_screen.dart';
@@ -232,7 +233,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => PostJobStepperScreen(flavor: _currentFlavor),
+            builder: (context) => JobSitesScreen(flavor: _currentFlavor),
           ),
         );
       },
@@ -412,7 +413,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => JobSitesScreen(flavor: _currentFlavor),
+                builder: (context) => JobSitesListScreen(flavor: _currentFlavor),
               ),
             );
           },
