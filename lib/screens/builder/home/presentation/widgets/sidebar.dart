@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../config/constants.dart';
+import '../pages/edit_personal_details_screen.dart';
 
 class Sidebar extends StatelessWidget {
   final AppFlavor? flavor;
@@ -30,340 +31,283 @@ class Sidebar extends StatelessWidget {
     final bodyFontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
 
-    return Material(
-      color: Colors.white,
-      child: Container(
-        width: screenWidth * 0.85, // 85% del ancho de la pantalla
-        height: double.infinity,
-        color: Colors.white,
-        child: Column(
-          children: [
-            // Header Section (Dark Grey)
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalSpacing * 2,
-              ),
-              decoration: BoxDecoration(
-                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-              ),
-              child: Row(
-                children: [
-                  // Profile Image
-                  Container(
-                    width: screenWidth * 0.15,
-                    height: screenWidth * 0.15,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[600],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: screenWidth * 0.08,
-                    ),
-                  ),
-                  
-                  SizedBox(width: horizontalPadding),
-                  
-                  // User Information
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Builder",
-                          style: GoogleFonts.poppins(
-                            fontSize: titleFontSize * 0.8,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          "Company Owner",
-                          style: GoogleFonts.poppins(
-                            fontSize: bodyFontSize * 0.9,
-                            color: Colors.white.withOpacity(0.8),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Close Button
-                  GestureDetector(
+    return Container(
+      width: double.infinity, // Ocupar todo el ancho
+      height: double.infinity,
+      color: Colors.grey[900]!.withOpacity(0.95), // Fondo semi-transparente
+      child: Column(
+        children: [
+          // Profile Information Section
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: Column(
+              children: [
+                // Close Button (top-left)
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: GestureDetector(
                     onTap: onClose,
-                    child: Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: iconSize,
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                     ),
+                  ),
+                ),
+                
+                SizedBox(height: 16),
+                
+                // Profile Picture
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      width: 2,
+                    ),
+                    image: DecorationImage(
+                      image: NetworkImage('https://via.placeholder.com/100/00ff00/000000?text=TB'),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: 16),
+                
+                // User Name
+                Text(
+                  'testing builder',
+                  style: GoogleFonts.poppins(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                
+                SizedBox(height: 8),
+                
+                // User ID
+                Text(
+                  'user ID #1321',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                
+                SizedBox(height: 24),
+                
+                // Statistics Row
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.grey[700]!),
+                      bottom: BorderSide(color: Colors.grey[700]!),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      // Jobs Statistic
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(
+                              '1',
+                              style: GoogleFonts.poppins(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              'Jobs',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      // Vertical Divider
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.white,
+                      ),
+                      
+                      // Rating Statistic
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '5.0',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(
+                                  Icons.star,
+                                  color: Colors.yellow,
+                                  size: 24,
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Rating',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          // Menu Options
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _buildMenuItem(
+                    icon: Icons.help_outline,
+                    title: 'Help',
+                    onTap: () async {
+                      final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
+                      try {
+                        if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+                          await launchUrl(
+                            Uri.parse(whatsappUrl),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      } catch (e) {
+                        print('Error al abrir WhatsApp: $e');
+                      }
+                      onClose();
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.person_outline,
+                    title: 'Personal details',
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => EditPersonalDetailsScreen(flavor: _currentFlavor),
+                        ),
+                      );
+                      onClose();
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.description_outlined,
+                    title: 'Terms and conditions',
+                    onTap: () async {
+                      try {
+                        final bool launched = await launchUrl(
+                          Uri.parse(AppConstants.termsAndConditionsUrl),
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched) {
+                          print('No se pudo abrir los términos y condiciones');
+                        }
+                      } catch (e) {
+                        print('Error al abrir términos y condiciones: $e');
+                      }
+                      onClose();
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.delete_outline,
+                    title: 'Delete account',
+                    onTap: () async {
+                      try {
+                        final bool launched = await launchUrl(
+                          Uri.parse(AppConstants.deleteAccountUrl),
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched) {
+                          print('No se pudo abrir el formulario de eliminación de cuenta');
+                        }
+                      } catch (e) {
+                        print('Error al abrir formulario de eliminación de cuenta: $e');
+                      }
+                      onClose();
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.logout,
+                    title: 'Log out',
+                    onTap: () {
+                      // Mostrar diálogo de confirmación
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Log out'),
+                            content: Text('Are you sure you want to log out?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  // TODO: Implementar logout real
+                                  print('Log out confirmed');
+                                  onClose();
+                                },
+                                child: Text('Log out'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
             ),
-            
-            // Menu Items Section
-            Expanded(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(vertical: verticalSpacing),
-                child: Column(
-                  children: [
-                    // Home
-                    _buildMenuItem(
-                      icon: Icons.home,
-                      title: "Home",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Home pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Edit account
-                    _buildMenuItem(
-                      icon: Icons.edit,
-                      title: "Edit account",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Edit account pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Separator
-                    _buildSeparator(horizontalPadding, verticalSpacing),
-                    
-                    // Post a job
-                    _buildMenuItem(
-                      icon: Icons.add_circle,
-                      title: "Post a job",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Post a job pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Manage jobs
-                    _buildMenuItem(
-                      icon: Icons.work,
-                      title: "Manage jobs",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Manage jobs pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Staff management
-                    _buildMenuItem(
-                      icon: Icons.people,
-                      title: "Staff management",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Staff management pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Job sites
-                    _buildMenuItem(
-                      icon: Icons.location_on,
-                      title: "Job sites",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Job sites pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Separator
-                    _buildSeparator(horizontalPadding, verticalSpacing),
-                    
-                    // Invoices & payments
-                    _buildMenuItem(
-                      icon: Icons.receipt,
-                      title: "Invoices & payments",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Invoices & payments pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Expenses
-                    _buildMenuItem(
-                      icon: Icons.account_balance_wallet,
-                      title: "Expenses",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Expenses pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Separator
-                    _buildSeparator(horizontalPadding, verticalSpacing),
-                    
-                    // Messages
-                    _buildMenuItem(
-                      icon: Icons.message,
-                      title: "Messages",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Messages pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Notifications
-                    _buildMenuItem(
-                      icon: Icons.notifications,
-                      title: "Notifications",
-                      onTap: () {
-                        // TODO: Implementar navegación
-                        print('Notifications pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Separator
-                    _buildSeparator(horizontalPadding, verticalSpacing),
-                    
-                    // Report a problem
-                    _buildMenuItem(
-                      icon: Icons.warning,
-                      title: "Report a problem",
-                      onTap: () async {
-                        try {
-                          final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
-                          final bool launched = await launchUrl(
-                            url,
-                            mode: LaunchMode.platformDefault,
-                          );
-                          
-                          if (!launched) {
-                            _showUrlDialog(context, AppConstants.reportHarassmentUrl);
-                          }
-                        } catch (e) {
-                          print('Error launching URL: $e');
-                          _showUrlDialog(context, AppConstants.reportHarassmentUrl);
-                        }
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Terms and conditions
-                    _buildMenuItem(
-                      icon: Icons.description,
-                      title: "Terms and conditions",
-                      onTap: () async {
-                        try {
-                          final Uri url = Uri.parse(AppConstants.termsAndConditionsUrl);
-                          final bool launched = await launchUrl(
-                            url,
-                            mode: LaunchMode.platformDefault,
-                          );
-                          
-                          if (!launched) {
-                            _showUrlDialog(context, AppConstants.termsAndConditionsUrl);
-                          }
-                        } catch (e) {
-                          print('Error launching URL: $e');
-                          _showUrlDialog(context, AppConstants.termsAndConditionsUrl);
-                        }
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Privacy policy
-                    _buildMenuItem(
-                      icon: Icons.privacy_tip,
-                      title: "Privacy policy",
-                      onTap: () {
-                        // TODO: Implementar navegación a privacy policy
-                        print('Privacy policy pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                    
-                    // Separator
-                    _buildSeparator(horizontalPadding, verticalSpacing),
-                    
-                    // Logout
-                    _buildMenuItem(
-                      icon: Icons.logout,
-                      title: "Logout",
-                      onTap: () {
-                        // TODO: Implementar logout
-                        print('Logout pressed');
-                        onClose();
-                      },
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      iconSize: iconSize,
-                    ),
-                  ],
-                ),
+          ),
+          
+          // App Version
+          Container(
+            padding: EdgeInsets.only(bottom: 16),
+            child: Text(
+              '4.3.53+153',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: Colors.grey[500],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -372,69 +316,61 @@ class Sidebar extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
-    required double horizontalPadding,
-    required double verticalSpacing,
-    required double bodyFontSize,
-    required double iconSize,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-          vertical: verticalSpacing,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: Colors.grey[700],
-              size: iconSize,
-            ),
-            SizedBox(width: horizontalPadding),
-            Expanded(
-              child: Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: bodyFontSize,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              children: [
+                // Icon Container
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                 ),
-              ),
+                
+                SizedBox(width: 16),
+                
+                // Title
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                
+                // Arrow
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.grey[400],
+                  size: 16,
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSeparator(double horizontalPadding, double verticalSpacing) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalSpacing * 0.5,
-      ),
-      height: 1,
-      color: Colors.grey[300],
-    );
-  }
-
-  void _showUrlDialog(BuildContext context, String url) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('URL no disponible'),
-          content: Text('No se pudo abrir: $url'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+        
+        // Divider
+        Container(
+          height: 1,
+          color: Colors.grey[700],
+        ),
+      ],
     );
   }
 }

@@ -9,9 +9,12 @@ import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
 import '../../../applicants/presentation/pages/applicants_screen.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
+import '../../../invoices/presentation/pages/invoices_screen.dart';
 import 'map_screen.dart';
 import '../../../staff/presentation/pages/staff_screen.dart';
 import 'messages_screen.dart';
+import 'profile_screen.dart';
+import 'notifications_screen.dart';
 
 class BuilderHomeScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -108,29 +111,22 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           bottomNavigationBar: _buildBottomNavigationBar(),
         ),
         
-        // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal)
+        // Overlay para cerrar sidebar al tocar fuera
         if (_isSidebarOpen)
-          Positioned(
-            left: screenWidth * 0.85, // Empezar después del sidebar
-            top: 0,
-            right: 0,
-            bottom: 0,
+          Positioned.fill(
             child: GestureDetector(
               onTap: _closeSidebar,
               child: Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withOpacity(0.2),
               ),
             ),
           ),
         
-        // Sidebar (por encima de todo, sin overlay)
+        // Sidebar (por encima de todo)
         if (_isSidebarOpen)
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: screenWidth * 0.85,
+          Positioned.fill(
+            child: Material(
+              color: Colors.transparent,
               child: Sidebar(
                 flavor: _currentFlavor,
                 onClose: _closeSidebar,
@@ -198,10 +194,21 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
            ),
            
            // Notification Icon (en la misma fila)
-           Icon(
-             Icons.notifications,
-             color: Colors.white,
-             size: screenWidth * 0.06,
+           IconButton(
+             onPressed: () {
+               Navigator.of(context).push(
+                 MaterialPageRoute(
+                   builder: (context) => NotificationsScreen(
+                     flavor: _currentFlavor,
+                   ),
+                 ),
+               );
+             },
+             icon: Icon(
+               Icons.notifications,
+               color: Colors.white,
+               size: screenWidth * 0.06,
+             ),
            ),
          ],
        ),
@@ -449,7 +456,14 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           icon: Icons.receipt,
           title: "Invoices & payments",
           onTap: () {
-            // TODO: Navegar a invoices
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InvoicesScreen(
+                  flavor: _currentFlavor,
+                ),
+              ),
+            );
           },
         ),
         
@@ -677,8 +691,14 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
               builder: (context) => MessagesScreen(flavor: _currentFlavor),
             ),
           );
+        } else if (index == 3) { // Profile
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfileScreen(flavor: _currentFlavor),
+            ),
+          );
         }
-        // TODO: Add navigation for Profile
       },
       child: Column(
         mainAxisSize: MainAxisSize.min,
