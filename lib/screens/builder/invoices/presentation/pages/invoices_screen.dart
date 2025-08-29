@@ -5,11 +5,14 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/search_input_field.dart';
 import '../../logic/controllers/invoice_controller.dart';
 import '../widgets/invoice_card.dart';
+import '../../data/dto/invoice_dto.dart';
 import '../../../staff/presentation/pages/move_workers_stepper.dart';
 import '../../../staff/presentation/pages/extend_shifts_stepper.dart';
 import '../../../staff/presentation/pages/unhire_workers_stepper.dart';
 import '../../../staff/data/dto/worker_dto.dart';
 import '../../../staff/data/dto/jobsite_workers_dto.dart';
+import '../widgets/report_modal.dart';
+import '../widgets/skill_filter_input.dart';
 
 class InvoicesScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -118,11 +121,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                       ),
                       SizedBox(width: 12),
                       Expanded(
-                        child: _buildDropdown(
-                          value: _invoiceController.selectedSkill,
-                          items: _invoiceController.getAvailableSkills(),
-                          onChanged: (value) {
-                            _invoiceController.setSelectedSkill(value!);
+                        child: SkillFilterInput(
+                          flavor: widget.flavor,
+                          availableSkills: _invoiceController.getAvailableSkills(),
+                          selectedSkill: _invoiceController.selectedSkill,
+                          onSkillSelected: (skill) {
+                            _invoiceController.setSelectedSkill(skill);
                           },
                         ),
                       ),
@@ -504,7 +508,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                       flavor: widget.flavor,
                       onView: () => _invoiceController.viewInvoice(invoice.id),
                       onSend: () => _invoiceController.sendInvoice(invoice.id),
-                      onReport: () => _invoiceController.reportInvoice(invoice.id),
+                      onReport: () => _showReportModal(invoice),
                       onPay: () => _invoiceController.payInvoice(invoice.id),
                       onToggleSelection: () => _invoiceController.toggleInvoiceSelection(invoice.id),
                     );
@@ -516,5 +520,20 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
         },
       );
     });
+  }
+
+  void _showReportModal(InvoiceDto invoice) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return ReportModal(
+          flavor: widget.flavor,
+          invoiceId: invoice.id,
+          workerName: invoice.workerName,
+        );
+      },
+    );
   }
 }
