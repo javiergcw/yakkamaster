@@ -54,22 +54,6 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
   
   // Habilidades seleccionadas
   final Set<String> _selectedSkills = <String>{};
-  
-  // Sombras tipo tarjeta (igual que en industry_selection_screen)
-  final List<BoxShadow> strongCardShadows = const [
-    BoxShadow(
-      color: Color(0xFF000000), // 100% negro (totalmente negro)
-      offset: Offset(6, 8),
-      blurRadius: 0,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: Color(0xFF000000), // 100% negro (totalmente negro)
-      offset: Offset(0, 18),
-      blurRadius: 28,
-      spreadRadius: 0,
-    ),
-  ];
 
   @override
   void initState() {
@@ -280,21 +264,6 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
                             onPressed: selectedExperienceLevel != null 
                                 ? () {
                                     Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Selected: $selectedSkill - $selectedExperienceLevel'),
-                                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: EdgeInsets.only(
-                                          bottom: MediaQuery.of(context).size.height - 100,
-                                          right: 20,
-                                          left: 20,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                      ),
-                                    );
                                   }
                                 : null,
                             style: ElevatedButton.styleFrom(
@@ -338,13 +307,6 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
   }
 
   void _handleContinue() {
-    if (_selectedSkills.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select at least one skill')),
-      );
-      return;
-    }
-    
     // Navegar al siguiente paso del stepper
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -375,7 +337,7 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: verticalSpacing),
+              SizedBox(height: verticalSpacing * 0.5),
               
               // Header con botón de retroceso y título
               Row(
@@ -426,7 +388,7 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
                 ),
               ),
 
-              SizedBox(height: verticalSpacing * 2),
+              SizedBox(height: verticalSpacing * 1.2),
 
               // Campo de búsqueda y botón reset
               Column(
@@ -439,17 +401,17 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
                       onTap: _resetSelections,
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding * 0.8,
-                          vertical: verticalSpacing * 0.8,
+                          horizontal: horizontalPadding * 0.5,
+                          vertical: verticalSpacing * 0.4,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           "Reset selections",
                           style: GoogleFonts.poppins(
-                            fontSize: screenWidth * 0.035,
+                            fontSize: screenWidth * 0.03,
                             color: Colors.black87,
                             fontWeight: FontWeight.w500,
                           ),
@@ -465,37 +427,36 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
                     controller: _searchController,
                     hintText: "Select your skills",
                     showBorder: true,
-                    prefixIcon: Icon(Icons.search),
+                    borderRadius: 16.0,
+                    suffixIcon: Icon(Icons.search),
                   ),
                 ],
               ),
 
-              SizedBox(height: verticalSpacing * 2),
+              SizedBox(height: verticalSpacing * 0.8),
 
-              // Lista de habilidades
+              // Lista de habilidades como chips
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 3.5,
-                    crossAxisSpacing: horizontalPadding * 0.5,
-                    mainAxisSpacing: verticalSpacing,
-                  ),
-                  itemCount: _filteredSkills.length,
-                  itemBuilder: (context, index) {
-                    final skill = _filteredSkills[index];
-                    final isSelected = _selectedSkills.contains(skill);
-                    
-                    return GestureDetector(
-                      onTap: () => _toggleSkill(skill),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isSelected 
-                              ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                              : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Center(
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 8.0,
+                    runSpacing: 8.0,
+                    children: _filteredSkills.map((skill) {
+                      final isSelected = _selectedSkills.contains(skill);
+                      
+                      return GestureDetector(
+                        onTap: () => _toggleSkill(skill),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected 
+                                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                                : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           child: Text(
                             skill,
                             style: GoogleFonts.poppins(
@@ -503,33 +464,21 @@ class _SkillsExperienceScreenState extends State<SkillsExperienceScreen> {
                               color: isSelected ? Colors.black : Colors.black87,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
 
-              SizedBox(height: verticalSpacing * 2),
-
-              // Botón Continue con sombra personalizada
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: strongCardShadows,
-                ),
-                child: CustomButton(
-                  text: "Continue",
-                  onPressed: _handleContinue,
-                  isLoading: false,
-                ),
+              // Botón Continue - sin espacios
+              CustomButton(
+                text: "Continue",
+                onPressed: _handleContinue,
+                isLoading: false,
+                showShadow: false,
               ),
-
-              SizedBox(height: verticalSpacing * 2),
             ],
           ),
         ),

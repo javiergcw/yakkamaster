@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<AppliedJobDto> _appliedJobs;
   
   // Variable para alternar entre estados (true = con trabajos, false = sin trabajos)
-  bool _hasAppliedJobs = true;
+  bool _hasAppliedJobs = false;
   
   @override
   void initState() {
@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
             vertical: verticalSpacing * 2.5,
           ),
           decoration: BoxDecoration(
-            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+            color: AppConstants.darkGreyColor,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -262,7 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.only(
               left: horizontalPadding,
               right: horizontalPadding,
-              top: verticalSpacing * 2,
+              top: verticalSpacing * 3,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,7 +270,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // ACTIVE JOBS Section (solo si hay trabajos aplicados)
                 if (_hasAppliedJobs && _appliedJobs.isNotEmpty) _buildActiveJobsSection(),
                 
-                SizedBox(height: verticalSpacing * 1.5),
+                SizedBox(height: verticalSpacing * 0.8),
                 
                 // ACTIVITY Section
                 Text(
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 
-                SizedBox(height: verticalSpacing * 1.5),
+                SizedBox(height: verticalSpacing * 0.8),
                 
                 // Activity Items
                 ActivityItem(
@@ -333,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 
-                SizedBox(height: verticalSpacing * 3),
+                SizedBox(height: verticalSpacing * 1.5),
                 
                 // PROFILE Section
                 Text(
@@ -346,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 
-                SizedBox(height: verticalSpacing * 1.5),
+                SizedBox(height: verticalSpacing * 0.8),
                 
                 // Profile Items
                 ProfileItem(
@@ -362,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 
-                SizedBox(height: verticalSpacing * 2),
+                SizedBox(height: verticalSpacing * 1.2),
               ],
             ),
           ),
@@ -726,7 +726,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal)
         if (_isSidebarOpen)
           Positioned(
-            left: screenWidth * 0.85, // Empezar después del sidebar
+            left: screenWidth * 0.7, // Empezar después del sidebar
             top: 0,
             right: 0,
             bottom: 0,
@@ -745,7 +745,7 @@ class _HomeScreenState extends State<HomeScreen> {
             top: 0,
             bottom: 0,
             child: Container(
-              width: screenWidth * 0.85,
+              width: screenWidth * 0.7,
               child: Sidebar(
                 flavor: _currentFlavor,
                 onClose: _closeSidebar,

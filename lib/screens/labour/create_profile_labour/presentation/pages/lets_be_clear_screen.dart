@@ -105,7 +105,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                        ),
                      ),
                      
-                     SizedBox(height: verticalSpacing * 3),
+                     SizedBox(height: verticalSpacing * 1.5),
                      
                      // Título principal
                      Text(
@@ -119,14 +119,14 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                        ),
                      ),
                      
-                     SizedBox(height: verticalSpacing * 2),
+                     SizedBox(height: verticalSpacing * 1.2),
                      
                      // Texto descriptivo
                      Text(
                        "We connect people — we don't manage, hire, or supervise.",
                        textAlign: TextAlign.center,
                        style: GoogleFonts.poppins(
-                         fontSize: bodyFontSize,
+                         fontSize: bodyFontSize * 1.2,
                          color: Colors.grey[700],
                          height: 1.4,
                        ),
@@ -135,14 +135,17 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                      SizedBox(height: verticalSpacing * 2),
                      
                      // Sección de disclaimer
-                     Text(
-                       "YAKKA is not responsible for:",
-                       textAlign: TextAlign.left,
-                       style: GoogleFonts.poppins(
-                         fontSize: bodyFontSize * 1.1,
-                         fontWeight: FontWeight.bold,
-                         color: Colors.black87,
-                         height: 1.2,
+                     Align(
+                       alignment: Alignment.centerLeft,
+                       child: Text(
+                         "YAKKA is not responsible for:",
+                         textAlign: TextAlign.left,
+                         style: GoogleFonts.poppins(
+                           fontSize: bodyFontSize * 1.1,
+                           fontWeight: FontWeight.bold,
+                           color: Colors.black87,
+                           height: 1.2,
+                         ),
                        ),
                      ),
                      
@@ -183,10 +186,14 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                      SizedBox(height: verticalSpacing * 4),
                      
                      // Botón de aceptación usando CustomButton
-                     CustomButton(
-                       text: "I understand and accept",
-                       onPressed: mounted ? _handleAccept : null,
-                       isLoading: false,
+                     SizedBox(
+                       height: 60,
+                       child: CustomButton(
+                         text: "I understand and accept",
+                         onPressed: mounted ? _handleAccept : null,
+                         isLoading: false,
+                         showShadow: false,
+                       ),
                      ),
                      
                      SizedBox(height: verticalSpacing * 2),

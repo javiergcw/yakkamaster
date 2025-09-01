@@ -300,16 +300,20 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top,
-            ),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -411,7 +415,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
                       controller: _lastNameController,
@@ -419,14 +423,14 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     // Campo de teléfono usando el componente PhoneInput
                     PhoneInput(
                       controller: _phoneController,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
                       controller: _emailController,
@@ -434,7 +438,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
                       controller: _birthCountryController,
@@ -442,22 +446,35 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: MediaQuery.of(context).viewInsets.bottom + verticalSpacing * 3),
+                    SizedBox(height: verticalSpacing * 2),
 
-                    // Botón Next con sombra personalizada
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: strongCardShadows,
-                      ),
-                      child: CustomButton(
-                        text: "Next",
-                        onPressed: _handleNext,
-                        isLoading: false,
+                    // Botón Next con bordes personalizados
+                    CustomButton(
+                      text: "Next",
+                      onPressed: _handleNext,
+                      isLoading: false,
+                      showShadow: false,
+                      customBorder: Border(
+                        top: BorderSide(
+                          color: Colors.black.withOpacity(0.9),
+                          width: 1,
+                        ),
+                        left: BorderSide(
+                          color: Colors.black.withOpacity(0.9),
+                          width: 1,
+                        ),
+                        right: BorderSide(
+                          color: Colors.black.withOpacity(0.9),
+                          width: 4,
+                        ),
+                        bottom: BorderSide(
+                          color: Colors.black.withOpacity(0.9),
+                          width: 4,
+                        ),
                       ),
                     ),
 
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.5),
                   ],
                 ),
               ),
@@ -465,6 +482,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
           ),
         ),
       ),
+    ),
     );
   }
 }

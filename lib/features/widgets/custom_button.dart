@@ -3,11 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../config/app_flavor.dart';
 import '../../../config/assets_config.dart';
 
-enum ButtonType {
-  primary,
-  secondary,
-  outline,
-}
+enum ButtonType { primary, secondary, outline }
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -19,6 +15,7 @@ class CustomButton extends StatelessWidget {
   final double? height;
   final AppFlavor? flavor;
   final bool showShadow;
+  final Border? customBorder;
 
   const CustomButton({
     super.key,
@@ -31,6 +28,7 @@ class CustomButton extends StatelessWidget {
     this.height,
     this.flavor,
     this.showShadow = true,
+    this.customBorder,
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
@@ -40,67 +38,120 @@ class CustomButton extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenHeight = mediaQuery.size.height;
     final screenWidth = mediaQuery.size.width;
-    
+
     // Calcular valores responsive
     final buttonHeight = height ?? (screenHeight * 0.065); // 6.5% de la altura
-    final fontSize = screenWidth * 0.04; // 4% del ancho para el tamaño de fuente
-    final iconSize = screenWidth * 0.05; // 5% del ancho para el tamaño del icono
-    
+    final fontSize =
+        screenWidth * 0.04; // 4% del ancho para el tamaño de fuente
+    final iconSize =
+        screenWidth * 0.05; // 5% del ancho para el tamaño del icono
+
     return SizedBox(
       width: width ?? double.infinity,
       height: buttonHeight,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: (type == ButtonType.primary && showShadow) ? [
-            BoxShadow(
-              color: const Color(0xFF000000),
-              offset: const Offset(0, 8),
-              blurRadius: 20,
-              spreadRadius: 0,
-            ),
-          ] : null,
-        ),
-        child: ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _getBackgroundColor(),
-            foregroundColor: _getForegroundColor(),
-            elevation: 0, // Sin elevación del ElevatedButton ya que usamos BoxShadow personalizado
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: _getBorderSide(),
-            ),
-          ),
-        child: isLoading
-            ? SizedBox(
-                width: screenWidth * 0.05,
-                height: screenWidth * 0.05,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(_getForegroundColor()),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (icon != null) ...[
-                    Icon(icon, size: iconSize),
-                    SizedBox(width: screenWidth * 0.02),
-                  ],
-                  Text(
-                    text,
-                    style: GoogleFonts.poppins(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.w600,
-                      color: _getForegroundColor(),
+      child: customBorder != null
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.black.withOpacity(0.9),
+                      width: 1,
+                    ),
+                    left: BorderSide(
+                      color: Colors.black.withOpacity(0.9),
+                      width: 1,
+                    ),
+                    right: BorderSide(
+                      color: Colors.black.withOpacity(0.9),
+                      width: 4,
+                    ),
+                    bottom: BorderSide(
+                      color: Colors.black.withOpacity(0.9),
+                      width: 4,
                     ),
                   ),
-                ],
+                ),
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : onPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _getBackgroundColor(),
+                    foregroundColor: _getForegroundColor(),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide.none,
+                    ),
+                  ),
+                  child: _buildButtonContent(context, screenWidth, iconSize),
+                ),
               ),
-        ),
-      ),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: (type == ButtonType.primary && showShadow)
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF000000),
+                          offset: const Offset(0, 8),
+                          blurRadius: 20,
+                          spreadRadius: 0,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: ElevatedButton(
+                onPressed: isLoading ? null : onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _getBackgroundColor(),
+                  foregroundColor: _getForegroundColor(),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    side: _getBorderSide(),
+                  ),
+                ),
+                child: _buildButtonContent(context, screenWidth, iconSize),
+              ),
+            ),
     );
+  }
+
+  Widget _buildButtonContent(
+    BuildContext context,
+    double screenWidth,
+    double iconSize,
+  ) {
+    final fontSize = screenWidth * 0.04;
+
+    return isLoading
+        ? SizedBox(
+            width: screenWidth * 0.05,
+            height: screenWidth * 0.05,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(_getForegroundColor()),
+            ),
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: iconSize),
+                SizedBox(width: screenWidth * 0.02),
+              ],
+              Text(
+                text,
+                style: GoogleFonts.poppins(
+                  fontSize: fontSize,
+                  fontWeight: FontWeight.w600,
+                  color: _getForegroundColor(),
+                ),
+              ),
+            ],
+          );
   }
 
   Color _getBackgroundColor() {
@@ -137,6 +188,11 @@ class CustomButton extends StatelessWidget {
   }
 
   BorderSide _getBorderSide() {
+    if (customBorder != null) {
+      return BorderSide
+          .none; // El borde personalizado se maneja en el Container
+    }
+
     switch (type) {
       case ButtonType.primary:
       case ButtonType.secondary:

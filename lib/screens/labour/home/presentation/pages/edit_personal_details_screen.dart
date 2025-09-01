@@ -35,18 +35,12 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
-  // Sombras tipo tarjeta (igual que en create_profile_screen)
+  // Sombras tipo tarjeta (solo borde negro inferior y derecho)
   final List<BoxShadow> strongCardShadows = const [
     BoxShadow(
       color: Color(0xFF000000), // 100% negro (totalmente negro)
-      offset: Offset(6, 8),
+      offset: Offset(4, 4),
       blurRadius: 0,
-      spreadRadius: 0,
-    ),
-    BoxShadow(
-      color: Color(0xFF000000), // 100% negro (totalmente negro)
-      offset: Offset(0, 18),
-      blurRadius: 28,
       spreadRadius: 0,
     ),
   ];
@@ -364,7 +358,6 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                                   color: Colors.grey[300]!,
                                   width: 2,
                                 ),
-                                // Sin sombra
                               ),
                               child: _profileImage != null
                                   ? ClipOval(
@@ -392,7 +385,6 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                                 decoration: BoxDecoration(
                                   color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
                                   shape: BoxShape.circle,
-                                  // Sin sombra
                                 ),
                                 child: Icon(
                                   Icons.edit,
@@ -415,7 +407,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
                       controller: _lastNameController,
@@ -423,14 +415,14 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     // Campo de teléfono usando el componente PhoneInput
                     PhoneInput(
                       controller: _phoneController,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     // Campo de email DESHABILITADO
                     Container(
@@ -468,7 +460,7 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
                       ),
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
                       controller: _birthCountryController,
@@ -478,16 +470,21 @@ class _EditPersonalDetailsScreenState extends State<EditPersonalDetailsScreen> {
 
                     SizedBox(height: MediaQuery.of(context).viewInsets.bottom + verticalSpacing * 3),
 
-                    // Botón Save con sombra personalizada
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: strongCardShadows,
-                      ),
-                      child: CustomButton(
-                        text: "Save",
-                        onPressed: _handleSave,
-                        isLoading: false,
+                    // Botón Save con borde personalizado
+                    CustomButton(
+                      text: "Save",
+                      onPressed: _handleSave,
+                      isLoading: false,
+                      showShadow: false,
+                      customBorder: Border(
+                        bottom: BorderSide(
+                          color: Colors.black,
+                          width: 4,
+                        ),
+                        right: BorderSide(
+                          color: Colors.black,
+                          width: 4,
+                        ),
                       ),
                     ),
 

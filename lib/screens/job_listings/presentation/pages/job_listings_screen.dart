@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
+import '../../../../config/constants.dart';
 import '../../logic/job_listings_controller.dart';
 import '../widgets/job_card.dart';
-import '../widgets/search_bar.dart';
+import '../../../../features/widgets/search_input_field.dart';
 import '../../../labour/home/presentation/pages/home_screen.dart';
 
 class JobListingsScreen extends StatefulWidget {
@@ -22,11 +23,13 @@ class JobListingsScreen extends StatefulWidget {
 class _JobListingsScreenState extends State<JobListingsScreen> {
   AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
   late JobListingsController _controller;
+  late TextEditingController _searchController;
 
   @override
   void initState() {
     super.initState();
     _controller = JobListingsController();
+    _searchController = TextEditingController();
     _controller.onJobsChanged = () => setState(() {});
     _controller.onSearchChanged = () => setState(() {});
     _controller.onLoadingChanged = () => setState(() {});
@@ -44,6 +47,7 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -66,6 +70,8 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        surfaceTintColor: Colors.white,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -109,21 +115,20 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
           child: Column(
             children: [
-                             // Search Bar
-               JobSearchBar(
-                 placeholder: 'Search job or skill',
-                 searchQuery: _controller.searchQuery,
-                 onSearchChanged: _controller.updateSearchQuery,
-                 onSearch: () {
-                   // TODO: Implement search functionality
-                   print('Search pressed');
-                 },
-                 horizontalPadding: horizontalPadding,
-                 verticalSpacing: verticalSpacing,
-                 bodyFontSize: bodyFontSize,
-                 iconSize: iconSize,
-                 flavor: _currentFlavor,
-               ),
+              // Search Bar
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: verticalSpacing),
+                child: SearchInputField(
+                  controller: _searchController,
+                  hintText: 'Search job or skill',
+                  flavor: _currentFlavor,
+                  onChanged: _controller.updateSearchQuery,
+                  onSearch: () {
+                    // TODO: Implement search functionality
+                    print('Search pressed');
+                  },
+                ),
+              ),
               
               // Recommended Section
               Container(

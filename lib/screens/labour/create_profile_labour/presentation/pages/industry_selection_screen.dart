@@ -183,11 +183,24 @@ class _IndustrySelectionScreenState extends State<IndustrySelectionScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),         // CHANGED: radio ligeramente mayor
-          border: Border.all(
-            color: const Color(0xFF1E1E1E),                // CHANGED: borde más oscuro tipo “stroke”
-            width: 2,                                      // CHANGED: más grosor para resaltar
+          border: Border(
+            top: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 1,
+            ),
+            left: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 1,
+            ),
+            right: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 4,
+            ),
+            bottom: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 4,
+            ),
           ),
-          boxShadow: strongCardShadows,                    // CHANGED: aplicar la nueva lista de sombras
         ),
         child: isHorizontal
             ? Row(

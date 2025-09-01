@@ -20,6 +20,7 @@ class CustomTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final AppFlavor? flavor;
   final bool showBorder;
+  final double? borderRadius;
 
   const CustomTextField({
     super.key,
@@ -38,6 +39,7 @@ class CustomTextField extends StatelessWidget {
     this.onTap,
     this.flavor,
     this.showBorder = true,
+    this.borderRadius,
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
@@ -52,6 +54,7 @@ class CustomTextField extends StatelessWidget {
     final fontSize = screenWidth * 0.04; // 4% del ancho para el tamaño de fuente
     final horizontalPadding = screenWidth * 0.04; // 4% del ancho para padding horizontal
     final verticalPadding = screenHeight * 0.015; // 1.5% de la altura para padding vertical
+    final defaultBorderRadius = borderRadius ?? 12.0;
     
     return TextFormField(
       controller: controller,
@@ -75,35 +78,35 @@ class CustomTextField extends StatelessWidget {
         filled: showBorder,
         fillColor: showBorder ? Colors.grey[50] : Colors.transparent,
         border: showBorder ? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
             color: Colors.grey[300]!,
             width: 1,
           ),
         ) : InputBorder.none,
         enabledBorder: showBorder ? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
             color: Colors.grey[300]!,
             width: 1,
           ),
         ) : InputBorder.none,
         focusedBorder: showBorder ? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
             color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
             width: 2,
           ),
         ) : InputBorder.none,
         errorBorder: showBorder ? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
             color: Colors.red[400]!,
             width: 1,
           ),
         ) : InputBorder.none,
         focusedErrorBorder: showBorder ? OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
             color: Colors.red[400]!,
             width: 2,

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Archivo de constantes generales de la aplicación
 class AppConstants {
   // Constantes de WhatsApp
@@ -8,6 +10,9 @@ class AppConstants {
   static const String termsAndConditionsUrl = 'https://yakkalabour.com.au/terms-and-conditions/';
   static const String deleteAccountUrl = 'https://ramiro41.typeform.com/to/uVpMQCrZ?typeform-source=www.google.com';
   static const String reportHarassmentUrl = 'https://ramiro41.typeform.com/to/r0Kq0u4X';
+  
+  // Constantes de colores
+  static const Color darkGreyColor = Color(0xFF2C2C2C);
   
   // Constructor privado para evitar instanciación
   AppConstants._();

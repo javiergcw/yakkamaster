@@ -47,7 +47,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
   }
 
   // Variable para activar/desactivar la verificación bancaria
-  static const bool _enableBankVerification = true; // Cambiar a false para desactivar
+  static const bool _enableBankVerification = false; // Cambiar a false para desactivar
 
   // Función para verificar si el usuario tiene datos bancarios configurados
   bool _hasBankDetails() {
@@ -262,7 +262,6 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                   top: MediaQuery.of(context).padding.top,
                   left: horizontalPadding,
                   right: horizontalPadding,
-                  bottom: verticalSpacing,
                 ),
                 child: Row(
                   children: [
@@ -275,25 +274,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            'Job details',
-                            style: GoogleFonts.poppins(
-                              fontSize: bodyFontSize * 1.1,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Text(
-                            '\$${widget.jobDetails.hourlyRate.toStringAsFixed(1)}/hr',
-                            style: GoogleFonts.poppins(
-                              fontSize: bodyFontSize,
-                              fontWeight: FontWeight.w600,
-                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'Job details',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: bodyFontSize * 1.1,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 40), // Espacio para balancear
@@ -313,15 +301,29 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Título del trabajo
-                              SizedBox(height: verticalSpacing),
-                              Text(
-                                widget.jobDetails.title,
-                                style: GoogleFonts.poppins(
-                                  fontSize: titleFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                              // Título del trabajo con precio
+                              SizedBox(height: verticalSpacing * 0.2),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.jobDetails.title,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: titleFontSize * 0.85,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    '\$${widget.jobDetails.hourlyRate.toStringAsFixed(1)}/hr',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: titleFontSize * 0.7,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                    ),
+                                  ),
+                                ],
                               ),
                               
                               SizedBox(height: verticalSpacing * 2),
@@ -399,6 +401,14 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 value: widget.jobDetails.paymentExpected,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
+                              ),
+                              
+                              SizedBox(height: verticalSpacing * 2),
+                              
+                              // Divider
+                              Container(
+                                height: 1,
+                                color: Colors.grey[300],
                               ),
                               
                               SizedBox(height: verticalSpacing * 2),
@@ -565,7 +575,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                       
                       // Botones fijos en la parte inferior
                       Container(
-                        padding: EdgeInsets.all(horizontalPadding),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                          vertical: verticalSpacing * 0.5,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           boxShadow: [
@@ -583,7 +596,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               width: double.infinity,
                               child: _hasApplied
                                   ? Container(
-                                      padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.8),
+                                      padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.5),
                                       decoration: BoxDecoration(
                                         color: Colors.green[50],
                                         borderRadius: BorderRadius.circular(8),
@@ -617,7 +630,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
                                         foregroundColor: Colors.black87,
-                                        padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.8),
+                                        padding: EdgeInsets.symmetric(vertical: verticalSpacing * 1.2),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(8),
                                         ),
@@ -634,7 +647,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     ),
                             ),
                             
-                            SizedBox(height: verticalSpacing * 0.5),
+                            SizedBox(height: verticalSpacing * 0.2),
                           ],
                         ),
                       ),

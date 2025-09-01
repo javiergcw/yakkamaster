@@ -284,7 +284,7 @@ class _LocationScreenState extends State<LocationScreen> {
                     text: "Continue",
                     onPressed: _handleContinue,
                     isLoading: false,
-                    flavor: _currentFlavor,
+                    showShadow: false,
                   ),
                   
                   SizedBox(height: verticalSpacing * 2),

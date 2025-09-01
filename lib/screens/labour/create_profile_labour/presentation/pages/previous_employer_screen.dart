@@ -701,7 +701,7 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                     ),
                   ),
                   
-                  SizedBox(height: verticalSpacing * 3),
+                  SizedBox(height: verticalSpacing * 0.8),
                   
                   // Texto instructivo
                   Text(
@@ -713,7 +713,7 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                     ),
                   ),
                   
-                  SizedBox(height: verticalSpacing * 2),
+                  SizedBox(height: verticalSpacing * 0.8),
                   
                   // Primer Supervisor
                   if (_firstSupervisor == null) ...[
@@ -724,7 +724,7 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(
                           horizontal: horizontalPadding,
-                          vertical: verticalSpacing * 1.5,
+                          vertical: verticalSpacing * 0.8,
                         ),
                         decoration: BoxDecoration(
                           color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
@@ -828,21 +828,29 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                          ],
                        ),
                      ),
-                   ],
-                  
-                  SizedBox(height: verticalSpacing * 2),
-                  
-                                     // Texto instructivo adicional (siempre visible)
-                   Text(
-                     "Please provide a second reference in case we are unable to contact the first one.",
-                     style: GoogleFonts.poppins(
-                       fontSize: instructionFontSize,
-                       color: Colors.black54,
-                       height: 1.4,
+                                      ],
+                   
+                   SizedBox(height: verticalSpacing * 2),
+                   
+                   // Texto instructivo adicional (siempre visible)
+                   Container(
+                     width: double.infinity,
+                     padding: EdgeInsets.all(horizontalPadding * 0.8),
+                     decoration: BoxDecoration(
+                       color: Colors.grey[100],
+                       borderRadius: BorderRadius.circular(8),
+                     ),
+                     child: Text(
+                       "Please provide a second reference in case we are unable to contact the first one.",
+                       style: GoogleFonts.poppins(
+                         fontSize: instructionFontSize,
+                         color: Colors.black54,
+                         height: 1.4,
+                       ),
                      ),
                    ),
                    
-                   SizedBox(height: verticalSpacing * 2),
+                   SizedBox(height: verticalSpacing * 0.8),
                    
                    // Segundo Supervisor
                    if (_secondSupervisor == null) ...[
@@ -853,7 +861,7 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                          width: double.infinity,
                          padding: EdgeInsets.symmetric(
                            horizontal: horizontalPadding,
-                           vertical: verticalSpacing * 1.5,
+                           vertical: verticalSpacing * 0.8,
                          ),
                          decoration: BoxDecoration(
                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
@@ -966,7 +974,7 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                     text: "Continue",
                     onPressed: _handleContinue,
                     isLoading: false,
-                    flavor: _currentFlavor,
+                    showShadow: false,
                   ),
                   
                   SizedBox(height: verticalSpacing),

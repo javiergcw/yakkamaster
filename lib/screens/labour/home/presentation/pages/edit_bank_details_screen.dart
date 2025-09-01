@@ -251,7 +251,7 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ],
                     ),
 
-                    SizedBox(height: verticalSpacing * 3),
+                    SizedBox(height: verticalSpacing * 1.5),
 
                     // Indicador de estado de datos bancarios
                     Container(
@@ -292,7 +292,7 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ),
                     ),
 
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.2),
 
                     // Campo ABN
                     Text(
@@ -304,15 +304,15 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing),
-                    
+                                        SizedBox(height: verticalSpacing * 0.8),
+
                     CustomTextField(
                       controller: _abnController,
                       hintText: "Enter ABN",
                       showBorder: true,
                     ),
 
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.2),
 
                     // Campo Pay ID Type
                     Text(
@@ -324,14 +324,14 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing),
-                    
+                                        SizedBox(height: verticalSpacing * 0.8),
+
                     GestureDetector(
                       onTap: _showPayIdTypeDropdown,
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: horizontalPadding * 0.8,
-                          vertical: verticalSpacing * 1.2,
+                          vertical: screenHeight * 0.015,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white,
@@ -360,7 +360,7 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ),
                     ),
 
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.2),
 
                     // Campo Pay ID
                     Text(
@@ -372,8 +372,8 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing),
-                    
+                                        SizedBox(height: verticalSpacing * 0.8),
+
                     CustomTextField(
                       controller: _payIdController,
                       hintText: "Enter Pay ID",
@@ -381,7 +381,7 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       enabled: !_dontHavePayId,
                     ),
 
-                    SizedBox(height: verticalSpacing * 1.5),
+                    SizedBox(height: verticalSpacing * 1.2),
 
                     // Checkbox "I don't have a Pay ID"
                     Row(
@@ -428,7 +428,7 @@ class _EditBankDetailsScreenState extends State<EditBankDetailsScreen> {
                       ],
                     ),
 
-                    SizedBox(height: verticalSpacing * 3),
+                    SizedBox(height: verticalSpacing * 2),
 
                     // Nota importante
                     Container(

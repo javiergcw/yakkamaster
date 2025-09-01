@@ -96,7 +96,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
                 ),
               ),
               
-              SizedBox(height: verticalSpacing * 2),
+              SizedBox(height: verticalSpacing * 0.8),
               
               // Subtítulo/Descripción
               Text(

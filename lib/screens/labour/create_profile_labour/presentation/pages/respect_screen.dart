@@ -128,10 +128,14 @@ class _RespectScreenState extends State<RespectScreen> {
             // Botón de compromiso usando CustomButton
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
-              child: CustomButton(
-                text: "I commit to being respectful",
-                onPressed: _handleCommit,
-                isLoading: false,
+              child: SizedBox(
+                height: 60,
+                child: CustomButton(
+                  text: "I commit to being respectful",
+                  onPressed: _handleCommit,
+                  isLoading: false,
+                  showShadow: false,
+                ),
               ),
             ),
             

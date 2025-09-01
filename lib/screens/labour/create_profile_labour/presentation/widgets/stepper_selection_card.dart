@@ -37,16 +37,45 @@ class StepperSelectionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.grey[300]!,
-            width: 1,
+          border: Border(
+            top: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 1,
+            ),
+            left: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 1,
+            ),
+            right: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 3,
+            ),
+            bottom: BorderSide(
+              color: Colors.black.withOpacity(0.9),
+              width: 3,
+            ),
           ),
           boxShadow: [
+            // Sombra para efecto de elevación en todos los lados
             BoxShadow(
-              color: Colors.grey.withOpacity(0.4),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
-              spreadRadius: 2,
+              color: Colors.black.withOpacity(0.8),
+              blurRadius: 0,
+              offset: const Offset(3, 3),
+              spreadRadius: 0,
+            ),
+            // Sombra adicional para mayor grosor
+            BoxShadow(
+              color: Colors.black.withOpacity(0.6),
+              blurRadius: 0,
+              offset: const Offset(2, 2),
+              spreadRadius: 0,
+            ),
+            // Sombra sutil para completar el efecto
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 0,
+              offset: const Offset(1, 1),
+              spreadRadius: 0,
             ),
           ],
         ),

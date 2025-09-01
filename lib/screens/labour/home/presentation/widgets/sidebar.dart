@@ -59,7 +59,7 @@ class Sidebar extends StatelessWidget {
     return Material(
       color: Colors.white,
       child: Container(
-        width: screenWidth * 0.85, // 85% del ancho de la pantalla
+        width: screenWidth * 0.7, // 70% del ancho de la pantalla
         height: double.infinity,
         color: Colors.white,
         child: Column(
@@ -72,7 +72,7 @@ class Sidebar extends StatelessWidget {
                 vertical: verticalSpacing * 2,
               ),
               decoration: BoxDecoration(
-                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                color: AppConstants.darkGreyColor,
               ),
               child: Row(
                 children: [
@@ -158,7 +158,7 @@ class Sidebar extends StatelessWidget {
                     // Separator
                     _buildSeparator(horizontalPadding, verticalSpacing),
                     
-                                                            // Apply for job
+                    // Apply for job
                     _buildMenuItem(
                       icon: Icons.search,
                       title: "Apply for job",
@@ -216,6 +216,9 @@ class Sidebar extends StatelessWidget {
                       bodyFontSize: bodyFontSize,
                       iconSize: iconSize,
                     ),
+                    
+                    // Separator
+                    _buildSeparator(horizontalPadding, verticalSpacing),
                     
                     // See your earnings
                     _buildMenuItem(

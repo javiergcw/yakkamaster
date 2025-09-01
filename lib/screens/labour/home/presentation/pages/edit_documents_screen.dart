@@ -166,7 +166,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                     ],
                   ),
                   
-                  SizedBox(height: verticalSpacing * 3),
+                  SizedBox(height: verticalSpacing * 0.8),
                   
                   // Widget de progreso de subida
                   Obx(() {
@@ -225,6 +225,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   Row(
                     children: [
                       Expanded(
+                        flex: 3,
                         child: GestureDetector(
                           onTap: _showCredentialDropdown,
                           child: Container(
@@ -263,50 +264,45 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                         ),
                       ),
                       SizedBox(width: horizontalPadding * 0.5),
-                      GestureDetector(
-                        onTap: _addLicense,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: horizontalPadding * 0.8,
-                            vertical: verticalSpacing * 0.8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF000000),
-                                offset: const Offset(0, 8),
-                                blurRadius: 20,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add,
-                                color: Colors.black,
-                                size: screenWidth * 0.05,
-                              ),
-                              SizedBox(width: horizontalPadding * 0.3),
-                              Text(
-                                "Add License",
-                                style: GoogleFonts.poppins(
-                                  fontSize: buttonFontSize * 0.8,
-                                  fontWeight: FontWeight.w600,
+                      Expanded(
+                        flex: 1,
+                        child: GestureDetector(
+                          onTap: _addLicense,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding * 0.3,
+                              vertical: verticalSpacing * 0.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.add,
                                   color: Colors.black,
+                                  size: screenWidth * 0.04,
                                 ),
-                              ),
-                            ],
+                                SizedBox(height: verticalSpacing * 0.1),
+                                Text(
+                                  "Add License",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: buttonFontSize * 0.6,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                   
-                  SizedBox(height: verticalSpacing * 3),
+                  SizedBox(height: verticalSpacing * 1.5),
                   
                   // Documentos opcionales
                   Obx(() => Column(
@@ -315,6 +311,16 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Título del documento
+                          Text(
+                            document.type,
+                            style: GoogleFonts.poppins(
+                              fontSize: buttonFontSize,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing * 0.5),
                           Row(
                             children: [
                               Expanded(
@@ -323,7 +329,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: horizontalPadding * 0.8,
-                                      vertical: verticalSpacing * 1.2,
+                                      vertical: verticalSpacing * 0.8,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
@@ -436,7 +442,17 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                     text: "Save",
                     onPressed: _handleSave,
                     isLoading: false,
-                    flavor: _currentFlavor,
+                    showShadow: false,
+                    customBorder: Border(
+                      bottom: BorderSide(
+                        color: Colors.black,
+                        width: 4,
+                      ),
+                      right: BorderSide(
+                        color: Colors.black,
+                        width: 4,
+                      ),
+                    ),
                   ),
                   
                   SizedBox(height: verticalSpacing * 2),
