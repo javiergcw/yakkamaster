@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import 'chat_screen.dart';
+import 'home_screen.dart';
 
 class MessagesScreen extends StatefulWidget {
   final AppFlavor? flavor;
@@ -92,7 +93,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => HomeScreen(flavor: _currentFlavor),
+                      ),
+                      (route) => false,
+                    ),
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.white,
@@ -100,14 +106,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     ),
                   ),
                   Expanded(
-                    child: Center(
-                      child: Text(
-                        "Messages",
-                        style: GoogleFonts.poppins(
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                    child: Text(
+                      "Messages",
+                      style: GoogleFonts.poppins(
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),

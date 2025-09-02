@@ -10,6 +10,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
+import '../../../../../config/constants.dart';
 import '../../logic/digital_id_controller.dart';
 import '../widgets/digital_id_avatar.dart';
 import '../widgets/qr_code_widget.dart';
@@ -92,13 +93,13 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
             // Header (Dark Grey)
             Container(
               width: double.infinity,
-              height: screenHeight * 0.15, // Aumentado para evitar corte
+              height: screenHeight * 0.12, // Reducido para ser menos alto
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
-                vertical: verticalSpacing * 2,
+                vertical: verticalSpacing * 1.5,
               ),
               decoration: BoxDecoration(
-                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                color: AppConstants.darkGreyColor,
               ),
               child: Row(
                 children: [
@@ -134,7 +135,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
             
             // Main Content
             Padding(
-              padding: EdgeInsets.only(top: screenHeight * 0.15), // Ajustado al nuevo header
+              padding: EdgeInsets.only(top: screenHeight * 0.12), // Ajustado al nuevo header
               child: _controller.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _controller.digitalIdData != null
@@ -172,14 +173,23 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
     
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-      child: Column(
-        children: [
-          SizedBox(height: verticalSpacing * 3),
+              child: Column(
+          children: [
+            SizedBox(height: verticalSpacing * 1.5),
+            
+            // Identification Section
+            _buildIdentificationSection(data, verticalSpacing, bodyFontSize),
           
-          // Identification Section
-          _buildIdentificationSection(data, verticalSpacing, bodyFontSize),
+          SizedBox(height: verticalSpacing * 2),
           
-          SizedBox(height: verticalSpacing * 4),
+          // Divider
+          Container(
+            width: double.infinity,
+            height: 1,
+            color: Colors.grey[300],
+          ),
+          
+          SizedBox(height: verticalSpacing * 2),
           
           // QR Code Section
           _buildQrCodeSection(data, verticalSpacing, bodyFontSize),
@@ -208,7 +218,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
           ),
         ),
         
-        SizedBox(height: verticalSpacing * 2),
+        SizedBox(height: verticalSpacing * 1),
         
         // Avatar
         DigitalIdAvatar(
@@ -217,7 +227,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
           flavor: _currentFlavor,
         ),
         
-        SizedBox(height: verticalSpacing * 1.5),
+        SizedBox(height: verticalSpacing * 0.8),
         
         // Name
         Text(

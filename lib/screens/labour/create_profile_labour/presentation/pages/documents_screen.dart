@@ -109,22 +109,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   void _addLicense() {
-    if (_selectedCredential == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona un tipo de credencial'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Credencial $_selectedCredential agregada'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
+    // No mostrar toast, solo no hacer nada si no hay credencial seleccionada
   }
 
   Future<void> _uploadDocument(int index) async {
@@ -146,28 +131,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
           _documents[index]['size'] = file.size;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${_documents[index]['type']} subido exitosamente: ${file.name}'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-          ),
-        );
+        // Archivo subido exitosamente
       } else {
         // Usuario canceló la selección
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Selección de archivo cancelada'),
-            backgroundColor: Colors.orange,
-          ),
-        );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar archivo: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      // Error al seleccionar archivo
     }
   }
 
@@ -179,13 +148,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   void _handleContinue() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('¡Proceso completado exitosamente!'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
-    
     // Navegar a la pantalla de Respect
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => RespectScreen(flavor: _currentFlavor)),
@@ -193,13 +155,6 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
   }
 
   void _handleSkip() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Paso omitido - continuando...'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
-    
     // Navegar a la pantalla de Respect
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => RespectScreen(flavor: _currentFlavor)),

@@ -183,7 +183,7 @@ class _TimesheetModalState extends State<TimesheetModal> {
                     showChevron: true,
                   ),
 
-                  SizedBox(height: verticalSpacing * 2),
+                  SizedBox(height: verticalSpacing),
 
                                      // Overtime Section
                    Text(
@@ -195,7 +195,7 @@ class _TimesheetModalState extends State<TimesheetModal> {
                      ),
                    ),
 
-                  SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing * 0.5),
 
                   _buildInputField(
                     icon: Icons.schedule,
@@ -207,7 +207,7 @@ class _TimesheetModalState extends State<TimesheetModal> {
                     showChevron: true,
                   ),
 
-                  SizedBox(height: verticalSpacing * 2),
+                  SizedBox(height: verticalSpacing),
 
                                      // Additional Allowance
                    Text(
@@ -219,59 +219,14 @@ class _TimesheetModalState extends State<TimesheetModal> {
                      ),
                    ), 
 
-                  SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing * 0.5),
 
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.white,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.attach_money, size: 20, color: Colors.grey[600]),
-                        const SizedBox(width: 12),
-                                                 Expanded(
-                           child: TextField(
-                             controller: allowanceController,
-                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                             textInputAction: TextInputAction.done,
-                             decoration: InputDecoration(
-                               hintText: '0.00',
-                               border: InputBorder.none,
-                               hintStyle: GoogleFonts.poppins(
-                                 fontSize: 16,
-                                 color: Colors.grey[400],
-                               ),
-                             ),
-                             style: GoogleFonts.poppins(
-                               fontSize: 16,
-                               color: Colors.black87,
-                             ),
-                             onChanged: (value) {
-                               setState(() {
-                                 additionalAllowance = double.tryParse(value) ?? 0.0;
-                               });
-                             },
-                             onSubmitted: (value) {
-                               // Cerrar el teclado cuando se presiona Enter
-                               FocusScope.of(context).unfocus();
-                             },
-                             onTap: () {
-                               // Scroll automático cuando se toca el campo
-                               WidgetsBinding.instance.addPostFrameCallback((_) {
-                                 Scrollable.ensureVisible(
-                                   context,
-                                   duration: const Duration(milliseconds: 300),
-                                   curve: Curves.easeInOut,
-                                 );
-                               });
-                             },
-                           ),
-                         ),
-                      ],
-                    ),
+                  _buildInputField(
+                    icon: Icons.attach_money,
+                    value: additionalAllowance > 0 ? '\$${additionalAllowance.toStringAsFixed(2)}' : '0.00',
+                    onTap: () => _showAllowanceInput(context),
+                    placeholder: additionalAllowance == 0,
+                    showChevron: false,
                   ),
 
                   SizedBox(height: verticalSpacing * 2),
@@ -636,6 +591,58 @@ class _TimesheetModalState extends State<TimesheetModal> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAllowanceInput(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Additional Bonus',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          content: TextField(
+            controller: allowanceController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              hintText: '0.00',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              prefixText: '\$ ',
+            ),
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+            onChanged: (value) {
+              setState(() {
+                additionalAllowance = double.tryParse(value) ?? 0.0;
+              });
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                FocusScope.of(context).unfocus();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 

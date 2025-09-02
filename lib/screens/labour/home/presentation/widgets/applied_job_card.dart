@@ -33,9 +33,9 @@ class AppliedJobCard extends StatelessWidget {
     final bodyFontSize = screenWidth * 0.035;
     final buttonFontSize = screenWidth * 0.035;
 
-        return IntrinsicHeight(
-      child: Container(
+        return Container(
         width: double.infinity,
+        height: screenHeight * 0.32, // Altura un poco más reducida para la card
         margin: EdgeInsets.symmetric(vertical: verticalSpacing * 0.1),
         padding: EdgeInsets.all(horizontalPadding * 0.8),
         decoration: BoxDecoration(
@@ -58,13 +58,13 @@ class AppliedJobCard extends StatelessWidget {
           Text(
             job.companyName,
             style: GoogleFonts.poppins(
-              fontSize: titleFontSize,
+              fontSize: titleFontSize * 0.85,
               fontWeight: FontWeight.w600,
               color: Colors.black87,
             ),
           ),
           
-          SizedBox(height: verticalSpacing * 0.2),
+          SizedBox(height: verticalSpacing * 0.1),
           
           // Job Title with icon
           Row(
@@ -86,7 +86,7 @@ class AppliedJobCard extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: verticalSpacing * 0.1),
+          SizedBox(height: verticalSpacing * 0.05),
           
           // Location with icon
           Row(
@@ -108,35 +108,36 @@ class AppliedJobCard extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: verticalSpacing * 0.3),
+          SizedBox(height: verticalSpacing * 0.2),
           
           // Action Buttons
-          Row(
+          Column(
             children: [
-                             // Submit Timesheet Button
-               Expanded(
-                 child: ElevatedButton.icon(
-                   onPressed: () {
-                     showModalBottomSheet(
-                       context: context,
-                       isScrollControlled: true,
-                       backgroundColor: Colors.transparent,
-                       builder: (context) => TimesheetModal(
-                         companyName: job.companyName,
-                         onClose: () => Navigator.of(context).pop(),
-                         onSubmit: (timesheetData) {
-                           print('Timesheet submitted: $timesheetData');
-                           // Aquí puedes agregar la lógica para enviar el timesheet
-                           ScaffoldMessenger.of(context).showSnackBar(
-                             SnackBar(
-                               content: Text('Timesheet submitted successfully!'),
-                               backgroundColor: Colors.green,
-                             ),
-                           );
-                         },
-                       ),
-                     );
-                   },
+              // Submit Timesheet Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => TimesheetModal(
+                        companyName: job.companyName,
+                        onClose: () => Navigator.of(context).pop(),
+                        onSubmit: (timesheetData) {
+                          print('Timesheet submitted: $timesheetData');
+                          // Aquí puedes agregar la lógica para enviar el timesheet
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Timesheet submitted successfully!'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                   icon: Icon(
                     Icons.calendar_today,
                     size: bodyFontSize * 1.1,
@@ -162,43 +163,44 @@ class AppliedJobCard extends StatelessWidget {
                 ),
               ),
               
-              SizedBox(width: horizontalPadding * 0.4),
+              SizedBox(height: verticalSpacing * 0.3),
               
-                             // Quick Notify Button
-               Expanded(
-                 child: OutlinedButton(
-                   onPressed: () {
-                     showModalBottomSheet(
-                       context: context,
-                       isScrollControlled: true,
-                       backgroundColor: Colors.transparent,
-                       builder: (context) => QuickNotifyModal(
-                         onClose: () => Navigator.of(context).pop(),
-                         onOptionSelected: (option) {
-                           print('Selected option: $option');
-                           Navigator.of(context).pop();
-                           // Aquí puedes agregar la lógica específica para cada opción
-                           switch (option) {
-                             case 'check-in':
-                               print('Check-in selected');
-                               break;
-                             case 'running-late':
-                               print('Running late selected');
-                               break;
-                             case 'leaving-early':
-                               print('Leaving early selected');
-                               break;
-                             case 'hazard-incident':
-                               print('Hazard/Incident report selected');
-                               break;
-                             case 'cancel-shift':
-                               print('Cancel shift selected');
-                               break;
-                           }
-                         },
-                       ),
-                     );
-                   },
+              // Quick Notify Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => QuickNotifyModal(
+                        onClose: () => Navigator.of(context).pop(),
+                        onOptionSelected: (option) {
+                          print('Selected option: $option');
+                          Navigator.of(context).pop();
+                          // Aquí puedes agregar la lógica específica para cada opción
+                          switch (option) {
+                            case 'check-in':
+                              print('Check-in selected');
+                              break;
+                            case 'running-late':
+                              print('Running late selected');
+                              break;
+                            case 'leaving-early':
+                              print('Leaving early selected');
+                              break;
+                            case 'hazard-incident':
+                              print('Hazard/Incident report selected');
+                              break;
+                            case 'cancel-shift':
+                              print('Cancel shift selected');
+                              break;
+                          }
+                        },
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.black87,
                     side: BorderSide(color: Colors.grey[400]!),
@@ -220,7 +222,7 @@ class AppliedJobCard extends StatelessWidget {
             ],
           ),
           
-          SizedBox(height: verticalSpacing * 0.3),
+          SizedBox(height: verticalSpacing * 0.2),
           
                     // Show Details Link
           Center(
@@ -274,9 +276,9 @@ class AppliedJobCard extends StatelessWidget {
               ),
             ),
           ),
+          
          ],
        ),
-     ),
-   );
- }
+     );
+   }
 }

@@ -166,7 +166,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                     ],
                   ),
                   
-                  SizedBox(height: verticalSpacing * 0.8),
+                  SizedBox(height: verticalSpacing * 0.3),
                   
                   // Widget de progreso de subida
                   Obx(() {

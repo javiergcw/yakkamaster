@@ -227,19 +227,8 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                                     }
                                   });
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Supervisor actualizado exitosamente'),
-                                      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                    ),
-                                  );
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Por favor completa todos los campos'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                                  // No mostrar toast, solo no hacer nada
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -474,19 +463,8 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                                     }
                                   });
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Supervisor agregado exitosamente'),
-                                      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                    ),
-                                  );
                                 } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Por favor completa todos los campos'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
+                                  // No mostrar toast, solo no hacer nada
                                 }
                               },
                               style: ElevatedButton.styleFrom(
@@ -523,14 +501,6 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
   }
 
   void _handleContinue() {
-    // Navegar al siguiente paso del stepper
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('¡Información de empleador anterior guardada!'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
-    
     // Navegar a la pantalla de Documents
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => DocumentsScreen(flavor: _currentFlavor)),
@@ -587,12 +557,6 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
                   }
                 });
                 Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Supervisor eliminado exitosamente'),
-                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                  ),
-                );
               },
               child: Text(
                 'Eliminar',
@@ -610,14 +574,6 @@ class _PreviousEmployerScreenState extends State<PreviousEmployerScreen> {
   }
 
   void _handleSkip() {
-    // Navegar al siguiente paso del stepper sin agregar supervisores
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Paso omitido - continuando...'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
-    
     // Aquí irías al siguiente paso del stepper
     // Navigator.of(context).push(
     //   MaterialPageRoute(builder: (context) => NextStepScreen(flavor: _currentFlavor)),

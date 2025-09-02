@@ -34,17 +34,6 @@ class _LocationScreenState extends State<LocationScreen> {
   }
 
   void _handleContinue() {
-    // Validación básica
-    if (_addressController.text.trim().isEmpty || _suburbController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Por favor completa todos los campos'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     // Navegar al siguiente paso del stepper
     Navigator.of(context).push(
       MaterialPageRoute(

@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final List<AppliedJobDto> _appliedJobs;
   
   // Variable para alternar entre estados (true = con trabajos, false = sin trabajos)
-  bool _hasAppliedJobs = false;
+  bool _hasAppliedJobs = true;
   
   @override
   void initState() {
@@ -269,8 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // ACTIVE JOBS Section (solo si hay trabajos aplicados)
                 if (_hasAppliedJobs && _appliedJobs.isNotEmpty) _buildActiveJobsSection(),
-                
-                SizedBox(height: verticalSpacing * 0.8),
                 
                 // ACTIVITY Section
                 Text(
@@ -519,9 +517,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        
-        SizedBox(height: verticalSpacing * 0.8),
-        
         // Instrucción
         Text(
           'In order to get paid submit your timesheet daily',
@@ -531,27 +526,29 @@ class _HomeScreenState extends State<HomeScreen> {
             fontStyle: FontStyle.italic,
           ),
         ),
-        
-        SizedBox(height: verticalSpacing * 1.5),
-        
-                  // Swiper con cards de trabajos aplicados
+        // Swiper con cards de trabajos aplicados
           Container(
-            height: screenHeight * 0.28, // Altura reducida para cards más compactas
+            height: screenHeight * 0.4, // Altura reducida para cards más compactas
             child: PageView.builder(
             itemCount: _appliedJobs.length,
             itemBuilder: (context, index) {
               final job = _appliedJobs[index];
-              return AppliedJobCard(
-                job: job,
-                onShowDetails: () {
-                  print('Show details for job: ${job.companyName}');
-                },
-                onSubmitTimesheet: () {
-                  print('Submit timesheet for job: ${job.companyName}');
-                },
-                onQuickNotify: () {
-                  print('Quick notify for job: ${job.companyName}');
-                },
+              return Center(
+                child: Container(
+                  width: screenWidth * 0.65, // Aumentar un poco más el ancho
+                  child: AppliedJobCard(
+                    job: job,
+                    onShowDetails: () {
+                      print('Show details for job: ${job.companyName}');
+                    },
+                    onSubmitTimesheet: () {
+                      print('Submit timesheet for job: ${job.companyName}');
+                    },
+                    onQuickNotify: () {
+                      print('Quick notify for job: ${job.companyName}');
+                    },
+                  ),
+                ),
               );
             },
           ),
