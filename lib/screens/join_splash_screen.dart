@@ -2,108 +2,41 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../config/app_flavor.dart';
 import '../config/assets_config.dart';
-import 'login/presentation/pages/login_screen.dart';
+import 'join_splash_screen/logic/controllers/join_splash_controller.dart';
 
-class JoinSplashScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class JoinSplashScreen extends StatelessWidget {
+  static const String id = '/join';
+  
+  JoinSplashScreen({super.key});
 
-  const JoinSplashScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<JoinSplashScreen> createState() => _JoinSplashScreenState();
-}
-
-class _JoinSplashScreenState extends State<JoinSplashScreen>
-    with TickerProviderStateMixin {
-  late AnimationController _logoController;
-  late AnimationController _textController;
-  late Animation<double> _logoAnimation;
-  late Animation<double> _textAnimation;
-
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _logoController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-
-    _textController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
-
-    _logoAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.elasticOut),
-    );
-
-    _textAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _textController, curve: Curves.easeInOut),
-    );
-
-    _startAnimations();
-  }
-
-  void _startAnimations() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    _logoController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 600));
-    _textController.forward();
-
-    await Future.delayed(const Duration(milliseconds: 3000));
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) =>
-              LoginScreen(flavor: _currentFlavor),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: const Duration(milliseconds: 800),
-        ),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _logoController.dispose();
-    _textController.dispose();
-    super.dispose();
-  }
+  final JoinSplashController controller = Get.put(JoinSplashController());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppFlavorConfig.getJoinBackgroundColor(_currentFlavor),
+    return Obx(() => Scaffold(
+      backgroundColor: AppFlavorConfig.getJoinBackgroundColor(controller.currentFlavor.value),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // Logo Animation
             AnimatedBuilder(
-              animation: _logoAnimation,
+              animation: controller.logoAnimation,
               builder: (context, child) {
-                final animationValue = _logoAnimation.value.clamp(0.0, 1.0);
+                final animationValue = controller.logoAnimation.value.clamp(0.0, 1.0);
                 return Transform.scale(
                   scale: animationValue,
                   child: Opacity(
                     opacity: animationValue,
-                    child: SvgPicture.asset(
-                      AssetsConfig.getJoinLogo(_currentFlavor),
+                    child: Obx(() => SvgPicture.asset(
+                      AssetsConfig.getJoinLogo(controller.currentFlavor.value),
                       width: 200,
                       height: 80,
                       fit: BoxFit.contain,
-                    ),
+                    )),
                   ),
                 );
               },
@@ -111,9 +44,9 @@ class _JoinSplashScreenState extends State<JoinSplashScreen>
             const SizedBox(height: 40),
             // Text Animation
             AnimatedBuilder(
-              animation: _textAnimation,
+              animation: controller.textAnimation,
               builder: (context, child) {
-                final textAnimationValue = _textAnimation.value.clamp(0.0, 1.0);
+                final textAnimationValue = controller.textAnimation.value.clamp(0.0, 1.0);
                 return Transform.translate(
                   offset: Offset(0, 20 * (1 - textAnimationValue)),
                   child: Opacity(
@@ -122,8 +55,8 @@ class _JoinSplashScreenState extends State<JoinSplashScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Column(
                         children: [
-                          Text(
-                            _getJoinTitle(),
+                          Obx(() => Text(
+                            controller.getJoinTitle(),
                             style: GoogleFonts.poppins(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -131,20 +64,20 @@ class _JoinSplashScreenState extends State<JoinSplashScreen>
                               letterSpacing: 1,
                             ),
                             textAlign: TextAlign.center,
-                          ),
+                          )),
                           const SizedBox(height: 8),
-                          Text(
-                            _getJoinSubtitle(),
+                          Obx(() => Text(
+                            controller.getJoinSubtitle(),
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
                             ),
                             textAlign: TextAlign.center,
-                          ),
+                          )),
                           const SizedBox(height: 30),
-                          Text(
-                            _getJoinDescription(),
+                          Obx(() => Text(
+                            controller.getJoinDescription(),
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -152,7 +85,7 @@ class _JoinSplashScreenState extends State<JoinSplashScreen>
                               height: 1.2,
                             ),
                             textAlign: TextAlign.center,
-                          ),
+                          )),
                         ],
                       ),
                     ),
@@ -175,39 +108,6 @@ class _JoinSplashScreenState extends State<JoinSplashScreen>
           ],
         ),
       ),
-    );
-  }
-
-  String _getJoinTitle() {
-    switch (_currentFlavor) {
-      case AppFlavor.labour:
-        return 'WORK OR HIRE';
-      case AppFlavor.sport:
-        return 'PLAY OR WATCH';
-      case AppFlavor.hospitality:
-        return 'SERVE OR ENJOY';
-    }
-  }
-
-  String _getJoinSubtitle() {
-    switch (_currentFlavor) {
-      case AppFlavor.labour:
-        return 'No worries.';
-      case AppFlavor.sport:
-        return 'No limits.';
-      case AppFlavor.hospitality:
-        return 'No boundaries.';
-    }
-  }
-
-  String _getJoinDescription() {
-    switch (_currentFlavor) {
-      case AppFlavor.labour:
-        return 'Construction &\nHospitality Jobs';
-      case AppFlavor.sport:
-        return 'Sports &\nFitness Activities';
-      case AppFlavor.hospitality:
-        return 'Hospitality &\nService Industry';
-    }
+    ));
   }
 }

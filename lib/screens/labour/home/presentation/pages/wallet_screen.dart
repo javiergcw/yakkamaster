@@ -1,34 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../logic/wallet_controller.dart';
 import '../widgets/transaction_item.dart';
+import '../../logic/controllers/wallet_screen_controller.dart';
 
-class WalletScreen extends StatefulWidget {
+class WalletScreen extends StatelessWidget {
+  static const String id = '/labour/wallet';
+  
   final AppFlavor? flavor;
 
-  const WalletScreen({
+  WalletScreen({
     Key? key,
     this.flavor,
   }) : super(key: key);
 
-  @override
-  State<WalletScreen> createState() => _WalletScreenState();
-}
-
-class _WalletScreenState extends State<WalletScreen> {
-  final WalletController _walletController = Get.put(WalletController());
-  
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void initState() {
-    super.initState();
-    print('WalletScreen initialized');
-  }
+  final WalletScreenController controller = Get.put(WalletScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
@@ -50,9 +43,9 @@ class _WalletScreenState extends State<WalletScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                  Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.8),
-                  Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.6),
+                  Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                  Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.8),
+                  Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.6),
                 ],
                 stops: [0.0, 0.7, 1.0],
               ),
@@ -91,7 +84,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  onPressed: () => Navigator.pop(context),
+                                  onPressed: controller.handleBackNavigation,
                                   icon: Icon(
                                     Icons.arrow_back_ios_new,
                                     color: Colors.white,
@@ -123,7 +116,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: IconButton(
-                                  onPressed: () => _walletController.addMoney(),
+                                  onPressed: controller.addMoney,
                                   icon: Icon(
                                     Icons.add,
                                     color: Colors.white,
@@ -159,7 +152,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           ),
                           child: Icon(
                             Icons.account_balance_wallet_outlined,
-                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                            color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                             size: 28,
                           ),
                         ),
@@ -168,7 +161,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         
                         // Balance con estilo Apple
                         Obx(() => Text(
-                          '\$ ${_walletController.balance.value.toStringAsFixed(2)}',
+                          '\$ ${controller.walletController.balance.value.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: balanceFontSize,
                             fontWeight: FontWeight.w700,
@@ -195,7 +188,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         Container(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: () => _walletController.withdrawBalance(),
+                            onPressed: controller.withdrawBalance,
                             icon: Container(
                               width: 26,
                               height: 26,
@@ -275,7 +268,7 @@ class _WalletScreenState extends State<WalletScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: PopupMenuButton<String>(
-                              onSelected: (value) => _walletController.setSort(value),
+                              onSelected: controller.setSort,
                               child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 child: Row(
@@ -323,15 +316,15 @@ class _WalletScreenState extends State<WalletScreen> {
                     // Lista de transacciones con estilo Apple
                     Expanded(
                       child: Obx(() {
-                        if (_walletController.isLoading.value) {
+                        if (controller.walletController.isLoading.value) {
                           return Center(
                             child: CircularProgressIndicator(
-                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                             ),
                           );
                         }
                         
-                        if (_walletController.transactions.isEmpty) {
+                        if (controller.walletController.transactions.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -356,14 +349,14 @@ class _WalletScreenState extends State<WalletScreen> {
                         }
                         
                         return ListView.separated(
-                          itemCount: _walletController.transactions.length,
+                          itemCount: controller.walletController.transactions.length,
                           separatorBuilder: (context, index) => Container(
                             margin: EdgeInsets.symmetric(horizontal: horizontalPadding * 0.5),
                             height: 1,
                             color: Colors.grey[200],
                           ),
                           itemBuilder: (context, index) {
-                            final transaction = _walletController.transactions[index];
+                            final transaction = controller.walletController.transactions[index];
                             return TransactionItem(
                               transaction: transaction,
                               horizontalPadding: horizontalPadding,

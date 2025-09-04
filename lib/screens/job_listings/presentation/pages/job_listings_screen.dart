@@ -1,58 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
-import '../../../../config/constants.dart';
-import '../../logic/job_listings_controller.dart';
 import '../widgets/job_card.dart';
 import '../../../../features/widgets/search_input_field.dart';
-import '../../../labour/home/presentation/pages/home_screen.dart';
+import '../../logic/controllers/job_listings_screen_controller.dart';
 
-class JobListingsScreen extends StatefulWidget {
-  final AppFlavor? flavor;
-
-  const JobListingsScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<JobListingsScreen> createState() => _JobListingsScreenState();
-}
-
-class _JobListingsScreenState extends State<JobListingsScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late JobListingsController _controller;
-  late TextEditingController _searchController;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = JobListingsController();
-    _searchController = TextEditingController();
-    _controller.onJobsChanged = () => setState(() {});
-    _controller.onSearchChanged = () => setState(() {});
-    _controller.onLoadingChanged = () => setState(() {});
-    _controller.onCountdownChanged = () => setState(() {});
-    _controller.initialize();
-  }
+class JobListingsScreen extends StatelessWidget {
+  static const String id = '/job-listings';
   
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Pasar el contexto al controlador para navegación
-    _controller.setNavigationContext(context, _currentFlavor);
-  }
+  final AppFlavor? flavor;
+  JobListingsScreen({super.key, this.flavor});
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
+  final JobListingsScreenController controller = Get.put(JobListingsScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -78,15 +46,7 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
             color: Colors.black87,
             size: iconSize,
           ),
-          onPressed: () {
-            // Navegar a home usando navegación estándar de Flutter
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(flavor: _currentFlavor),
-              ),
-              (route) => false,
-            );
-          },
+          onPressed: controller.handleBackNavigation,
         ),
         title: Column(
           children: [
@@ -98,12 +58,14 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
                 color: Colors.black87,
               ),
             ),
-            Text(
-              _controller.countdown,
-              style: GoogleFonts.poppins(
-                fontSize: bodyFontSize * 1.1,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+            GetBuilder<JobListingsScreenController>(
+              builder: (controller) => Text(
+                controller.jobListingsController.countdown,
+                style: GoogleFonts.poppins(
+                  fontSize: bodyFontSize * 1.1,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
             ),
           ],
@@ -119,14 +81,11 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
               Padding(
                 padding: EdgeInsets.symmetric(vertical: verticalSpacing),
                 child: SearchInputField(
-                  controller: _searchController,
+                  controller: controller.searchController,
                   hintText: 'Search job or skill',
-                  flavor: _currentFlavor,
-                  onChanged: _controller.updateSearchQuery,
-                  onSearch: () {
-                    // TODO: Implement search functionality
-                    print('Search pressed');
-                  },
+                  flavor: controller.currentFlavor.value,
+                  onChanged: controller.updateSearchQuery,
+                  onSearch: controller.handleSearch,
                 ),
               ),
               
@@ -146,11 +105,13 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
                       ),
                     ),
                     SizedBox(height: verticalSpacing * 0.3),
-                    Text(
-                      '+${_controller.totalJobs.toStringAsFixed(0)} jobs available in Australia',
-                      style: GoogleFonts.poppins(
-                        fontSize: bodyFontSize,
-                        color: Colors.black87,
+                    GetBuilder<JobListingsScreenController>(
+                      builder: (controller) => Text(
+                        '+${controller.jobListingsController.totalJobs.toStringAsFixed(0)} jobs available in Australia',
+                        style: GoogleFonts.poppins(
+                          fontSize: bodyFontSize,
+                          color: Colors.black87,
+                        ),
                       ),
                     ),
                   ],
@@ -159,58 +120,66 @@ class _JobListingsScreenState extends State<JobListingsScreen> {
               
               // Job Listings
               Expanded(
-                child: _controller.isLoading
-                    ? const Center(
+                child: GetBuilder<JobListingsScreenController>(
+                  builder: (controller) {
+                    if (controller.jobListingsController.isLoading) {
+                      return const Center(
                         child: CircularProgressIndicator(),
-                      )
-                    : _controller.filteredJobs.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: iconSize * 3,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: verticalSpacing),
-                                Text(
-                                  'No jobs found',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: sectionTitleFontSize,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: verticalSpacing * 0.5),
-                                Text(
-                                  'Try adjusting your search criteria',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: bodyFontSize,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
+                      );
+                    }
+                    
+                    if (controller.jobListingsController.filteredJobs.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.search_off,
+                              size: iconSize * 3,
+                              color: Colors.grey[400],
                             ),
-                          )
-                        : ListView.builder(
-                            padding: EdgeInsets.only(bottom: verticalSpacing * 2),
-                            itemCount: _controller.filteredJobs.length,
-                            itemBuilder: (context, index) {
-                              final job = _controller.filteredJobs[index];
-                                                             return JobCard(
-                                 job: job,
-                                 onShare: () => _controller.shareJob(job),
-                                 onShowMore: () => _controller.showMoreDetails(job),
-                                 horizontalPadding: horizontalPadding,
-                                 verticalSpacing: verticalSpacing,
-                                 titleFontSize: titleFontSize,
-                                 bodyFontSize: bodyFontSize,
-                                 iconSize: iconSize,
-                                 flavor: _currentFlavor,
-                               );
-                            },
-                          ),
+                            SizedBox(height: verticalSpacing),
+                            Text(
+                              'No jobs found',
+                              style: GoogleFonts.poppins(
+                                fontSize: sectionTitleFontSize,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Text(
+                              'Try adjusting your search criteria',
+                              style: GoogleFonts.poppins(
+                                fontSize: bodyFontSize,
+                                color: Colors.grey[500],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    
+                    return ListView.builder(
+                      padding: EdgeInsets.only(bottom: verticalSpacing * 2),
+                      itemCount: controller.jobListingsController.filteredJobs.length,
+                      itemBuilder: (context, index) {
+                        final job = controller.jobListingsController.filteredJobs[index];
+                        return JobCard(
+                          job: job,
+                          onShare: () => controller.shareJob(job),
+                          onShowMore: () => controller.showMoreDetails(job),
+                          horizontalPadding: horizontalPadding,
+                          verticalSpacing: verticalSpacing,
+                          titleFontSize: titleFontSize,
+                          bodyFontSize: bodyFontSize,
+                          iconSize: iconSize,
+                          flavor: controller.currentFlavor.value,
+                        );
+                      },
+                    );
+                  },
+                ),
               ),
             ],
           ),

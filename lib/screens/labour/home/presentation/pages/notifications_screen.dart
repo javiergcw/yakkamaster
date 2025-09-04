@@ -1,69 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../data/notification_dto.dart';
 import '../../logic/notifications_controller.dart';
+import '../../logic/controllers/notifications_screen_controller.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends StatelessWidget {
+  static const String id = '/labour/notifications';
+  
   final AppFlavor? flavor;
 
-  const NotificationsScreen({
+  NotificationsScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
-}
-
-class _NotificationsScreenState extends State<NotificationsScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  
-  // Controlador de notificaciones
-  late final NotificationsController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = NotificationsController();
-  }
-
-
-
-  void _markAllAsRead() {
-    _controller.markAllAsRead();
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('All notifications marked as read'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _handleNotificationTap(NotificationItem notification) {
-    _controller.handleNotificationTap(notification);
-    
-    // Ejemplo: mostrar un diálogo con más detalles
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(notification.title),
-        content: Text(notification.message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
+  final NotificationsScreenController controller = Get.put(NotificationsScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -100,7 +61,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: controller.handleBackNavigation,
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.black87,
@@ -118,12 +79,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                   ),
                                      IconButton(
-                     onPressed: () {
-                       // Refresh notifications
-                       setState(() {
-                         _controller.refreshNotifications();
-                       });
-                     },
+                     onPressed: controller.refreshNotifications,
                      icon: Icon(
                        Icons.refresh,
                        color: Colors.black87,
@@ -142,11 +98,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                  scrollDirection: Axis.horizontal,
                  child: Row(
                    children: [
-                     _buildTab('All', _controller.allNotifications.length, 0, tabFontSize),
-                     _buildTab('Hire Requests', _controller.hireNotifications.length, 1, tabFontSize),
-                     _buildTab('Hired', _controller.hiredNotifications.length, 2, tabFontSize),
-                     _buildTab('Payments', _controller.paymentNotifications.length, 3, tabFontSize),
-                     _buildTab('Timesheets', _controller.timesheetNotifications.length, 4, tabFontSize),
+                     _buildTab('All', controller.allNotifications.length, 0, tabFontSize),
+                     _buildTab('Hire Requests', controller.hireNotifications.length, 1, tabFontSize),
+                     _buildTab('Hired', controller.hiredNotifications.length, 2, tabFontSize),
+                     _buildTab('Payments', controller.paymentNotifications.length, 3, tabFontSize),
+                     _buildTab('Timesheets', controller.timesheetNotifications.length, 4, tabFontSize),
                    ],
                  ),
                ),
@@ -154,13 +110,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
              // Notifications List
              Expanded(
-               child: _controller.currentNotifications.isEmpty
-                   ? _buildEmptyState(screenWidth, screenHeight, horizontalPadding, verticalSpacing, bodyFontSize)
-                   : ListView.builder(
-                       padding: EdgeInsets.symmetric(vertical: verticalSpacing),
-                       itemCount: _controller.currentNotifications.length,
-                       itemBuilder: (context, index) {
-                         final notification = _controller.currentNotifications[index];
+               child: GetBuilder<NotificationsScreenController>(
+                 builder: (controller) => controller.currentNotifications.isEmpty
+                     ? _buildEmptyState(screenWidth, screenHeight, horizontalPadding, verticalSpacing, bodyFontSize)
+                     : ListView.builder(
+                         padding: EdgeInsets.symmetric(vertical: verticalSpacing),
+                         itemCount: controller.currentNotifications.length,
+                         itemBuilder: (context, index) {
+                           final notification = controller.currentNotifications[index];
                          return _buildNotificationCard(
                            notification,
                            screenWidth,
@@ -171,6 +128,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                          );
                        },
                      ),
+               ),
              ),
           ],
         ),
@@ -181,18 +139,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
 
   Widget _buildTab(String title, int count, int index, double fontSize) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final horizontalPadding = screenWidth * 0.06;
     
-    final isSelected = _controller.selectedTabIndex == index;
-    
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _controller.setSelectedTabIndex(index);
-        });
-      },
+    return GetBuilder<NotificationsScreenController>(
+      builder: (controller) {
+        final isSelected = controller.selectedTabIndex == index;
+        
+        return GestureDetector(
+          onTap: () => controller.setSelectedTabIndex(index),
       child: Container(
         margin: EdgeInsets.only(right: horizontalPadding * 0.5),
         padding: EdgeInsets.symmetric(
@@ -201,7 +157,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         decoration: BoxDecoration(
           color: isSelected 
-              ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+              ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
@@ -214,6 +170,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
       ),
+        );
+      },
     );
   }
 
@@ -244,7 +202,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _handleNotificationTap(notification),
+          onTap: () => controller.handleNotificationTap(notification),
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: EdgeInsets.all(horizontalPadding * 0.8),
@@ -256,12 +214,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                    width: screenWidth * 0.12,
                    height: screenWidth * 0.12,
                    decoration: BoxDecoration(
-                     color: _controller.getNotificationColor(notification.type).withOpacity(0.1),
+                     color: controller.getNotificationColor(notification.type).withOpacity(0.1),
                      shape: BoxShape.circle,
                    ),
                    child: Icon(
-                     _controller.getNotificationIcon(notification.type),
-                     color: _controller.getNotificationColor(notification.type),
+                     controller.getNotificationIcon(notification.type),
+                     color: controller.getNotificationColor(notification.type),
                      size: screenWidth * 0.06,
                    ),
                  ),
@@ -301,7 +259,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             vertical: verticalSpacing * 0.2,
                           ),
                           decoration: BoxDecoration(
-                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
+                            color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -309,7 +267,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: bodyFontSize * 0.8,
                               fontWeight: FontWeight.w500,
-                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                             ),
                           ),
                         ),
@@ -330,7 +288,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       SizedBox(height: verticalSpacing * 0.3),
                       
                                              Text(
-                         _controller.getTimeAgo(notification.timestamp),
+                         controller.getTimeAgo(notification.timestamp),
                          style: GoogleFonts.poppins(
                            fontSize: bodyFontSize * 0.8,
                            color: Colors.grey[500],
@@ -346,7 +304,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     width: screenWidth * 0.02,
                     height: screenWidth * 0.02,
                     decoration: BoxDecoration(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       shape: BoxShape.circle,
                     ),
                   ),

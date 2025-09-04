@@ -1,165 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import 'respect_screen.dart';
+import '../../logic/controllers/documents_controller.dart';
 
-class DocumentsScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class DocumentsScreen extends StatelessWidget {
+  static const String id = '/documents';
+  
+  DocumentsScreen({super.key});
 
-  const DocumentsScreen({
-    super.key,
-    this.flavor,
-  });
+  final DocumentsController controller = Get.put(DocumentsController());
 
-  @override
-  State<DocumentsScreen> createState() => _DocumentsScreenState();
-}
 
-class _DocumentsScreenState extends State<DocumentsScreen> {
-  String? _selectedCredential;
-  final List<String> _credentials = [
-    'Driver License',
-    'Forklift License',
-    'White Card',
-    'First Aid Certificate',
-    'Working at Heights',
-    'Confined Spaces',
-    'Other'
-  ];
-
-  final List<Map<String, dynamic>> _documents = [
-    {'type': 'Resume', 'file': null, 'uploaded': false},
-    {'type': 'Cover letter', 'file': null, 'uploaded': false},
-    {'type': 'Police check', 'file': null, 'uploaded': false},
-    {'type': 'Other', 'file': null, 'uploaded': false},
-  ];
-
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _showCredentialDropdown() {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final titleFontSize = screenWidth * 0.045;
-    final itemFontSize = screenWidth * 0.035;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: Text(
-                'Select Credential',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: titleFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _credentials.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      _credentials[index],
-                      style: GoogleFonts.poppins(
-                        fontSize: itemFontSize,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        _selectedCredential = _credentials[index];
-                      });
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _addLicense() {
-    // No mostrar toast, solo no hacer nada si no hay credencial seleccionada
-  }
-
-  Future<void> _uploadDocument(int index) async {
-    try {
-      // Abrir selector de archivos
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf', 'doc', 'docx'],
-        allowMultiple: false,
-      );
-
-      if (result != null) {
-        PlatformFile file = result.files.first;
-        
-        setState(() {
-          _documents[index]['uploaded'] = true;
-          _documents[index]['file'] = file.name;
-          _documents[index]['path'] = file.path;
-          _documents[index]['size'] = file.size;
-        });
-
-        // Archivo subido exitosamente
-      } else {
-        // Usuario canceló la selección
-      }
-    } catch (e) {
-      // Error al seleccionar archivo
-    }
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
-  }
-
-  void _handleContinue() {
-    // Navegar a la pantalla de Respect
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => RespectScreen(flavor: _currentFlavor)),
-    );
-  }
-
-  void _handleSkip() {
-    // Navegar a la pantalla de Respect
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => RespectScreen(flavor: _currentFlavor)),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -193,7 +47,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => Get.back(),
                         icon: Icon(
                           Icons.arrow_back,
                           color: Colors.black,
@@ -226,12 +80,12 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(progressBarHeight / 2),
                     ),
-                                         child: FractionallySizedBox(
-                       alignment: Alignment.centerLeft,
-                       widthFactor: 1.0, // 100% completado - último paso
-                       child: Container(
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: 1.0, // 100% completado - último paso
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                           borderRadius: BorderRadius.circular(progressBarHeight / 2),
                         ),
                       ),
@@ -255,209 +109,211 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   // Dropdown y botón Add License
                   Row(
                     children: [
-                      Expanded(
-                        flex: 3,
-                        child: GestureDetector(
-                          onTap: _showCredentialDropdown,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: horizontalPadding * 0.8,
-                              vertical: verticalSpacing * 0.8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey[300]!),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _selectedCredential ?? "Select credential",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: buttonFontSize,
-                                      color: _selectedCredential != null ? Colors.black : Colors.grey[600],
-                                    ),
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: Colors.grey[600],
-                                  size: screenWidth * 0.05,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: horizontalPadding * 0.5),
-                      Expanded(
-                        flex: 1,
-                        child: GestureDetector(
-                          onTap: _addLicense,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: horizontalPadding * 0.3,
-                              vertical: verticalSpacing * 0.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.add,
-                                  color: Colors.black,
-                                  size: screenWidth * 0.04,
-                                ),
-                                SizedBox(height: verticalSpacing * 0.1),
-                                Text(
-                                  "Add License",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: buttonFontSize * 0.6,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                                             Expanded(
+                         flex: 3,
+                         child: GestureDetector(
+                           onTap: controller.showCredentialDropdown,
+                           child: Container(
+                             padding: EdgeInsets.symmetric(
+                               horizontal: horizontalPadding * 0.8,
+                               vertical: verticalSpacing * 0.8,
+                             ),
+                             decoration: BoxDecoration(
+                               color: Colors.white,
+                               borderRadius: BorderRadius.circular(12),
+                               border: Border.all(color: Colors.grey[300]!),
+                             ),
+                             child: Row(
+                               children: [
+                                 Expanded(
+                                   child: Obx(() => Text(
+                                     controller.selectedCredential?.value ?? "Select credential",
+                                     style: GoogleFonts.poppins(
+                                       fontSize: buttonFontSize,
+                                       color: controller.selectedCredential?.value != null ? Colors.black : Colors.grey[600],
+                                     ),
+                                   )),
+                                 ),
+                                 Icon(
+                                   Icons.keyboard_arrow_down,
+                                   color: Colors.grey[600],
+                                   size: screenWidth * 0.05,
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                       ),
+                       SizedBox(width: horizontalPadding * 0.5),
+                       Expanded(
+                         flex: 1,
+                         child: GestureDetector(
+                           onTap: controller.addLicense,
+                           child: Container(
+                             padding: EdgeInsets.symmetric(
+                               horizontal: horizontalPadding * 0.3,
+                               vertical: verticalSpacing * 0.5,
+                             ),
+                             decoration: BoxDecoration(
+                               color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                               borderRadius: BorderRadius.circular(12),
+                             ),
+                             child: Column(
+                               mainAxisAlignment: MainAxisAlignment.center,
+                               children: [
+                                 Icon(
+                                   Icons.add,
+                                   color: Colors.black,
+                                   size: screenWidth * 0.04,
+                                 ),
+                                 SizedBox(height: verticalSpacing * 0.1),
+                                 Text(
+                                   "Add License",
+                                   style: GoogleFonts.poppins(
+                                     fontSize: buttonFontSize * 0.6,
+                                     fontWeight: FontWeight.w600,
+                                     color: Colors.black,
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ),
+                         ),
+                       ),
                     ],
                   ),
                   
                   SizedBox(height: verticalSpacing * 1.5),
                   
                   // Documentos opcionales
-                  ...List.generate(_documents.length, (index) {
-                    final document = _documents[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Título del documento
-                        Text(
-                          document['type'],
-                          style: GoogleFonts.poppins(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                  Obx(() => Column(
+                    children: List.generate(controller.documents.length, (index) {
+                      final document = controller.documents[index];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Título del documento
+                          Text(
+                            document['type'],
+                            style: GoogleFonts.poppins(
+                              fontSize: buttonFontSize,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: verticalSpacing * 0.5),
-                        Row(
-                          children: [
-                            Expanded(
-                                                             child: GestureDetector(
-                                 onTap: () async => await _uploadDocument(index),
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: horizontalPadding * 0.8,
-                                    vertical: verticalSpacing * 0.8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.3)),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.upload_file,
-                                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                        size: screenWidth * 0.05,
-                                      ),
-                                      SizedBox(width: horizontalPadding * 0.5),
-                                      Expanded(
-                                        child: Text(
-                                          "Upload ${document['type'].toString().toLowerCase()}",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: buttonFontSize,
-                                            fontWeight: FontWeight.w500,
-                                            color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () async => await controller.uploadDocument(index),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: horizontalPadding * 0.8,
+                                      vertical: verticalSpacing * 0.8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.3)),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.upload_file,
+                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                          size: screenWidth * 0.05,
+                                        ),
+                                        SizedBox(width: horizontalPadding * 0.5),
+                                        Expanded(
+                                          child: Text(
+                                            "Upload ${document['type'].toString().toLowerCase()}",
+                                            style: GoogleFonts.poppins(
+                                              fontSize: buttonFontSize,
+                                              fontWeight: FontWeight.w500,
+                                              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: horizontalPadding * 0.5),
-                            Text(
-                              "(Optional)",
+                              SizedBox(width: horizontalPadding * 0.5),
+                              Text(
+                                "(Optional)",
+                                style: GoogleFonts.poppins(
+                                  fontSize: buttonFontSize * 0.8,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          Padding(
+                            padding: EdgeInsets.only(left: horizontalPadding * 0.8),
+                            child: Text(
+                              ".pdf .doc .docx",
                               style: GoogleFonts.poppins(
                                 fontSize: buttonFontSize * 0.8,
                                 color: Colors.grey[600],
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: verticalSpacing * 0.5),
-                        Padding(
-                          padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                          child: Text(
-                            ".pdf .doc .docx",
-                            style: GoogleFonts.poppins(
-                              fontSize: buttonFontSize * 0.8,
-                              color: Colors.grey[600],
-                            ),
                           ),
-                        ),
-                                                 if (document['uploaded'] == true) ...[
-                           SizedBox(height: verticalSpacing * 0.5),
-                           Padding(
-                             padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Row(
-                                   children: [
-                                     Icon(
-                                       Icons.check_circle,
-                                       color: Colors.green,
-                                       size: screenWidth * 0.04,
-                                     ),
-                                     SizedBox(width: horizontalPadding * 0.3),
-                                     Expanded(
-                                       child: Text(
-                                         document['file'],
-                                         style: GoogleFonts.poppins(
-                                           fontSize: buttonFontSize * 0.8,
-                                           color: Colors.green[700],
-                                           fontWeight: FontWeight.w500,
-                                         ),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                                 if (document['size'] != null) ...[
-                                   SizedBox(height: verticalSpacing * 0.3),
-                                   Text(
-                                     'Tamaño: ${_formatFileSize(document['size'])}',
-                                     style: GoogleFonts.poppins(
-                                       fontSize: buttonFontSize * 0.7,
-                                       color: Colors.grey[600],
-                                     ),
-                                   ),
-                                 ],
-                               ],
-                             ),
-                           ),
-                         ],
-                        SizedBox(height: verticalSpacing * 1.2),
-                      ],
-                    );
-                  }),
+                          if (document['uploaded'] == true) ...[
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Padding(
+                              padding: EdgeInsets.only(left: horizontalPadding * 0.8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                        size: screenWidth * 0.04,
+                                      ),
+                                      SizedBox(width: horizontalPadding * 0.3),
+                                      Expanded(
+                                        child: Text(
+                                          document['file'],
+                                          style: GoogleFonts.poppins(
+                                            fontSize: buttonFontSize * 0.8,
+                                            color: Colors.green[700],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (document['size'] != null) ...[
+                                    SizedBox(height: verticalSpacing * 0.3),
+                                    Text(
+                                      'Tamaño: ${controller.formatFileSize(document['size'])}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: buttonFontSize * 0.7,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                          SizedBox(height: verticalSpacing * 1.2),
+                        ],
+                      );
+                    }),
+                  )),
                   
                   const Spacer(),
                   
                   // Botón Continue
                   CustomButton(
                     text: "Continue",
-                    onPressed: _handleContinue,
+                    onPressed: controller.handleContinue,
                     isLoading: false,
                     showShadow: false,
                   ),
@@ -467,7 +323,7 @@ class _DocumentsScreenState extends State<DocumentsScreen> {
                   // Botón Skip
                   Center(
                     child: GestureDetector(
-                      onTap: _handleSkip,
+                      onTap: controller.handleSkip,
                       child: Text(
                         "Skip",
                         style: GoogleFonts.poppins(

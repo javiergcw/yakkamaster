@@ -1,0 +1,292 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../../config/app_flavor.dart';
+import '../../../../../config/constants.dart';
+
+class ProfileScreenController extends GetxController {
+  final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
+  final ImagePicker picker = ImagePicker();
+  final Rx<XFile?> selectedImage = Rx<XFile?>(null);
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Establecer flavor si se proporciona en los argumentos
+    final arguments = Get.arguments;
+    if (arguments != null && arguments['flavor'] != null) {
+      currentFlavor.value = arguments['flavor'];
+    }
+  }
+
+  void handleHelp() async {
+    // Crear URL de WhatsApp usando las constantes generales
+    final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
+    
+    try {
+      // Intentar abrir WhatsApp
+      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+        await launchUrl(
+          Uri.parse(whatsappUrl),
+          mode: LaunchMode.externalApplication,
+        );
+      } else {
+        // Si no se puede abrir WhatsApp, mostrar mensaje
+        Get.snackbar(
+          'Error',
+          'No se pudo abrir WhatsApp. Asegúrate de tener la aplicación instalada.',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      // Manejar errores
+      Get.snackbar(
+        'Error',
+        'Error al abrir WhatsApp: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void handleEditPersonalDetails() {
+    // Navegar a la pantalla de edición de detalles personales
+    Get.toNamed('/labour/edit-personal-details', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleEditDocuments() {
+    // Navegar a la pantalla de edición de documentos
+    Get.toNamed('/labour/edit-documents', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleEditBankDetails() {
+    // Navegar a la pantalla de edición de detalles bancarios
+    Get.toNamed('/labour/edit-bank-details', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleTermsAndConditions() async {
+    try {
+      print('Intentando abrir URL: ${AppConstants.termsAndConditionsUrl}');
+      
+      // Intentar abrir la URL directamente
+      final bool launched = await launchUrl(
+        Uri.parse(AppConstants.termsAndConditionsUrl),
+        mode: LaunchMode.externalApplication,
+      );
+      
+      if (!launched) {
+        Get.snackbar(
+          'Error',
+          'No se pudo abrir los términos y condiciones.',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error al abrir términos y condiciones: $e');
+      Get.snackbar(
+        'Error',
+        'Error al abrir términos y condiciones: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void handleDeleteAccount() async {
+    try {
+      print('Intentando abrir URL de eliminación de cuenta: ${AppConstants.deleteAccountUrl}');
+      
+      // Intentar abrir la URL directamente
+      final bool launched = await launchUrl(
+        Uri.parse(AppConstants.deleteAccountUrl),
+        mode: LaunchMode.externalApplication,
+      );
+      
+      if (!launched) {
+        Get.snackbar(
+          'Error',
+          'No se pudo abrir el formulario de eliminación de cuenta.',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      print('Error al abrir formulario de eliminación de cuenta: $e');
+      Get.snackbar(
+        'Error',
+        'Error al abrir formulario de eliminación de cuenta: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void handleLogOut() {
+    // TODO: Implementar logout
+    print('Log out pressed');
+    Get.snackbar(
+      'Info',
+      'Logout functionality not implemented yet',
+      backgroundColor: Colors.blue,
+      colorText: Colors.white,
+    );
+  }
+
+  void handleEditProfileImage() {
+    showImageSourceDialog();
+  }
+
+  void showImageSourceDialog() {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        title: Text(
+          'Seleccionar imagen',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+              title: Text(
+                'Cámara',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Get.back();
+                pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+              title: Text(
+                'Galería',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Get.back();
+                pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> pickImage(ImageSource source) async {
+    try {
+      // Solicitar permisos
+      if (source == ImageSource.camera) {
+        final status = await Permission.camera.request();
+        if (!status.isGranted) {
+          showPermissionDeniedDialog('cámara');
+          return;
+        }
+      } else {
+        final status = await Permission.photos.request();
+        if (!status.isGranted) {
+          showPermissionDeniedDialog('galería');
+          return;
+        }
+      }
+
+      // Seleccionar imagen
+      final XFile? image = await picker.pickImage(
+        source: source,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        selectedImage.value = image;
+        print('Imagen seleccionada: ${image.path}');
+      }
+    } catch (e) {
+      print('Error al seleccionar imagen: $e');
+      showErrorDialog('Error al seleccionar la imagen');
+    }
+  }
+
+  void showPermissionDeniedDialog(String permission) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        title: Text(
+          'Permiso requerido',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Se necesita permiso para acceder a la $permission. Por favor, habilita el permiso en la configuración de la aplicación.',
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              openAppSettings();
+            },
+            child: Text(
+              'Configuración',
+              style: TextStyle(
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void showErrorDialog(String message) {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        title: Text(
+          'Error',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text(
+              'OK',
+              style: TextStyle(
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

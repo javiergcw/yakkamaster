@@ -4,36 +4,29 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/post_job_review_screen_controller.dart';
 
-class PostJobReviewScreen extends StatefulWidget {
+class PostJobReviewScreen extends StatelessWidget {
+  static const String id = '/builder/post-job-review';
+  
   final AppFlavor? flavor;
 
-  const PostJobReviewScreen({
+  PostJobReviewScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobReviewScreen> createState() => _PostJobReviewScreenState();
-}
+  final PostJobReviewScreenController controller = Get.put(PostJobReviewScreenController());
 
-class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  bool _isPublic = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    
-    // Inicializar el estado público/privado
-    _isPublic = _controller.postJobData.isPublic ?? true;
-  }
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -70,7 +63,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -109,7 +102,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                   Expanded(
                     flex: 9,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     ),
                   ),
                   // Remaining (grey) - 0 remaining
@@ -173,12 +166,9 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                            ),
                          ),
                          Switch(
-                           value: _isPublic,
+                           value: controller.isPublic.value,
                            onChanged: (value) {
-                             setState(() {
-                               _isPublic = value;
-                             });
-                             _controller.updateIsPublic(value);
+                             controller.updateIsPublic(value);
                            },
                            activeColor: Colors.black,
                            activeTrackColor: Colors.grey[400],
@@ -210,7 +200,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  _controller.postJobData.selectedSkill ?? "Truck Driver",
+                                  controller.postJobController.postJobData.selectedSkill ?? "Truck Driver",
                                   style: GoogleFonts.poppins(
                                     fontSize: subtitleFontSize,
                                     fontWeight: FontWeight.bold,
@@ -219,7 +209,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                                 ),
                               ),
                               Text(
-                                "\$${(_controller.postJobData.hourlyRate ?? 28.0).toStringAsFixed(1)}/hr",
+                                "\$${(controller.postJobController.postJobData.hourlyRate ?? 28.0).toStringAsFixed(1)}/hr",
                                 style: GoogleFonts.poppins(
                                   fontSize: subtitleFontSize,
                                   fontWeight: FontWeight.bold,
@@ -243,28 +233,28 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                           
                           _buildJobDetail(
                             Icons.calendar_today,
-                            "Dates: ${_formatDateRange()}",
+                            "Dates: ${controller.formatDateRange()}",
                           ),
                           
                           SizedBox(height: verticalSpacing * 0.8),
                           
                           _buildJobDetail(
                             Icons.access_time,
-                            "Time: ${_formatTimeRange()}",
+                            "Time: ${controller.formatTimeRange()}",
                           ),
                           
                           SizedBox(height: verticalSpacing * 0.8),
                           
                           _buildJobDetail(
                             Icons.description,
-                            "Payment is expected: ${_formatPaymentFrequency()}",
+                            "Payment is expected: ${controller.formatPaymentFrequency()}",
                           ),
                           
                           SizedBox(height: verticalSpacing * 0.8),
                           
                           _buildJobDetail(
                             Icons.list,
-                            "Description: ${_controller.postJobData.jobDescription ?? "asd"}",
+                            "Description: ${controller.postJobController.postJobData.jobDescription ?? "asd"}",
                           ),
                         ],
                       ),
@@ -286,23 +276,23 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
                      width: double.infinity,
                      child: CustomButton(
                        text: "Edit",
-                       onPressed: _handleEdit,
+                       onPressed: controller.handleEdit,
                        type: ButtonType.secondary,
-                       flavor: _currentFlavor,
+                       flavor: controller.currentFlavor.value,
                        showShadow: false,
                      ),
                    ),
                   
                   SizedBox(height: verticalSpacing),
                   
-                                     // Confirm Button
+                  // Confirm Button
                    SizedBox(
                      width: double.infinity,
                      child: CustomButton(
                        text: "Confirm",
-                       onPressed: _handleConfirm,
+                       onPressed: controller.handleConfirm,
                        type: ButtonType.primary,
-                       flavor: _currentFlavor,
+                       flavor: controller.currentFlavor.value,
                        showShadow: false,
                      ),
                    ),
@@ -316,7 +306,7 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
   }
 
   Widget _buildJobDetail(IconData icon, String mainText, [String? subtitle1, String? subtitle2]) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final verticalSpacing = mediaQuery.size.height * 0.025;
     
@@ -365,74 +355,5 @@ class _PostJobReviewScreenState extends State<PostJobReviewScreen> {
         ),
       ],
     );
-  }
-
-  String _formatDateRange() {
-    final startDate = _controller.postJobData.startDate;
-    final endDate = _controller.postJobData.endDate;
-    
-    if (startDate == null) return "Not set";
-    
-    final startFormatted = "${startDate.day.toString().padLeft(2, '0')}-${startDate.month.toString().padLeft(2, '0')}-${startDate.year}";
-    
-    if (endDate == null || _controller.postJobData.isOngoingWork == true) {
-      return "$startFormatted - Ongoing";
-    }
-    
-    final endFormatted = "${endDate.day.toString().padLeft(2, '0')}-${endDate.month.toString().padLeft(2, '0')}-${endDate.year}";
-    return "$startFormatted - $endFormatted";
-  }
-
-  String _formatTimeRange() {
-    final startTime = _controller.postJobData.startTime;
-    final endTime = _controller.postJobData.endTime;
-    
-    if (startTime == null || endTime == null) return "Not set";
-    
-    final startFormatted = startTime.format(context);
-    final endFormatted = endTime.format(context);
-    
-    return "$startFormatted - $endFormatted";
-  }
-
-  String _formatPaymentFrequency() {
-    final frequency = _controller.postJobData.paymentFrequency;
-    
-    switch (frequency) {
-      case "weekly":
-        return "Weekly payment";
-      case "fortnightly":
-        return "Fortnightly payment";
-      case "choose_pay_day":
-        final payDay = _controller.postJobData.payDay;
-        if (payDay != null) {
-          return "Specific date: ${payDay.day.toString().padLeft(2, '0')}-${payDay.month.toString().padLeft(2, '0')}-${payDay.year}";
-        }
-        return "Choose pay day";
-      default:
-        return "Not set";
-    }
-  }
-
-  void _handleEdit() {
-    // TODO: Implementar navegación de vuelta al primer paso para editar
-    Navigator.of(context).pop();
-  }
-
-  void _handleConfirm() {
-    // TODO: Implementar lógica de confirmación y publicación
-    _controller.postJob();
-    
-    // Mostrar mensaje de éxito
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Job posted successfully!'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-        duration: Duration(seconds: 2),
-      ),
-    );
-    
-    // Navegar de vuelta a la pantalla principal
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 }

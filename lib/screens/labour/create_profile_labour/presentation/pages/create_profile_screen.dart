@@ -1,40 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../../../../features/widgets/phone_input.dart';
-import 'skills_experience_screen.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
-class CreateProfileScreen extends StatefulWidget {
-  final AppFlavor? flavor;
-
-  const CreateProfileScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<CreateProfileScreen> createState() => _CreateProfileScreenState();
-}
-
-class _CreateProfileScreenState extends State<CreateProfileScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
+class CreateProfileScreen extends StatelessWidget {
+  static const String id = '/create-profile-labour';
   
-  // Controllers para los campos de texto
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController(text: '0412345678');
-  final TextEditingController _emailController = TextEditingController(text: 'testing22@gmail.com');
-  final TextEditingController _birthCountryController = TextEditingController();
-  
-  // Variables para la imagen de perfil
-  File? _profileImage;
-  final ImagePicker _picker = ImagePicker();
+  CreateProfileScreen({super.key});
+
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   // Sombras tipo tarjeta (igual que en industry_selection_screen)
   final List<BoxShadow> strongCardShadows = const [
@@ -51,238 +30,6 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
       spreadRadius: 0,
     ),
   ];
-
-  @override
-  void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _phoneController.dispose();
-    _emailController.dispose();
-    _birthCountryController.dispose();
-    super.dispose();
-  }
-
-  // Función para mostrar opciones de selección de imagen
-  void _showImageSourceDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Seleccionar imagen',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Colors.blue),
-                title: const Text('Cámara'),
-                subtitle: const Text('Tomar una nueva foto'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.green),
-                title: const Text('Galería'),
-                subtitle: const Text('Seleccionar de la galería'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // Función para verificar y solicitar permisos
-  Future<bool> _requestPermissions(ImageSource source) async {
-    if (source == ImageSource.camera) {
-      // Solicitar permiso de cámara
-      PermissionStatus status = await Permission.camera.request();
-      if (status.isDenied || status.isPermanentlyDenied) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('Permiso de Cámara'),
-              content: const Text('Esta aplicación necesita acceso a la cámara para tomar fotos. Por favor, concede el permiso en la configuración.'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    openAppSettings();
-                  },
-                  child: const Text('Configuración'),
-                ),
-              ],
-            );
-          },
-        );
-        return false;
-      }
-      return status.isGranted;
-    } else {
-      // Para galería, verificar permisos de almacenamiento
-      PermissionStatus status = await Permission.photos.request();
-      if (status.isDenied || status.isPermanentlyDenied) {
-        // Intentar con permisos de almacenamiento como fallback
-        status = await Permission.storage.request();
-      }
-      return status.isGranted;
-    }
-  }
-
-  // Función para seleccionar imagen
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      // Verificar permisos primero
-      bool hasPermission = await _requestPermissions(source);
-      if (!hasPermission) {
-        return;
-      }
-
-      // Mostrar indicador de carga
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      // Intentar seleccionar imagen con configuración más simple
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 80,
-      );
-      
-      // Cerrar indicador de carga
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      
-      if (image != null) {
-        setState(() {
-          _profileImage = File(image.path);
-        });
-        
-        // Mostrar mensaje de éxito
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Imagen seleccionada exitosamente'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      // Cerrar indicador de carga si está abierto
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
-      
-      // Manejo específico de errores
-      String errorMessage = 'Error al seleccionar imagen';
-      
-      if (e.toString().contains('channel-error')) {
-        errorMessage = 'Error de comunicación. Intenta:\n1. Reiniciar la app\n2. Verificar permisos de cámara\n3. Usar galería en lugar de cámara';
-      } else if (e.toString().contains('permission')) {
-        errorMessage = 'Permisos no concedidos. Ve a:\nConfiguración > Aplicaciones > Yakka Sports > Permisos';
-      } else if (e.toString().contains('camera')) {
-        errorMessage = 'Error al acceder a la cámara. Intenta usar la galería.';
-      } else if (e.toString().contains('pigeon')) {
-        errorMessage = 'Error interno del plugin. Intenta:\n1. Reiniciar la app\n2. Usar galería en lugar de cámara';
-      }
-      
-      // Mostrar diálogo de error más informativo
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: Text(errorMessage),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Si es error de cámara, sugerir usar galería
-                  if (source == ImageSource.camera && 
-                      (e.toString().contains('channel-error') || 
-                       e.toString().contains('camera') ||
-                       e.toString().contains('pigeon'))) {
-                    _pickImage(ImageSource.gallery);
-                  }
-                },
-                child: const Text('Intentar con galería'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancelar'),
-              ),
-            ],
-          );
-        },
-      );
-      
-      // Log del error para debugging
-      print('Error al seleccionar imagen: $e');
-    }
-  }
-
-  void _handleNext() {
-    // Validar campos requeridos
-    if (_firstNameController.text.isEmpty || _lastNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all required fields')),
-      );
-      return;
-    }
-    
-    // Navegar a la pantalla de habilidades
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SkillsExperienceScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +70,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => Get.back(),
                           icon: Icon(
                             Icons.arrow_back,
                             color: Colors.black,
@@ -351,7 +98,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     // Imagen de perfil con botón de edición
                     Center(
                       child: GestureDetector(
-                        onTap: _showImageSourceDialog,
+                        onTap: controller.showImageSourceDialog,
                         child: Stack(
                           children: [
                             // Círculo principal de la imagen de perfil
@@ -366,10 +113,10 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                 ),
                                 // Sin sombra
                               ),
-                              child: _profileImage != null
+                              child: Obx(() => controller.profileImage.value != null
                                   ? ClipOval(
                                       child: Image.file(
-                                        _profileImage!,
+                                        controller.profileImage.value!,
                                         width: profileImageSize,
                                         height: profileImageSize,
                                         fit: BoxFit.cover,
@@ -379,7 +126,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                       Icons.camera_alt,
                                       size: cameraIconSize,
                                       color: Colors.grey[600],
-                                    ),
+                                    )),
                             ),
                             
                             // Botón de edición (círculo amarillo con icono de lápiz)
@@ -390,7 +137,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                                 width: editIconSize,
                                 height: editIconSize,
                                 decoration: BoxDecoration(
-                                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                   shape: BoxShape.circle,
                                   // Sin sombra
                                 ),
@@ -410,7 +157,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
                     // Campos de entrada
                     CustomTextField(
-                      controller: _firstNameController,
+                      controller: controller.firstNameController,
                       hintText: "First Name",
                       showBorder: true,
                     ),
@@ -418,7 +165,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
-                      controller: _lastNameController,
+                      controller: controller.lastNameController,
                       hintText: "Last Name",
                       showBorder: true,
                     ),
@@ -427,13 +174,13 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
 
                     // Campo de teléfono usando el componente PhoneInput
                     PhoneInput(
-                      controller: _phoneController,
+                      controller: controller.phoneController,
                     ),
 
                     SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
-                      controller: _emailController,
+                      controller: controller.emailController,
                       hintText: "Email",
                       showBorder: true,
                     ),
@@ -441,7 +188,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     SizedBox(height: verticalSpacing * 0.8),
 
                     CustomTextField(
-                      controller: _birthCountryController,
+                      controller: controller.birthCountryController,
                       hintText: "Enter your birth country",
                       showBorder: true,
                     ),
@@ -451,7 +198,7 @@ class _CreateProfileScreenState extends State<CreateProfileScreen> {
                     // Botón Next con bordes personalizados
                     CustomButton(
                       text: "Next",
-                      onPressed: _handleNext,
+                      onPressed: controller.handleNext,
                       isLoading: false,
                       showShadow: false,
                       customBorder: Border(

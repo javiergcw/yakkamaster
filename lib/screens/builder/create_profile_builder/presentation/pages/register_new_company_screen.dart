@@ -1,60 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
+import '../../logic/controllers/register_new_company_controller.dart';
 
-class RegisterNewCompanyScreen extends StatefulWidget {
-  final AppFlavor? flavor;
-  final Function(String)? onCompanyCreated;
-
-  const RegisterNewCompanyScreen({
-    super.key,
-    this.flavor,
-    this.onCompanyCreated,
-  });
-
-  @override
-  State<RegisterNewCompanyScreen> createState() => _RegisterNewCompanyScreenState();
-}
-
-class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _companyNameController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _abnController = TextEditingController();
-  final _websiteController = TextEditingController();
-  final _descriptionController = TextEditingController();
+class RegisterNewCompanyScreen extends StatelessWidget {
+  static const String id = '/register-new-company';
   
-  String? _selectedCategory;
-  final List<String> _categories = [
-    'Construction',
-    'Renovation',
-    'Plumbing',
-    'Electrical',
-    'Landscaping',
-    'Painting',
-    'Roofing',
-    'Other'
-  ];
-  
-  // Variables para el logo
-  File? _logoImage;
-  final ImagePicker _picker = ImagePicker();
+  RegisterNewCompanyScreen({super.key});
 
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void dispose() {
-    _companyNameController.dispose();
-    _addressController.dispose();
-    _abnController.dispose();
-    _websiteController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
+  final RegisterNewCompanyController controller = Get.put(RegisterNewCompanyController());
 
   @override
   Widget build(BuildContext context) {
@@ -65,13 +22,13 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
 
-    return Scaffold(
+    return Obx(() => Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.grey[800],
         elevation: 0,
         leading: GestureDetector(
-          onTap: () => Navigator.of(context).pop(),
+          onTap: () => Get.back(),
           child: Icon(
             Icons.arrow_back,
             color: Colors.white,
@@ -90,7 +47,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
       ),
       body: SafeArea(
         child: Form(
-          key: _formKey,
+          key: controller.formKey,
           child: Column(
             children: [
               // Main Content
@@ -104,7 +61,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                       
                       // Company or Sole Trader name (Required)
                       _buildTextField(
-                        controller: _companyNameController,
+                        controller: controller.companyNameController,
                         label: "Company or Sole Trader name*",
                         hint: "Enter Name",
                         validator: (value) {
@@ -119,7 +76,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                       
                       // Address (Optional)
                       _buildTextField(
-                        controller: _addressController,
+                        controller: controller.addressController,
                         label: "Address (OPTIONAL)",
                         hint: "Enter Address",
                         validator: null, // Optional field
@@ -129,7 +86,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                       
                       // ABN (Required) with link
                       _buildTextField(
-                        controller: _abnController,
+                        controller: controller.abnController,
                         label: "ABN*",
                         hint: "Enter ABN",
                         keyboardType: TextInputType.number,
@@ -160,7 +117,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                             "How to get your ABN?",
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth * 0.035,
-                              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                               decoration: TextDecoration.underline,
                             ),
                           ),
@@ -173,20 +130,16 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                       _buildDropdownField(
                         label: "Category (OPTIONAL)",
                         hint: "Selected category",
-                        value: _selectedCategory,
-                        items: _categories,
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            _selectedCategory = newValue;
-                          });
-                        },
+                        value: controller.selectedCategory.value,
+                        items: controller.categories,
+                        onChanged: controller.selectCategory,
                       ),
                       
                       SizedBox(height: verticalSpacing * 0.5),
                       
                       // Company Website (Optional)
                       _buildTextField(
-                        controller: _websiteController,
+                        controller: controller.websiteController,
                         label: "Company Website (OPTIONAL)",
                         hint: "Enter website",
                         keyboardType: TextInputType.url,
@@ -197,7 +150,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                       
                       // Brief description (Optional)
                       _buildTextField(
-                        controller: _descriptionController,
+                        controller: controller.descriptionController,
                         label: "Brief description (OPTIONAL)",
                         hint: "Enter brief description",
                         maxLines: 3,
@@ -222,9 +175,9 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                   width: double.infinity,
                   child: CustomButton(
                     text: "Submit",
-                    onPressed: _handleSubmit,
+                    onPressed: controller.handleSubmit,
                     type: ButtonType.primary,
-                    flavor: _currentFlavor,
+                    flavor: controller.currentFlavor.value,
                   ),
                 ),
               ),
@@ -232,7 +185,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildTextField({
@@ -244,7 +197,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
     String? Function(String?)? validator,
     int maxLines = 1,
   }) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(Get.context!).size.width;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -283,7 +236,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                color: Color(AppFlavorConfig.getPrimaryColor(this.controller.currentFlavor.value)),
                 width: 2,
               ),
             ),
@@ -316,7 +269,7 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
     required List<String> items,
     required Function(String?) onChanged,
   }) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(Get.context!).size.width;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -389,27 +342,25 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
         SizedBox(height: screenWidth * 0.015),
         
         // Mostrar imagen seleccionada si existe
-        if (_logoImage != null) ...[
-          Container(
-            width: double.infinity,
-            height: screenWidth * 0.3,
-            margin: EdgeInsets.only(bottom: screenWidth * 0.02),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                _logoImage!,
-                fit: BoxFit.cover,
-              ),
+        Obx(() => controller.logoImage.value != null ? Container(
+          width: double.infinity,
+          height: screenWidth * 0.3,
+          margin: EdgeInsets.only(bottom: screenWidth * 0.02),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.file(
+              controller.logoImage.value!,
+              fit: BoxFit.cover,
             ),
           ),
-        ],
+        ) : const SizedBox.shrink()),
         
         GestureDetector(
-          onTap: _showImageSourceDialog,
+          onTap: controller.showImageSourceDialog,
           child: Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(vertical: screenWidth * 0.04),
@@ -421,124 +372,18 @@ class _RegisterNewCompanyScreenState extends State<RegisterNewCompanyScreen> {
                 width: 1,
               ),
             ),
-            child: Text(
-              _logoImage != null ? "Change logo" : "Upload logo",
+            child: Obx(() => Text(
+              controller.logoImage.value != null ? "Change logo" : "Upload logo",
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: screenWidth * 0.035,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
               ),
-            ),
+            )),
           ),
         ),
       ],
     );
-  }
-
-  void _showImageSourceDialog() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Seleccionar imagen',
-                  style: GoogleFonts.poppins(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: Text(
-                  'Galería',
-                  style: GoogleFonts.poppins(fontSize: 16),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickImageFromGallery();
-                },
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1024,
-        maxHeight: 1024,
-        imageQuality: 85,
-      );
-      
-      if (image != null) {
-        setState(() {
-          _logoImage = File(image.path);
-        });
-      }
-    } catch (e) {
-      print('Error al seleccionar imagen: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar imagen: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement company registration logic
-      final companyName = _companyNameController.text;
-      print('Company Name: $companyName');
-      print('Address: ${_addressController.text}');
-      print('ABN: ${_abnController.text}');
-      print('Category: $_selectedCategory');
-      print('Website: ${_websiteController.text}');
-      print('Description: ${_descriptionController.text}');
-      
-      // Llamar al callback para agregar la nueva empresa
-      if (widget.onCompanyCreated != null) {
-        widget.onCompanyCreated!(companyName);
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Company registered successfully!'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      
-      Navigator.of(context).pop();
-    }
   }
 }

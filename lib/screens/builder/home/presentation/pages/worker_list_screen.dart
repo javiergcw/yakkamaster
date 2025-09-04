@@ -1,70 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
-import 'builder_home_screen.dart';
-import 'messages_screen.dart';
+import '../../logic/controllers/worker_list_controller.dart';
 
-class WorkerListScreen extends StatefulWidget {
+class WorkerListScreen extends StatelessWidget {
+  static const String id = '/builder/worker-list';
+  
   final AppFlavor? flavor;
 
-  const WorkerListScreen({
+  WorkerListScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<WorkerListScreen> createState() => _WorkerListScreenState();
-}
-
-class _WorkerListScreenState extends State<WorkerListScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  
-  final List<String> _skillChips = [
-    'General Labourer',
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'Painter',
-    'Welder',
-  ];
-
-  // Mock data for workers
-  final List<Map<String, dynamic>> _workers = [
-    {
-      'name': 'Robert James Hannan',
-      'image': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      'skills': 'General Labourer - Carpenter - Lawn mower - Formworker - Steel Fixer - Han...',
-      'rating': 5.0,
-      'location': null,
-    },
-    {
-      'name': 'Paula Guerrero',
-      'image': 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-      'skills': 'Cleaner - General Labourer - Other',
-      'rating': 5.0,
-      'location': 'Wolli Creek',
-    },
-    {
-      'name': 'Yamil Cardozo',
-      'image': 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      'skills': 'General Labourer - Electrician - HVAC Technician - Electrician',
-      'rating': 5.0,
-      'location': 'Argentina',
-    },
-    {
-      'name': 'Tom Guibourt',
-      'image': 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      'skills': 'Gene... Gardener - ...orker - Landscaper - Warehouse Lab.',
-      'rating': 5.0,
-      'location': null,
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.text = '';
-  }
+  final WorkerListController controller = Get.put(WorkerListController());
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +50,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: _searchController,
+                            controller: controller.searchController,
                             decoration: InputDecoration(
                               hintText: 'Search by skill',
                               hintStyle: GoogleFonts.poppins(
@@ -131,13 +81,13 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
                     height: 40,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _skillChips.length,
+                      itemCount: controller.skillChips.length,
                       itemBuilder: (context, index) {
                         return Container(
                           margin: EdgeInsets.only(right: 12),
                           child: Chip(
                             label: Text(
-                              _skillChips[index],
+                              controller.skillChips[index],
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -160,9 +110,9 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                itemCount: _workers.length,
+                itemCount: controller.workers.length,
                 itemBuilder: (context, index) {
-                  final worker = _workers[index];
+                  final worker = controller.workers[index];
                   return _buildWorkerCard(worker);
                 },
               ),
@@ -276,7 +226,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
                           // Show success message or navigate to next screen
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -307,7 +257,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+        color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
@@ -320,7 +270,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
       ),
       child: IconButton(
         onPressed: () {
-          Navigator.pop(context); // Go back to map
+          controller.navigateToMap();
         },
         icon: Icon(
           Icons.map,
@@ -332,7 +282,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
   }
 
   Widget _buildWorkerCard(Map<String, dynamic> worker) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     
     return Container(
@@ -413,10 +363,10 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
                  margin: EdgeInsets.only(bottom: 8),
                  child: ElevatedButton(
                    onPressed: () {
-                     // TODO: Open chat
+                     controller.openChat();
                    },
                    style: ElevatedButton.styleFrom(
-                     backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                                             backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                      foregroundColor: Colors.white,
                      shape: RoundedRectangleBorder(
                        borderRadius: BorderRadius.circular(16),
@@ -439,7 +389,7 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
                      height: 32,
                      child: ElevatedButton(
                        onPressed: () {
-                         _showJobSelectionModal(context, worker['name']);
+                         controller.showJobSelectionModal(worker['name']);
                        },
                        style: ElevatedButton.styleFrom(
                          backgroundColor: Colors.grey[800],
@@ -491,23 +441,13 @@ class _WorkerListScreenState extends State<WorkerListScreen> {
       onTap: () {
         // Navigate to different screens based on index
         if (index == 0) { // Home
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BuilderHomeScreen(flavor: widget.flavor),
-            ),
-          );
+          controller.navigateToHome();
         } else if (index == 1) { // Map
-          Navigator.pop(context); // Go back to map
+          controller.navigateToMap();
         } else if (index == 2) { // Messages
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MessagesScreen(flavor: widget.flavor),
-            ),
-          );
+          controller.navigateToMessages();
         } else if (index == 3) { // Profile
-          // TODO: Navigate to Profile screen
+          controller.navigateToProfile();
         }
       },
       child: Column(

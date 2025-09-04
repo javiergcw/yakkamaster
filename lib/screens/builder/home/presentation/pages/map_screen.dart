@@ -1,47 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../config/app_flavor.dart';
-import 'builder_home_screen.dart';
-import 'worker_list_screen.dart';
-import 'messages_screen.dart';
+import '../../logic/controllers/map_screen_controller.dart';
 
-class MapScreen extends StatefulWidget {
+class MapScreen extends StatelessWidget {
+  static const String id = '/builder/map';
+  
   final AppFlavor? flavor;
 
-  const MapScreen({
+  MapScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<MapScreen> createState() => _MapScreenState();
-}
-
-class _MapScreenState extends State<MapScreen> {
-  GoogleMapController? _mapController;
-  final TextEditingController _searchController = TextEditingController();
-  
-  // Palo Alto area coordinates
-  static const CameraPosition _initialPosition = CameraPosition(
-    target: LatLng(37.4419, -122.1430), // Palo Alto area
-    zoom: 12.0,
-  );
-
-  final List<String> _skillChips = [
-    'General Labourer',
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'Painter',
-    'Welder',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _searchController.text = '';
-  }
+  final MapScreenController controller = Get.put(MapScreenController());
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +51,7 @@ class _MapScreenState extends State<MapScreen> {
                       children: [
                         Expanded(
                           child: TextField(
-                            controller: _searchController,
+                            controller: controller.searchController,
                             decoration: InputDecoration(
                               hintText: 'Search by skill',
                               hintStyle: GoogleFonts.poppins(
@@ -108,13 +82,13 @@ class _MapScreenState extends State<MapScreen> {
                     height: 40,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _skillChips.length,
+                      itemCount: controller.skillChips.length,
                       itemBuilder: (context, index) {
                         return Container(
                           margin: EdgeInsets.only(right: 12),
                           child: Chip(
                             label: Text(
-                              _skillChips[index],
+                              controller.skillChips[index],
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -140,16 +114,16 @@ class _MapScreenState extends State<MapScreen> {
                   // Google Map
                   GoogleMap(
                     onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
+                      this.controller.onMapCreated(controller);
                     },
-                    initialCameraPosition: _initialPosition,
+                    initialCameraPosition: MapScreenController.initialPosition,
                     mapType: MapType.normal,
                     zoomControlsEnabled: false,
                     myLocationButtonEnabled: false,
                     mapToolbarEnabled: false,
                     compassEnabled: false,
-                    markers: _createMarkers(),
-                    style: _mapStyle,
+                    markers: controller.createMarkers(),
+                    style: MapScreenController.mapStyle,
                   ),
                   
                   // Floating Action Buttons
@@ -433,12 +407,7 @@ class _MapScreenState extends State<MapScreen> {
   Widget _buildListButton() {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WorkerListScreen(flavor: widget.flavor),
-          ),
-        );
+        controller.navigateToList();
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -493,7 +462,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       child: IconButton(
         onPressed: () {
-          // TODO: Get current location
+          controller.getCurrentLocation();
         },
         icon: Icon(
           Icons.my_location,
@@ -530,23 +499,13 @@ class _MapScreenState extends State<MapScreen> {
       onTap: () {
         // Navigate to different screens based on index
         if (index == 0) { // Home
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BuilderHomeScreen(flavor: widget.flavor),
-            ),
-          );
+          controller.navigateToHome();
         } else if (index == 1) { // Map - already here
           // Do nothing, we're already on map
         } else if (index == 2) { // Messages
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MessagesScreen(flavor: widget.flavor),
-            ),
-          );
+          controller.navigateToMessages();
         } else if (index == 3) { // Profile
-          // TODO: Navigate to Profile screen
+          controller.navigateToProfile();
         }
       },
       child: Column(

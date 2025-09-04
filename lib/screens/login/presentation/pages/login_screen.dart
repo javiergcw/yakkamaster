@@ -1,79 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../../../config/app_flavor.dart';
-import '../../../../config/assets_config.dart';
+import 'package:get/get.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../../../../features/widgets/phone_input.dart';
 import '../widgets/login_header.dart';
 import '../widgets/terms_conditions.dart';
 import '../widgets/login_divider.dart';
-import 'stepper_selection_screen.dart';
-import 'email_login_screen.dart';
+import '../../logic/controllers/login_controller.dart';
 
-class LoginScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class LoginScreen extends StatelessWidget {
+  static const String id = '/login';
+  
+  LoginScreen({super.key});
 
-  const LoginScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  void _handleContinue() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simular proceso de login
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const StepperSelectionScreen()),
-          );
-        }
-      });
-    }
-  }
-
-  void _handleEmailLogin() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EmailLoginScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleGoogleLogin() {
-    // Implementar login con Google
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Google login coming soon!')),
-    );
-  }
-
-  void _handleAppleLogin() {
-    // Implementar login con Apple
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Apple login coming soon!')),
-    );
-  }
+  final LoginController controller = Get.put(LoginController());
 
   @override
   Widget build(BuildContext context) {
@@ -103,43 +42,35 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             child: IntrinsicHeight(
               child: Form(
-                key: _formKey,
+                key: controller.formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Header del login
-                    LoginHeader(flavor: _currentFlavor),
+                    Obx(() => LoginHeader(flavor: controller.currentFlavor.value)),
                     
                     // Phone number input
-                    PhoneInput(
-                      controller: _phoneController,
-                      flavor: _currentFlavor,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your phone number';
-                        }
-                        if (value.length < 9) {
-                          return 'Please enter a valid phone number';
-                        }
-                        return null;
-                      },
-                    ),
+                    Obx(() => PhoneInput(
+                      controller: controller.phoneController,
+                      flavor: controller.currentFlavor.value,
+                      validator: controller.validatePhone,
+                    )),
                     
                     SizedBox(height: verticalSpacing),
                     
                     // Terms and conditions
-                    TermsConditions(flavor: _currentFlavor),
+                    Obx(() => TermsConditions(flavor: controller.currentFlavor.value)),
                     
                     SizedBox(height: verticalSpacing * 1.5),
                     
                     // Continue button
-                    CustomButton(
-                      text: AppFlavorConfig.getContinueButtonText(_currentFlavor),
-                      onPressed: _handleContinue,
+                    Obx(() => CustomButton(
+                      text: controller.getContinueButtonText(),
+                      onPressed: controller.handleContinue,
                       type: ButtonType.secondary,
-                      isLoading: _isLoading,
-                      flavor: _currentFlavor,
-                    ),
+                      isLoading: controller.isLoading.value,
+                      flavor: controller.currentFlavor.value,
+                    )),
                     
                     SizedBox(height: verticalSpacing * 1.5),
                     
@@ -149,29 +80,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: verticalSpacing * 1.5),
                     
                     // Alternative login buttons
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: 'Continue with email',
-                      onPressed: _handleEmailLogin,
+                      onPressed: controller.handleEmailLogin,
                       type: ButtonType.outline,
                       icon: Icons.email,
-                      flavor: _currentFlavor,
-                    ),
+                      flavor: controller.currentFlavor.value,
+                    )),
                     SizedBox(height: buttonSpacing),
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: 'Continue with Google',
-                      onPressed: _handleGoogleLogin,
+                      onPressed: controller.handleGoogleLogin,
                       type: ButtonType.outline,
                       icon: Icons.g_mobiledata, // Placeholder for Google icon
-                      flavor: _currentFlavor,
-                    ),
+                      flavor: controller.currentFlavor.value,
+                    )),
                     SizedBox(height: buttonSpacing),
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: 'Continue with Apple',
-                      onPressed: _handleAppleLogin,
+                      onPressed: controller.handleAppleLogin,
                       type: ButtonType.outline,
                       icon: Icons.apple, // Placeholder for Apple icon
-                      flavor: _currentFlavor,
-                    ),
+                      flavor: controller.currentFlavor.value,
+                    )),
                   ],
                 ),
               ),

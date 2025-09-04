@@ -2,29 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../post_job/logic/controllers/job_site_controller.dart';
 import '../widgets/job_site_list_card.dart';
-import '../../../post_job/presentation/pages/create_edit_job_site_screen.dart';
+import '../../logic/controllers/job_sites_list_controller.dart';
 
-class JobSitesListScreen extends StatefulWidget {
+class JobSitesListScreen extends StatelessWidget {
+  static const String id = '/builder/job-sites';
+  
   final AppFlavor? flavor;
 
-  const JobSitesListScreen({super.key, this.flavor});
+  JobSitesListScreen({super.key, this.flavor});
 
-  @override
-  State<JobSitesListScreen> createState() => _JobSitesListScreenState();
-}
-
-class _JobSitesListScreenState extends State<JobSitesListScreen> {
-  AppFlavor get _currentFlavor =>
-      widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late JobSiteController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.put(JobSiteController());
-  }
+  final JobSitesListController controller = Get.put(JobSitesListController());
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +48,7 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                     children: [
                       // Back Button
                       GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () => controller.navigateBack(),
                         child: Icon(
                           Icons.arrow_back,
                           color: Colors.white,
@@ -106,11 +94,11 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
             // Main Content
             Expanded(
               child: Obx(() {
-                if (_controller.isLoading) {
+                if (controller.jobSiteController.isLoading) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (_controller.errorMessage.isNotEmpty) {
+                if (controller.jobSiteController.errorMessage.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +110,7 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                         ),
                         SizedBox(height: verticalSpacing),
                         Text(
-                          _controller.errorMessage,
+                          controller.jobSiteController.errorMessage,
                           style: GoogleFonts.poppins(
                             fontSize: descriptionFontSize,
                             color: Colors.grey[600],
@@ -131,7 +119,7 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                         ),
                         SizedBox(height: verticalSpacing),
                         ElevatedButton(
-                          onPressed: () => _controller.loadJobSites(),
+                          onPressed: () => controller.jobSiteController.loadJobSites(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -139,7 +127,7 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                   );
                 }
 
-                if (_controller.jobSites.isEmpty) {
+                if (controller.jobSiteController.jobSites.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +160,7 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                           onPressed: _handleCreateJobSite,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(
-                              AppFlavorConfig.getPrimaryColor(_currentFlavor),
+                              AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
                             ),
                             foregroundColor: Colors.white,
                             padding: EdgeInsets.symmetric(
@@ -203,15 +191,15 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                     vertical: verticalSpacing * 0.5,
                   ),
                   itemCount:
-                      _controller.jobSites.length +
+                      controller.jobSiteController.jobSites.length +
                       1, // +1 para el botón de crear
                   itemBuilder: (context, index) {
-                    if (index == _controller.jobSites.length) {
+                    if (index == controller.jobSiteController.jobSites.length) {
                       // Botón para crear job site al final
                       return Container(
                         margin: EdgeInsets.only(top: verticalSpacing),
                         child: ElevatedButton.icon(
-                          onPressed: _handleCreateJobSite,
+                          onPressed: controller.handleCreateJobSite,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[100],
                             foregroundColor: Colors.grey[700],
@@ -240,15 +228,15 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
                       );
                     }
 
-                    final jobSite = _controller.jobSites[index];
+                    final jobSite = controller.jobSiteController.jobSites[index];
                     return GestureDetector(
-                      onTap: () => _handleJobSiteDetail(jobSite),
+                      onTap: () => controller.handleJobSiteDetail(jobSite),
                       child: Container(
                         margin: EdgeInsets.only(bottom: verticalSpacing),
                         child: JobSiteListCard(
                           jobSite: jobSite,
-                          onTap: () => _handleJobSiteDetail(jobSite),
-                          onEdit: () => _handleEditJobSite(jobSite),
+                          onTap: () => controller.handleJobSiteDetail(jobSite),
+                          onEdit: () => controller.handleEditJobSite(jobSite),
                         ),
                       ),
                     );
@@ -263,226 +251,11 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
   }
 
   void _handleJobSiteDetail(dynamic jobSite) {
-    _showJobSiteDetailModal(context, jobSite);
+    controller.handleJobSiteDetail(jobSite);
   }
 
   void _showJobSiteDetailModal(BuildContext context, dynamic jobSite) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext context) {
-        return Container(
-          height: screenHeight * 0.75,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Column(
-            children: [
-              // Handle Bar
-              Container(
-                margin: EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              
-              // Header
-              Container(
-                padding: EdgeInsets.fromLTRB(24, 20, 24, 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.location_on,
-                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                        size: 20,
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Job Site Details',
-                            style: GoogleFonts.poppins(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'View complete information',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.close,
-                          color: Colors.grey[600],
-                          size: 18,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              Divider(height: 1, color: Colors.grey[200]),
-              
-              // Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name Section
-                      _buildDetailSection(
-                        icon: Icons.business,
-                        title: 'Name',
-                        value: jobSite.name,
-                        iconColor: Colors.blue[600],
-                      ),
-                      
-                      SizedBox(height: 24),
-                      
-                      // Location Section
-                      _buildDetailSection(
-                        icon: Icons.location_on,
-                        title: 'Location',
-                        value: jobSite.location,
-                        iconColor: Colors.red[600],
-                      ),
-                      
-                      // Description Section (if not empty)
-                      if (jobSite.description.isNotEmpty) ...[
-                        SizedBox(height: 24),
-                        _buildDetailSection(
-                          icon: Icons.description,
-                          title: 'Description',
-                          value: jobSite.description,
-                          iconColor: Colors.orange[600],
-                          isDescription: true,
-                        ),
-                      ],
-                      
-                      SizedBox(height: 24),
-                      
-                      // Status Section
-                      _buildDetailSection(
-                        icon: Icons.circle,
-                        title: 'Status',
-                        value: 'Active',
-                        iconColor: Colors.green[600],
-                        isStatus: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Action Buttons
-              Container(
-                padding: EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[200]!, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 50,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.grey[300]!),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Close',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: SizedBox(
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _handleEditJobSite(jobSite);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'Edit',
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    controller.showJobSiteDetailModal(jobSite);
   }
 
   Widget _buildDetailSection({
@@ -539,20 +312,11 @@ class _JobSitesListScreenState extends State<JobSitesListScreen> {
     );
   }
 
-  void _handleEditJobSite(dynamic jobSite) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) =>
-            CreateEditJobSiteScreen(flavor: _currentFlavor, jobSite: jobSite),
-      ),
-    );
+    void _handleEditJobSite(dynamic jobSite) {
+    controller.handleEditJobSite(jobSite);
   }
 
   void _handleCreateJobSite() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CreateEditJobSiteScreen(flavor: _currentFlavor),
-      ),
-    );
+    controller.handleCreateJobSite();
   }
 }

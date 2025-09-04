@@ -1,50 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../labour/create_profile_labour/presentation/widgets/stepper_selection_card.dart';
-import '../../../labour/create_profile_labour/presentation/pages/industry_selection_screen.dart';
-import '../../../builder/create_profile_builder/presentation/pages/create_profile_builder_screen.dart';
+import '../../logic/controllers/stepper_selection_controller.dart';
 
-class StepperSelectionScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class StepperSelectionScreen extends StatelessWidget {
+  static const String id = '/stepper-selection';
+  
+  StepperSelectionScreen({super.key});
 
-  const StepperSelectionScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<StepperSelectionScreen> createState() => _StepperSelectionScreenState();
-}
-
-class _StepperSelectionScreenState extends State<StepperSelectionScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleWorkSelection() {
-    // Navegar al siguiente paso del stepper para WORK
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => IndustrySelectionScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleHireSelection() {
-    // Navegar al flujo de crear perfil para BUILDERS (empleadores)
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CreateProfileBuilderScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleGetHelp() {
-    // Mostrar ayuda
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Help section coming soon!')),
-    );
-  }
+  final StepperSelectionController controller = Get.put(StepperSelectionController());
 
   @override
   Widget build(BuildContext context) {
@@ -92,30 +59,30 @@ class _StepperSelectionScreenState extends State<StepperSelectionScreen> {
               SizedBox(height: verticalSpacing * 3),
               
               // Opción WORK
-              StepperSelectionCard(
+              Obx(() => StepperSelectionCard(
                 title: "WORK",
                 subtitle: "Looking for a job now",
                 icon: Icons.work,
-                onTap: _handleWorkSelection,
+                onTap: controller.handleWorkSelection,
                 iconSize: iconSize,
                 arrowIconSize: arrowIconSize,
                 subtitleFontSize: subtitleFontSize,
-                flavor: _currentFlavor,
-              ),
+                flavor: controller.currentFlavor.value,
+              )),
               
               SizedBox(height: verticalSpacing * 1.5),
               
               // Opción HIRE
-              StepperSelectionCard(
+              Obx(() => StepperSelectionCard(
                 title: "HIRE",
                 subtitle: "Connect with trusted labourers today",
                 icon: Icons.person_add,
-                onTap: _handleHireSelection,
+                onTap: controller.handleHireSelection,
                 iconSize: iconSize,
                 arrowIconSize: arrowIconSize,
                 subtitleFontSize: subtitleFontSize,
-                flavor: _currentFlavor,
-              ),
+                flavor: controller.currentFlavor.value,
+              )),
               
               SizedBox(height: verticalSpacing * 3),
               
@@ -132,12 +99,12 @@ class _StepperSelectionScreenState extends State<StepperSelectionScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _handleGetHelp,
+                      onTap: controller.handleGetHelp,
                       child: Text(
                         "Get help",
                         style: GoogleFonts.poppins(
                           fontSize: helpFontSize,
-                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                           fontWeight: FontWeight.w500,
                           decoration: TextDecoration.underline,
                         ),

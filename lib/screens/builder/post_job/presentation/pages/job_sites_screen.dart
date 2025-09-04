@@ -4,33 +4,29 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/job_site_controller.dart';
 import '../widgets/job_site_card.dart';
-import 'create_edit_job_site_screen.dart';
-import 'post_job_stepper_screen.dart';
+import '../../logic/controllers/job_sites_screen_controller.dart';
 
-class JobSitesScreen extends StatefulWidget {
+class JobSitesScreen extends StatelessWidget {
+  static const String id = '/builder/job-sites-select';
+  
   final AppFlavor? flavor;
 
-  const JobSitesScreen({
+  JobSitesScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<JobSitesScreen> createState() => _JobSitesScreenState();
-}
+  final JobSitesScreenController controller = Get.put(JobSitesScreenController());
 
-class _JobSitesScreenState extends State<JobSitesScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late JobSiteController _controller;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.put(JobSiteController());
-  }
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -65,7 +61,7 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                      children: [
                        // Back Button
                        GestureDetector(
-                         onTap: () => Navigator.of(context).pop(),
+                         onTap: () => controller.handleBackNavigation(),
                          child: Icon(
                            Icons.arrow_back,
                            color: Colors.white,
@@ -91,8 +87,7 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                        // More Options Button
                        GestureDetector(
                          onTap: () {
-                           // TODO: Mostrar opciones adicionales
-                           print('More options pressed');
+                           controller.showMoreOptions();
                          },
                          child: Icon(
                            Icons.more_vert,
@@ -122,13 +117,13 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
             // Main Content
             Expanded(
               child: Obx(() {
-                if (_controller.isLoading) {
+                if (controller.jobSiteController.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
                 
-                if (_controller.errorMessage.isNotEmpty) {
+                if (controller.jobSiteController.errorMessage.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -140,7 +135,7 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                         ),
                         SizedBox(height: verticalSpacing),
                         Text(
-                          _controller.errorMessage,
+                          controller.jobSiteController.errorMessage,
                           style: GoogleFonts.poppins(
                             fontSize: descriptionFontSize,
                             color: Colors.grey[600],
@@ -149,7 +144,7 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                         ),
                         SizedBox(height: verticalSpacing),
                         ElevatedButton(
-                          onPressed: () => _controller.loadJobSites(),
+                          onPressed: () => controller.jobSiteController.loadJobSites(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -157,7 +152,7 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                   );
                 }
                 
-                if (_controller.jobSites.isEmpty) {
+                if (controller.jobSiteController.jobSites.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -190,63 +185,63 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                   );
                 }
                 
-                                                  return ListView.builder(
-                   padding: EdgeInsets.symmetric(
-                     horizontal: horizontalPadding,
-                     vertical: verticalSpacing * 0.5,
-                   ),
-                   itemCount: _controller.jobSites.length + 1, // +1 para el botón de crear
-                   itemBuilder: (context, index) {
-                     if (index == _controller.jobSites.length) {
-                       // Botón para crear job site al final
-                       return Container(
-                         margin: EdgeInsets.only(top: verticalSpacing),
-                         child: ElevatedButton.icon(
-                           onPressed: _handleCreateJobSite,
-                           style: ElevatedButton.styleFrom(
-                             backgroundColor: Colors.grey[100],
-                             foregroundColor: Colors.grey[700],
-                             padding: EdgeInsets.symmetric(
-                               horizontal: horizontalPadding,
-                               vertical: verticalSpacing * 0.8,
-                             ),
-                             shape: RoundedRectangleBorder(
-                               borderRadius: BorderRadius.circular(8),
-                               side: BorderSide(
-                                 color: Colors.grey[300]!,
-                                 width: 1,
-                               ),
-                             ),
-                             elevation: 0,
-                           ),
-                           icon: Icon(
-                             Icons.add,
-                             size: iconSize * 0.8,
-                           ),
-                           label: Text(
-                             "Create new job site",
-                             style: GoogleFonts.poppins(
-                               fontSize: buttonFontSize * 0.8,
-                               fontWeight: FontWeight.w500,
-                             ),
-                           ),
-                         ),
-                       );
-                     }
-                     
-                     final jobSite = _controller.jobSites[index];
-                     return JobSiteCard(
-                       jobSite: jobSite,
-                       isSelected: jobSite.isSelected,
-                       onTap: () {
-                         _controller.toggleJobSiteSelection(jobSite.id);
-                       },
-                       onEdit: () {
-                         _handleEditJobSite(jobSite);
-                       },
-                     );
-                   },
-                 );
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: verticalSpacing * 0.5,
+                  ),
+                  itemCount: controller.jobSiteController.jobSites.length + 1, // +1 para el botón de crear
+                  itemBuilder: (context, index) {
+                    if (index == controller.jobSiteController.jobSites.length) {
+                      // Botón para crear job site al final
+                      return Container(
+                        margin: EdgeInsets.only(top: verticalSpacing),
+                        child: ElevatedButton.icon(
+                          onPressed: controller.handleCreateJobSite,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[100],
+                            foregroundColor: Colors.grey[700],
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding,
+                              vertical: verticalSpacing * 0.8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 1,
+                              ),
+                            ),
+                            elevation: 0,
+                          ),
+                          icon: Icon(
+                            Icons.add,
+                            size: iconSize * 0.8,
+                          ),
+                          label: Text(
+                            "Create new job site",
+                            style: GoogleFonts.poppins(
+                              fontSize: buttonFontSize * 0.8,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    final jobSite = controller.jobSiteController.jobSites[index];
+                    return JobSiteCard(
+                      jobSite: jobSite,
+                      isSelected: jobSite.isSelected,
+                      onTap: () {
+                        controller.jobSiteController.toggleJobSiteSelection(jobSite.id);
+                      },
+                      onEdit: () {
+                        controller.handleEditJobSite(jobSite);
+                      },
+                    );
+                  },
+                );
               }),
             ),
             
@@ -258,12 +253,12 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
                  vertical: verticalSpacing * 0.5,
                ),
                child: ElevatedButton(
-                 onPressed: _controller.selectedJobSites.isNotEmpty
-                     ? _handleRequestWorkers
+                 onPressed: controller.jobSiteController.selectedJobSites.isNotEmpty
+                     ? controller.handleRequestWorkers
                      : null,
                  style: ElevatedButton.styleFrom(
-                   backgroundColor: _controller.selectedJobSites.isNotEmpty
-                       ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                   backgroundColor: controller.jobSiteController.selectedJobSites.isNotEmpty
+                       ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                        : Colors.grey[400],
                    foregroundColor: Colors.white,
                    padding: EdgeInsets.symmetric(vertical: verticalSpacing * 1.0),
@@ -287,36 +282,4 @@ class _JobSitesScreenState extends State<JobSitesScreen> {
     );
   }
 
-     void _handleEditJobSite(dynamic jobSite) {
-     Navigator.of(context).push(
-       MaterialPageRoute(
-         builder: (context) => CreateEditJobSiteScreen(
-           flavor: _currentFlavor,
-           jobSite: jobSite,
-         ),
-       ),
-     );
-   }
-
-     void _handleRequestWorkers() {
-       // Navegar al stepper de post job con los jobsites seleccionados
-       Navigator.of(context).push(
-         MaterialPageRoute(
-           builder: (context) => PostJobStepperScreen(
-             flavor: _currentFlavor,
-             selectedJobSites: _controller.selectedJobSites.toList(),
-           ),
-         ),
-       );
-     }
-
-   void _handleCreateJobSite() {
-     Navigator.of(context).push(
-       MaterialPageRoute(
-         builder: (context) => CreateEditJobSiteScreen(
-           flavor: _currentFlavor,
-         ),
-       ),
-     );
-   }
 }

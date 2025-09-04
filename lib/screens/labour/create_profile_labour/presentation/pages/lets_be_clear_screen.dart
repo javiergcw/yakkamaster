@@ -1,35 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import 'profile_created_screen.dart';
+import '../../logic/controllers/lets_be_clear_controller.dart';
 
-class LetsBeClearScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class LetsBeClearScreen extends StatelessWidget {
+  static const String id = '/lets-be-clear';
+  
+  LetsBeClearScreen({super.key});
 
-  const LetsBeClearScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<LetsBeClearScreen> createState() => _LetsBeClearScreenState();
-}
-
-class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleAccept() {
-    // Navegar a la pantalla de perfil creado después de aceptar los términos
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ProfileCreatedScreen(flavor: _currentFlavor)),
-        (route) => false, // Esto elimina todas las rutas anteriores del stack
-      );
-    }
-  }
+  final LetsBeClearController controller = Get.put(LetsBeClearController());
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +29,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
     final buttonFontSize = screenWidth * 0.04;
          final logoSize = screenWidth * 0.25;
 
-    return Scaffold(
+    return Obx(() => Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
@@ -57,11 +40,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
+                    onPressed: () => Get.back(),
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -99,7 +78,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                          width: logoSize,
                          height: logoSize,
                          child: SvgPicture.asset(
-                           AssetsConfig.getLogoMiddle(_currentFlavor),
+                           AssetsConfig.getLogoMiddle(controller.currentFlavor.value),
                            fit: BoxFit.contain,
                          ),
                        ),
@@ -190,7 +169,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                        height: 60,
                        child: CustomButton(
                          text: "I understand and accept",
-                         onPressed: mounted ? _handleAccept : null,
+                         onPressed: controller.handleAccept,
                          isLoading: false,
                          showShadow: false,
                        ),
@@ -204,7 +183,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildNumberedItem(String number, String text, double fontSize) {

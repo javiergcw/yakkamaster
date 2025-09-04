@@ -1,46 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import 'previous_employer_screen.dart';
+import '../../logic/controllers/location_controller.dart';
 
-class LocationScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class LocationScreen extends StatelessWidget {
+  static const String id = '/location';
+  
+  LocationScreen({super.key});
 
-  const LocationScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<LocationScreen> createState() => _LocationScreenState();
-}
-
-class _LocationScreenState extends State<LocationScreen> {
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _suburbController = TextEditingController();
-  bool _willingToRelocate = true;
-  bool _hasCar = true;
-
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void dispose() {
-    _addressController.dispose();
-    _suburbController.dispose();
-    super.dispose();
-  }
-
-  void _handleContinue() {
-    // Navegar al siguiente paso del stepper
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PreviousEmployerScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
+  final LocationController controller = Get.put(LocationController());
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +47,7 @@ class _LocationScreenState extends State<LocationScreen> {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => Get.back(),
                         icon: Icon(
                           Icons.arrow_back,
                           color: Colors.black,
@@ -113,7 +85,7 @@ class _LocationScreenState extends State<LocationScreen> {
                       widthFactor: 0.33, // 1/3 completado
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                           borderRadius: BorderRadius.circular(progressBarHeight / 2),
                         ),
                       ),
@@ -133,10 +105,10 @@ class _LocationScreenState extends State<LocationScreen> {
                   ),
                   SizedBox(height: verticalSpacing * 0.5),
                   CustomTextField(
-                    controller: _addressController,
+                    controller: controller.addressController,
                     hintText: "Address",
                     showBorder: true,
-                    flavor: _currentFlavor,
+                    flavor: controller.currentFlavor.value,
                   ),
                   
                   SizedBox(height: verticalSpacing * 2),
@@ -152,10 +124,10 @@ class _LocationScreenState extends State<LocationScreen> {
                   ),
                   SizedBox(height: verticalSpacing * 0.5),
                   CustomTextField(
-                    controller: _suburbController,
+                    controller: controller.suburbController,
                     hintText: "Suburb",
                     showBorder: true,
-                    flavor: _currentFlavor,
+                    flavor: controller.currentFlavor.value,
                   ),
                   
                   SizedBox(height: verticalSpacing * 3),
@@ -172,17 +144,15 @@ class _LocationScreenState extends State<LocationScreen> {
                   SizedBox(height: verticalSpacing),
                   
                   // Opciones de relocalización
-                  Row(
+                  Obx(() => Row(
                     children: [
                       Radio<bool>(
                         value: true,
-                        groupValue: _willingToRelocate,
+                        groupValue: controller.willingToRelocate.value,
                         onChanged: (value) {
-                          setState(() {
-                            _willingToRelocate = value!;
-                          });
+                          controller.willingToRelocate.value = value!;
                         },
-                        activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       ),
                       Text(
                         "Yes",
@@ -194,13 +164,11 @@ class _LocationScreenState extends State<LocationScreen> {
                       SizedBox(width: horizontalPadding * 2),
                       Radio<bool>(
                         value: false,
-                        groupValue: _willingToRelocate,
+                        groupValue: controller.willingToRelocate.value,
                         onChanged: (value) {
-                          setState(() {
-                            _willingToRelocate = value!;
-                          });
+                          controller.willingToRelocate.value = value!;
                         },
-                        activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       ),
                       Text(
                         "No",
@@ -210,7 +178,7 @@ class _LocationScreenState extends State<LocationScreen> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
                   
                   SizedBox(height: verticalSpacing * 2),
                   
@@ -226,17 +194,15 @@ class _LocationScreenState extends State<LocationScreen> {
                   SizedBox(height: verticalSpacing),
                   
                   // Opciones de carro
-                  Row(
+                  Obx(() => Row(
                     children: [
                       Radio<bool>(
                         value: true,
-                        groupValue: _hasCar,
+                        groupValue: controller.hasCar.value,
                         onChanged: (value) {
-                          setState(() {
-                            _hasCar = value!;
-                          });
+                          controller.hasCar.value = value!;
                         },
-                        activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       ),
                       Text(
                         "Yes",
@@ -248,13 +214,11 @@ class _LocationScreenState extends State<LocationScreen> {
                       SizedBox(width: horizontalPadding * 2),
                       Radio<bool>(
                         value: false,
-                        groupValue: _hasCar,
+                        groupValue: controller.hasCar.value,
                         onChanged: (value) {
-                          setState(() {
-                            _hasCar = value!;
-                          });
+                          controller.hasCar.value = value!;
                         },
-                        activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       ),
                       Text(
                         "No",
@@ -264,14 +228,14 @@ class _LocationScreenState extends State<LocationScreen> {
                         ),
                       ),
                     ],
-                  ),
+                  )),
                   
                   const Spacer(),
                   
                   // Botón Continue
                   CustomButton(
                     text: "Continue",
-                    onPressed: _handleContinue,
+                    onPressed: controller.handleContinue,
                     isLoading: false,
                     showShadow: false,
                   ),

@@ -5,71 +5,41 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../data/dto/job_site_dto.dart';
-import '../../logic/controllers/job_site_controller.dart';
+import '../../logic/controllers/create_edit_job_site_screen_controller.dart';
 
-class CreateEditJobSiteScreen extends StatefulWidget {
+class CreateEditJobSiteScreen extends StatelessWidget {
+  static const String id = '/builder/create-edit-job-site';
+  
   final AppFlavor? flavor;
   final JobSiteDto? jobSite; // null para crear, con datos para editar
 
-  const CreateEditJobSiteScreen({
+  CreateEditJobSiteScreen({
     super.key,
     this.flavor,
     this.jobSite,
   });
 
-  @override
-  State<CreateEditJobSiteScreen> createState() => _CreateEditJobSiteScreenState();
-}
+  final CreateEditJobSiteScreenController controller = Get.put(CreateEditJobSiteScreenController());
 
-class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late JobSiteController _controller;
-  
-  final _formKey = GlobalKey<FormState>();
-  final _addressController = TextEditingController();
-  final _suburbController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  
-  bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    
-    // Registrar el controlador si no existe
-    if (!Get.isRegistered<JobSiteController>()) {
-      Get.put(JobSiteController());
-    }
-    _controller = Get.find<JobSiteController>();
-    
-    // Si estamos editando, llenar los campos con los datos existentes
-    if (widget.jobSite != null) {
-      _addressController.text = widget.jobSite!.name;
-      _suburbController.text = widget.jobSite!.location;
-      _descriptionController.text = widget.jobSite!.description;
-    }
-  }
-
-  @override
-  void dispose() {
-    _addressController.dispose();
-    _suburbController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
-         // Calcular valores responsive
-     final horizontalPadding = screenWidth * 0.06;
-     final verticalSpacing = screenHeight * 0.025;
-     final titleFontSize = screenWidth * 0.055;
-     final labelFontSize = screenWidth * 0.04;
-     final iconSize = screenWidth * 0.06;
+    // Calcular valores responsive
+    final horizontalPadding = screenWidth * 0.06;
+    final verticalSpacing = screenHeight * 0.025;
+    final titleFontSize = screenWidth * 0.055;
+    final labelFontSize = screenWidth * 0.04;
+    final iconSize = screenWidth * 0.06;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -107,7 +77,7 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
                   
                   // Close Button
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => controller.handleClose(),
                     child: Icon(
                       Icons.close,
                       color: Colors.black,
@@ -123,7 +93,7 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(horizontalPadding),
                 child: Form(
-                  key: _formKey,
+                  key: controller.formKey,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -143,9 +113,9 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
                       
                                              // Address Field
                        CustomTextField(
-                         controller: _addressController,
+                         controller: controller.addressController,
                          hintText: "Address",
-                         flavor: _currentFlavor,
+                         flavor: controller.currentFlavor.value,
                          validator: (value) {
                            if (value == null || value.trim().isEmpty) {
                              return 'Please enter an address';
@@ -156,11 +126,11 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
                       
                       SizedBox(height: verticalSpacing * 1.5),
                       
-                                             // Suburb Field
+                      // Suburb Field
                        CustomTextField(
-                         controller: _suburbController,
+                         controller: controller.suburbController,
                          hintText: "Suburb",
-                         flavor: _currentFlavor,
+                         flavor: controller.currentFlavor.value,
                          validator: (value) {
                            if (value == null || value.trim().isEmpty) {
                              return 'Please enter a suburb';
@@ -183,11 +153,11 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
                       
                       SizedBox(height: verticalSpacing),
                       
-                                             // Description Field
+                      // Description Field
                        CustomTextField(
-                         controller: _descriptionController,
+                         controller: controller.descriptionController,
                          hintText: "Add more information",
-                         flavor: _currentFlavor,
+                         flavor: controller.currentFlavor.value,
                          maxLines: 4,
                        ),
                       
@@ -201,13 +171,13 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
                          // Save Button
              Padding(
                padding: EdgeInsets.all(horizontalPadding),
-               child: CustomButton(
-                 text: widget.jobSite != null ? "Update jobsite" : "Save jobsite",
-                 onPressed: _handleSave,
+               child: Obx(() => CustomButton(
+                 text: controller.editingJobSite.value != null ? "Update jobsite" : "Save jobsite",
+                 onPressed: controller.handleSave,
                  type: ButtonType.secondary,
-                 isLoading: _isLoading,
-                 flavor: _currentFlavor,
-               ),
+                 isLoading: controller.isLoading.value,
+                 flavor: controller.currentFlavor.value,
+               )),
              ),
           ],
         ),
@@ -215,55 +185,4 @@ class _CreateEditJobSiteScreenState extends State<CreateEditJobSiteScreen> {
     );
   }
 
-  Future<void> _handleSave() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final jobSite = JobSiteDto(
-        id: widget.jobSite?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        name: _addressController.text.trim(),
-        location: _suburbController.text.trim(),
-        description: _descriptionController.text.trim(),
-      );
-
-      if (widget.jobSite != null) {
-        // Actualizar job site existente
-        await _controller.updateJobSite(jobSite);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Job site updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        // Crear nuevo job site
-        await _controller.createJobSite(jobSite);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Job site created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      Navigator.of(context).pop();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 }

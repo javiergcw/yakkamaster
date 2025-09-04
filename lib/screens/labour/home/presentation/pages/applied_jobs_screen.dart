@@ -1,89 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
 import '../../../../job_listings/data/dto/job_dto.dart';
-import '../../../../job_listings/data/dto/job_details_dto.dart';
 import '../../../../job_listings/presentation/widgets/job_card.dart';
-import '../../../../job_listings/presentation/pages/job_details_screen.dart';
+import '../../logic/controllers/applied_jobs_screen_controller.dart';
 
-class AppliedJobsScreen extends StatefulWidget {
+class AppliedJobsScreen extends StatelessWidget {
+  static const String id = '/labour/applied-jobs';
+  
   final AppFlavor? flavor;
-  final List<AppliedJobDto> appliedJobs;
+  final List<AppliedJobDto>? appliedJobs;
 
-  const AppliedJobsScreen({
+  AppliedJobsScreen({
     super.key,
     this.flavor,
-    required this.appliedJobs,
+    this.appliedJobs,
   });
 
-  @override
-  State<AppliedJobsScreen> createState() => _AppliedJobsScreenState();
-}
-
-class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  // Convertir AppliedJobDto a JobDto para usar con JobCard
-  List<JobDto> get _jobCards {
-    return widget.appliedJobs.map((appliedJob) => JobDto(
-      id: appliedJob.id,
-      title: appliedJob.jobTitle,
-      hourlyRate: 25.0, // Valor por defecto, se puede ajustar
-      location: appliedJob.location,
-      dateRange: '${appliedJob.appliedDate.day.toString().padLeft(2, '0')}/${appliedJob.appliedDate.month.toString().padLeft(2, '0')}/${appliedJob.appliedDate.year} - ${appliedJob.appliedDate.day.toString().padLeft(2, '0')}/${appliedJob.appliedDate.month.toString().padLeft(2, '0')}/${appliedJob.appliedDate.year}',
-      jobType: 'Casual Job',
-      source: appliedJob.companyName,
-      postedDate: '${appliedJob.appliedDate.day.toString().padLeft(2, '0')}-${appliedJob.appliedDate.month.toString().padLeft(2, '0')}',
-    )).toList();
-  }
-
-  void _handleShare(JobDto job) {
-    print('Share job: ${job.title}');
-    // Aquí puedes implementar la lógica de compartir
-  }
-
-  void _handleShowMore(JobDto job) {
-    // Convertir JobDto a JobDetailsDto para la navegación
-    final jobDetails = JobDetailsDto(
-      id: job.id,
-      title: job.title,
-      hourlyRate: job.hourlyRate,
-      location: job.location,
-      dateRange: job.dateRange,
-      jobType: job.jobType,
-      source: job.source,
-      postedDate: job.postedDate,
-      company: job.source,
-      address: job.location,
-      suburb: '',
-      city: '',
-      startDate: job.dateRange.split(' - ')[0],
-      time: '9:00 AM - 5:00 PM',
-      paymentExpected: 'Within 7 days',
-      aboutJob: 'This is a detailed description of the job position.',
-      requirements: [
-        'Valid driver license',
-        'Previous experience required',
-        'Good communication skills',
-      ],
-      latitude: -33.8688,
-      longitude: 151.2093,
-    );
-    
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JobDetailsScreen(
-          jobDetails: jobDetails,
-          flavor: _currentFlavor,
-          isFromAppliedJobs: true,
-        ),
-      ),
-    );
-  }
+  final AppliedJobsScreenController controller = Get.put(AppliedJobsScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor y appliedJobs en el controlador si se proporcionan
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    if (appliedJobs != null) {
+      controller.appliedJobs.value = appliedJobs!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -97,7 +43,7 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -105,7 +51,7 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
             color: Colors.white,
             size: iconSize,
           ),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: controller.handleBackNavigation,
         ),
         title: Text(
           'Applications',
@@ -117,14 +63,14 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
         ),
         centerTitle: true,
       ),
-      body: _jobCards.isEmpty
+      body: Obx(() => controller.jobCards.isEmpty
           ? _buildEmptyState()
-          : _buildJobList(),
+          : _buildJobList()),
     );
   }
 
   Widget _buildEmptyState() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -170,7 +116,7 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
   }
 
   Widget _buildJobList() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -182,19 +128,19 @@ class _AppliedJobsScreenState extends State<AppliedJobsScreen> {
 
     return ListView.builder(
       padding: EdgeInsets.all(horizontalPadding),
-      itemCount: _jobCards.length,
+      itemCount: controller.jobCards.length,
       itemBuilder: (context, index) {
-        final job = _jobCards[index];
+        final job = controller.jobCards[index];
         return JobCard(
           job: job,
-          onShare: () => _handleShare(job),
-          onShowMore: () => _handleShowMore(job),
+          onShare: () => controller.handleShare(job),
+          onShowMore: () => controller.handleShowMore(job),
           horizontalPadding: horizontalPadding,
           verticalSpacing: verticalSpacing,
           titleFontSize: titleFontSize,
           bodyFontSize: bodyFontSize,
           iconSize: iconSize,
-          flavor: _currentFlavor,
+          flavor: controller.currentFlavor.value,
         );
       },
     );

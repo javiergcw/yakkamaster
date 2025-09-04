@@ -1,157 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/constants.dart';
-import 'builder_home_screen.dart';
-import 'map_screen.dart';
-import 'messages_screen.dart';
-import 'edit_personal_details_screen.dart';
+import '../../logic/controllers/profile_screen_controller.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
+  static const String id = '/builder/profile';
+  
   final AppFlavor? flavor;
 
-  const ProfileScreen({
-    super.key,
-    this.flavor,
-  });
+  ProfileScreen({super.key, this.flavor});
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 3; // Profile tab selected
-
-    void _handleHelp() async {
-    // Crear URL de WhatsApp usando las constantes generales
-    final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
-
-    try {
-      // Intentar abrir WhatsApp
-      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-        await launchUrl(
-          Uri.parse(whatsappUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        // Si no se puede abrir WhatsApp, mostrar mensaje
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('No se pudo abrir WhatsApp. Asegúrate de tener la aplicación instalada.'),
-              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Manejar errores
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir WhatsApp: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _handleTermsAndConditions() async {
-    try {
-      print('Intentando abrir URL: ${AppConstants.termsAndConditionsUrl}');
-      
-      // Intentar abrir la URL directamente
-      final bool launched = await launchUrl(
-        Uri.parse(AppConstants.termsAndConditionsUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo abrir los términos y condiciones.'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error al abrir términos y condiciones: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir términos y condiciones: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _handleDeleteAccount() async {
-    try {
-      print('Intentando abrir URL de eliminación de cuenta: ${AppConstants.deleteAccountUrl}');
-      
-      // Intentar abrir la URL directamente
-      final bool launched = await launchUrl(
-        Uri.parse(AppConstants.deleteAccountUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo abrir el formulario de eliminación de cuenta.'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error al abrir formulario de eliminación de cuenta: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir formulario de eliminación de cuenta: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    if (index == 0) {
-      // Home
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BuilderHomeScreen(flavor: widget.flavor),
-        ),
-      );
-    } else if (index == 1) {
-      // Map
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MapScreen(flavor: widget.flavor),
-        ),
-      );
-    } else if (index == 2) {
-      // Messages
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MessagesScreen(flavor: widget.flavor),
-        ),
-      );
-    }
-    // Profile (index == 3) - already on this screen
-  }
+  final ProfileScreenController controller = Get.put(ProfileScreenController());
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                        color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                         width: 2,
                       ),
                       image: DecorationImage(
@@ -309,29 +169,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help',
-                      onTap: _handleHelp,
+                      onTap: controller.handleHelp,
                     ),
                     _buildMenuItem(
                       icon: Icons.person_outline,
                       title: 'Edit personal details',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditPersonalDetailsScreen(flavor: widget.flavor),
-                          ),
-                        );
-                      },
+                      onTap: controller.navigateToEditPersonalDetails,
                     ),
                     _buildMenuItem(
                       icon: Icons.description_outlined,
                       title: 'Terms and conditions',
-                      onTap: _handleTermsAndConditions,
+                      onTap: controller.handleTermsAndConditions,
                     ),
                     _buildMenuItem(
                       icon: Icons.delete_outline,
                       title: 'Delete account',
-                      onTap: _handleDeleteAccount,
+                      onTap: controller.handleDeleteAccount,
                     ),
                     _buildMenuItem(
                       icon: Icons.logout,
@@ -381,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -437,10 +290,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildBottomNavItem(Icons.grid_view, 'Home', 0, _selectedIndex == 0),
-          _buildBottomNavItem(Icons.map, 'Map', 1, _selectedIndex == 1),
-          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, _selectedIndex == 2),
-          _buildBottomNavItem(Icons.person, 'Profile', 3, _selectedIndex == 3),
+          _buildBottomNavItem(Icons.grid_view, 'Home', 0, controller.selectedIndex.value == 0),
+          _buildBottomNavItem(Icons.map, 'Map', 1, controller.selectedIndex.value == 1),
+          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, controller.selectedIndex.value == 2),
+          _buildBottomNavItem(Icons.person, 'Profile', 3, controller.selectedIndex.value == 3),
         ],
       ),
     );
@@ -448,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildBottomNavItem(IconData icon, String label, int index, bool isSelected) {
     return GestureDetector(
-      onTap: () => _onItemTapped(index),
+      onTap: () => controller.onItemTapped(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

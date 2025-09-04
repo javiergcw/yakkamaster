@@ -1,331 +1,26 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../../../../config/assets_config.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/constants.dart';
 import '../widgets/profile_menu_item.dart';
-import 'edit_personal_details_screen.dart';
-import 'edit_documents_screen.dart';
-import 'edit_bank_details_screen.dart';
+import '../../logic/controllers/profile_screen_controller.dart';
 
-class ProfileScreen extends StatefulWidget {
-  final AppFlavor? flavor;
-
-  const ProfileScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  final ImagePicker _picker = ImagePicker();
-  XFile? _selectedImage;
+class ProfileScreen extends StatelessWidget {
+  static const String id = '/labour/profile';
   
+  final AppFlavor? flavor;
+  ProfileScreen({super.key, this.flavor});
 
-
-  void _handleHelp() async {
-    // Crear URL de WhatsApp usando las constantes generales
-    final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
-    
-    try {
-      // Intentar abrir WhatsApp
-      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-        await launchUrl(
-          Uri.parse(whatsappUrl),
-          mode: LaunchMode.externalApplication,
-        );
-      } else {
-        // Si no se puede abrir WhatsApp, mostrar mensaje
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('No se pudo abrir WhatsApp. Asegúrate de tener la aplicación instalada.'),
-              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Manejar errores
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir WhatsApp: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _handleEditPersonalDetails() {
-    // Navegar a la pantalla de edición de detalles personales
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditPersonalDetailsScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleEditDocuments() {
-    // Navegar a la pantalla de edición de documentos
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditDocumentsScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleEditBankDetails() {
-    // Navegar a la pantalla de edición de detalles bancarios
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => EditBankDetailsScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleTermsAndConditions() async {
-    try {
-      print('Intentando abrir URL: ${AppConstants.termsAndConditionsUrl}');
-      
-      // Intentar abrir la URL directamente
-      final bool launched = await launchUrl(
-        Uri.parse(AppConstants.termsAndConditionsUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo abrir los términos y condiciones.'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error al abrir términos y condiciones: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir términos y condiciones: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _handleDeleteAccount() async {
-    try {
-      print('Intentando abrir URL de eliminación de cuenta: ${AppConstants.deleteAccountUrl}');
-      
-      // Intentar abrir la URL directamente
-      final bool launched = await launchUrl(
-        Uri.parse(AppConstants.deleteAccountUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      
-      if (!launched && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo abrir el formulario de eliminación de cuenta.'),
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Error al abrir formulario de eliminación de cuenta: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al abrir formulario de eliminación de cuenta: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  void _handleLogOut() {
-    // TODO: Implementar logout
-    print('Log out pressed');
-  }
-
-  void _handleEditProfileImage() {
-    _showImageSourceDialog();
-  }
-
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
-          title: Text(
-            'Seleccionar imagen',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.camera_alt, color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))),
-                title: Text(
-                  'Cámara',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.photo_library, color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))),
-                title: Text(
-                  'Galería',
-                  style: GoogleFonts.poppins(color: Colors.white),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      // Solicitar permisos
-      if (source == ImageSource.camera) {
-        final status = await Permission.camera.request();
-        if (!status.isGranted) {
-          _showPermissionDeniedDialog('cámara');
-          return;
-        }
-      } else {
-        final status = await Permission.photos.request();
-        if (!status.isGranted) {
-          _showPermissionDeniedDialog('galería');
-          return;
-        }
-      }
-
-      // Seleccionar imagen
-      final XFile? image = await _picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        setState(() {
-          _selectedImage = image;
-        });
-        print('Imagen seleccionada: ${image.path}');
-      }
-    } catch (e) {
-      print('Error al seleccionar imagen: $e');
-      _showErrorDialog('Error al seleccionar la imagen');
-    }
-  }
-
-  void _showPermissionDeniedDialog(String permission) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
-          title: Text(
-            'Permiso requerido',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            'Se necesita permiso para acceder a la $permission. Por favor, habilita el permiso en la configuración de la aplicación.',
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancelar',
-                style: GoogleFonts.poppins(
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                openAppSettings();
-              },
-              child: Text(
-                'Configuración',
-                style: GoogleFonts.poppins(
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF2C2C2C),
-          title: Text(
-            'Error',
-            style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            message,
-            style: GoogleFonts.poppins(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'OK',
-                style: GoogleFonts.poppins(
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  final ProfileScreenController controller = Get.put(ProfileScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -338,86 +33,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final statsFontSize = screenWidth * 0.045;
     final statsLabelFontSize = screenWidth * 0.03;
     final profileImageSize = screenWidth * 0.2; // Reducido de 0.25 a 0.2
+  
+
 
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Fondo gris oscuro
       body: SafeArea(
         child: Column(
           children: [
-                         // Header con información del perfil
-             Container(
-               width: double.infinity,
-               padding: EdgeInsets.symmetric(
-                 horizontal: horizontalPadding,
-                 vertical: verticalSpacing * 1.5, // Reducido de 3 a 1.5
-               ),
+            // Header con información del perfil
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalSpacing * 1.5, // Reducido de 3 a 1.5
+              ),
               child: Column(
                 children: [
-                                     // Foto de perfil con botón de actualización
-                   Center(
-                     child: Stack(
-                       children: [
-                         // Foto de perfil principal
-                         Container(
-                           width: profileImageSize,
-                           height: profileImageSize,
-                           decoration: BoxDecoration(
-                             color: const Color(0xFF4A6741), // Verde oscuro
-                             shape: BoxShape.circle,
-                           ),
-                           child: _selectedImage != null
-                               ? ClipOval(
-                                   child: Image.file(
-                                     File(_selectedImage!.path),
-                                     width: profileImageSize,
-                                     height: profileImageSize,
-                                     fit: BoxFit.cover,
-                                   ),
-                                 )
-                               : Center(
-                                   child: Icon(
-                                     Icons.person,
-                                     size: profileImageSize * 0.6,
-                                     color: const Color(0xFF8BC34A), // Verde claro
-                                   ),
-                                 ),
-                         ),
-                         
-                         // Botón de edición de imagen
-                         Positioned(
-                           bottom: 0,
-                           right: 0,
-                           child: GestureDetector(
-                             onTap: _handleEditProfileImage,
-                             child: Container(
-                               width: profileImageSize * 0.35,
-                               height: profileImageSize * 0.35,
-                               decoration: BoxDecoration(
-                                 color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                 shape: BoxShape.circle,
-                                 border: Border.all(
-                                   color: const Color(0xFF2C2C2C),
-                                   width: 2,
-                                 ),
-                                 boxShadow: [
-                                   BoxShadow(
-                                     color: Colors.black.withOpacity(0.3),
-                                     offset: const Offset(0, 2),
-                                     blurRadius: 4,
-                                   ),
-                                 ],
-                               ),
-                               child: Icon(
-                                 Icons.edit,
-                                 size: profileImageSize * 0.2,
-                                 color: Colors.white,
-                               ),
-                             ),
-                           ),
-                         ),
-                       ],
-                     ),
-                   ),
+                  // Foto de perfil con botón de actualización
+                  Center(
+                    child: Stack(
+                      children: [
+                        // Foto de perfil principal
+                        Container(
+                          width: profileImageSize,
+                          height: profileImageSize,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4A6741), // Verde oscuro
+                            shape: BoxShape.circle,
+                          ),
+                          child: Obx(() => controller.selectedImage.value != null
+                              ? ClipOval(
+                                  child: Image.file(
+                                    File(controller.selectedImage.value!.path),
+                                    width: profileImageSize,
+                                    height: profileImageSize,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : Center(
+                                  child: Icon(
+                                    Icons.person,
+                                    size: profileImageSize * 0.6,
+                                    color: const Color(0xFF8BC34A), // Verde claro
+                                  ),
+                                )),
+                        ),
+                        
+                        // Botón de edición de imagen
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: controller.handleEditProfileImage,
+                            child: Container(
+                              width: profileImageSize * 0.35,
+                              height: profileImageSize * 0.35,
+                              decoration: BoxDecoration(
+                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: const Color(0xFF2C2C2C),
+                                  width: 2,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.edit,
+                                size: profileImageSize * 0.2,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   
                   SizedBox(height: verticalSpacing), // Reducido de 2 a 1
                   
@@ -495,7 +192,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Icon(
                                 Icons.star,
                                 size: statsFontSize * 0.8,
-                                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                               ),
                             ],
                           ),
@@ -528,51 +225,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ProfileMenuItem(
                       icon: Icons.chat,
                       title: "Help",
-                      onTap: _handleHelp,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleHelp,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.person,
                       title: "Edit personal details",
-                      onTap: _handleEditPersonalDetails,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleEditPersonalDetails,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.qr_code,
                       title: "Edit documents",
-                      onTap: _handleEditDocuments,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleEditDocuments,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.account_balance,
                       title: "Edit bank details",
-                      onTap: _handleEditBankDetails,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleEditBankDetails,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.description,
                       title: "Terms and conditions",
-                      onTap: _handleTermsAndConditions,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleTermsAndConditions,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.delete,
                       title: "Delete account",
-                      onTap: _handleDeleteAccount,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleDeleteAccount,
+                      flavor: controller.currentFlavor.value,
                     ),
                     ProfileMenuItem(
                       icon: Icons.logout,
                       title: "Log out",
-                      onTap: _handleLogOut,
-                      flavor: _currentFlavor,
+                      onTap: controller.handleLogOut,
+                      flavor: controller.currentFlavor.value,
                     ),
                   ],
                 ),
               ),
             ),
             
-                         SizedBox(height: verticalSpacing), // Reducido de 2 a 1
+            SizedBox(height: verticalSpacing), // Reducido de 2 a 1
           ],
         ),
       ),

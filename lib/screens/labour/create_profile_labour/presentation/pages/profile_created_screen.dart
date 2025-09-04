@@ -1,44 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../../home/presentation/pages/home_screen.dart';
-import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
+import '../../logic/controllers/profile_created_controller.dart';
 
-class ProfileCreatedScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class ProfileCreatedScreen extends StatelessWidget {
+  static const String id = '/profile-created';
+  
+  ProfileCreatedScreen({super.key});
 
-  const ProfileCreatedScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<ProfileCreatedScreen> createState() => _ProfileCreatedScreenState();
-}
-
-class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleExploreYakka() {
-    // Navegar a la pantalla home de YAKKA usando navegación estándar de Flutter
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => HomeScreen(flavor: _currentFlavor),
-      ),
-      (route) => false,
-    );
-  }
-
-  void _handleApplyForJob() {
-    // Navegar a la pantalla de job listings
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JobListingsScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
+  final ProfileCreatedController controller = Get.put(ProfileCreatedController());
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +28,8 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
     final checkIconSize = screenWidth * 0.15;
     final checkCircleSize = screenWidth * 0.25;
 
-    return Scaffold(
-      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+    return Obx(() => Scaffold(
+      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -118,7 +91,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: Colors.black,
@@ -128,7 +101,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: _handleExploreYakka,
+                        onTap: controller.handleExploreYakka,
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
@@ -161,7 +134,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: _handleApplyForJob,
+                        onTap: controller.handleApplyForJob,
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
@@ -189,6 +162,6 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

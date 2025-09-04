@@ -1,64 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/assets_config.dart';
-import 'chat_screen.dart';
-import 'builder_home_screen.dart';
+import '../../logic/controllers/messages_screen_controller.dart';
 
-class MessagesScreen extends StatefulWidget {
+class MessagesScreen extends StatelessWidget {
+  static const String id = '/builder/messages';
+  
   final AppFlavor? flavor;
+  MessagesScreen({super.key, this.flavor});
 
-  const MessagesScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<MessagesScreen> createState() => _MessagesScreenState();
-}
-
-class _MessagesScreenState extends State<MessagesScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  // Lista de mensajes de ejemplo
-  final List<Map<String, dynamic>> _messages = [
-    {
-      'id': '1',
-      'name': 'Zeta Roman',
-      'lastMessage': 'hello',
-      'timestamp': '8:05 AM',
-      'avatar': 'Z',
-      'unreadCount': 0,
-    },
-    {
-      'id': '2',
-      'name': 'John Smith',
-      'lastMessage': 'Thanks for the job!',
-      'timestamp': 'Yesterday',
-      'avatar': 'J',
-      'unreadCount': 2,
-    },
-    {
-      'id': '3',
-      'name': 'Sarah Wilson',
-      'lastMessage': 'When can you start?',
-      'timestamp': '2 days ago',
-      'avatar': 'S',
-      'unreadCount': 0,
-    },
-  ];
-
-  void _handleMessageTap(Map<String, dynamic> message) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(
-          recipientName: message['name'],
-          recipientAvatar: message['avatar'],
-          flavor: _currentFlavor,
-        ),
-      ),
-    );
-  }
+  final MessagesScreenController controller = Get.put(MessagesScreenController());
 
   @override
   Widget build(BuildContext context) {
@@ -93,12 +45,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => BuilderHomeScreen(flavor: _currentFlavor),
-                      ),
-                      (route) => false,
-                    ),
+                    onPressed: () => controller.navigateToHome(),
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.white,
@@ -124,9 +71,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: _messages.length,
+                itemCount: controller.messages.length,
                 itemBuilder: (context, index) {
-                  final message = _messages[index];
+                  final message = controller.messages[index];
                   return _buildMessageItem(
                     message,
                     horizontalPadding,
@@ -155,7 +102,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     double avatarSize,
   ) {
     return GestureDetector(
-      onTap: () => _handleMessageTap(message),
+      onTap: () => controller.handleMessageTap(message),
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,
@@ -246,7 +193,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   vertical: verticalSpacing * 0.2,
                 ),
                 decoration: BoxDecoration(
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

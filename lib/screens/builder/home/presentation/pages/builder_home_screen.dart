@@ -3,45 +3,17 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../widgets/sidebar.dart';
-import '../../../post_job/presentation/pages/job_sites_screen.dart';
-import 'job_sites_list_screen.dart';
-import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
-import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
-import '../../../applicants/presentation/pages/applicants_screen.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
-import '../../../invoices/presentation/pages/invoices_screen.dart';
-import 'map_screen.dart';
-import '../../../staff/presentation/pages/staff_screen.dart';
-import 'messages_screen.dart';
-import 'profile_screen.dart';
-import 'notifications_screen.dart';
+import '../../logic/controllers/builder_home_controller.dart';
 
-class BuilderHomeScreen extends StatefulWidget {
+class BuilderHomeScreen extends StatelessWidget {
+  static const String id = '/builder/home';
+  
   final AppFlavor? flavor;
 
-  const BuilderHomeScreen({
-    super.key,
-    this.flavor,
-  });
+  BuilderHomeScreen({super.key, this.flavor});
 
-  @override
-  State<BuilderHomeScreen> createState() => _BuilderHomeScreenState();
-}
-
-class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  
-  int _selectedIndex = 0; // Home tab selected
-  bool _isSidebarOpen = false; // Control del sidebar
-
-  @override
-  void initState() {
-    super.initState();
-    // Inicializar el controlador de applicants para el punto rojo
-    Get.put(ApplicantController());
-    // Asegurar que Home esté seleccionado cuando se navega desde Map
-    _selectedIndex = 0;
-  }
+  final BuilderHomeController controller = Get.put(BuilderHomeController());
 
   @override
   Widget build(BuildContext context) {
@@ -112,33 +84,35 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
         ),
         
         // Overlay para cerrar sidebar al tocar fuera
-        if (_isSidebarOpen)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _closeSidebar,
-              child: Container(
-                color: Colors.black.withOpacity(0.2),
+        Obx(() => controller.isSidebarOpen.value
+          ? Positioned.fill(
+              child: GestureDetector(
+                onTap: controller.closeSidebar,
+                child: Container(
+                  color: Colors.black.withOpacity(0.2),
+                ),
               ),
-            ),
-          ),
+            )
+          : const SizedBox.shrink()),
         
         // Sidebar (por encima de todo)
-        if (_isSidebarOpen)
-          Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: Sidebar(
-                flavor: _currentFlavor,
-                onClose: _closeSidebar,
+        Obx(() => controller.isSidebarOpen.value
+          ? Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: Sidebar(
+                  flavor: controller.currentFlavor.value,
+                  onClose: controller.closeSidebar,
+                ),
               ),
-            ),
-          ),
+            )
+          : const SizedBox.shrink()),
       ],
     );
   }
 
   Widget _buildHeader() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -195,15 +169,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
            
            // Notification Icon (en la misma fila)
            IconButton(
-             onPressed: () {
-               Navigator.of(context).push(
-                 MaterialPageRoute(
-                   builder: (context) => NotificationsScreen(
-                     flavor: _currentFlavor,
-                   ),
-                 ),
-               );
-             },
+             onPressed: () => controller.navigateToNotifications(),
              icon: Icon(
                Icons.notifications,
                color: Colors.white,
@@ -216,19 +182,15 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
   }
 
   void _toggleSidebar() {
-    setState(() {
-      _isSidebarOpen = !_isSidebarOpen;
-    });
+    controller.toggleSidebar();
   }
 
   void _closeSidebar() {
-    setState(() {
-      _isSidebarOpen = false;
-    });
+    controller.closeSidebar();
   }
 
   Widget _buildPostJobButton() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -237,13 +199,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
          final bodyFontSize = screenWidth * 0.045; // Aumentado el tamaño de la fuente
 
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => JobSitesScreen(flavor: _currentFlavor),
-          ),
-        );
-      },
+      onTap: () => controller.navigateToJobSites(),
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
@@ -251,7 +207,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           vertical: verticalSpacing * 1.2,
         ),
         decoration: BoxDecoration(
-          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -299,7 +255,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
   }
 
   Widget _buildWorkersSection() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -328,16 +284,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
               child: _buildWorkerCard(
                 icon: Icons.work,
                 title: "Jobs",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MyJobsScreen(
-                        flavor: _currentFlavor,
-                      ),
-                    ),
-                  );
-                },
+                onTap: () => controller.navigateToMyJobs(),
               ),
             ),
             SizedBox(width: 8),
@@ -345,16 +292,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
               child: _buildWorkerCard(
                 icon: Icons.people,
                 title: "Applicants",
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ApplicantsScreen(
-                        flavor: _currentFlavor,
-                      ),
-                    ),
-                  );
-                },
+                onTap: () => controller.navigateToApplicants(),
               ),
             ),
             SizedBox(width: 8),
@@ -374,7 +312,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
   }
 
   Widget _buildManagementSection() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -401,14 +339,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           icon: Icons.people,
           title: "Staff",
           subtitle: "Chat, review or unhire workers",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => StaffScreen(flavor: _currentFlavor),
-              ),
-            );
-          },
+          onTap: () => controller.navigateToStaff(),
         ),
         
         SizedBox(height: verticalSpacing),
@@ -417,20 +348,14 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           icon: Icons.location_on,
           title: "See your job sites",
           subtitle: "Get report by workplaces",
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => JobSitesListScreen(flavor: _currentFlavor),
-              ),
-            );
-          },
+          onTap: () => controller.navigateToJobSitesList(),
         ),
       ],
     );
   }
 
   Widget _buildInsightsSection() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -455,16 +380,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
         _buildInsightsItem(
           icon: Icons.receipt,
           title: "Invoices & payments",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => InvoicesScreen(
-                  flavor: _currentFlavor,
-                ),
-              ),
-            );
-          },
+          onTap: () => controller.navigateToInvoices(),
         ),
         
         SizedBox(height: verticalSpacing),
@@ -505,7 +421,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
                 children: [
                   Icon(
                     icon,
-                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     size: 40, // Icono más grande
                   ),
                   const SizedBox(height: 12), // Más espacio entre icono y texto
@@ -566,7 +482,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           children: [
             Icon(
               icon,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               size: 32, // Icono más grande para MANAGEMENT
             ),
             const SizedBox(width: 12),
@@ -623,7 +539,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
           children: [
             Icon(
               icon,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               size: 32, // Icono más grande para INSIGHTS
             ),
             const SizedBox(width: 12),
@@ -660,10 +576,10 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildBottomNavItem(Icons.grid_view, 'Home', 0, _selectedIndex == 0),
-          _buildBottomNavItem(Icons.map, 'Map', 1, _selectedIndex == 1),
-          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, _selectedIndex == 2),
-          _buildBottomNavItem(Icons.person, 'Profile', 3, _selectedIndex == 3),
+          _buildBottomNavItem(Icons.grid_view, 'Home', 0, controller.selectedIndex.value == 0),
+          _buildBottomNavItem(Icons.map, 'Map', 1, controller.selectedIndex.value == 1),
+          _buildBottomNavItem(Icons.chat_bubble, 'Messages', 2, controller.selectedIndex.value == 2),
+          _buildBottomNavItem(Icons.person, 'Profile', 3, controller.selectedIndex.value == 3),
         ],
       ),
     );
@@ -671,35 +587,7 @@ class _BuilderHomeScreenState extends State<BuilderHomeScreen> {
 
   Widget _buildBottomNavItem(IconData icon, String label, int index, bool isSelected) {
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        
-        // Navigate to different screens based on index
-        if (index == 1) { // Map
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MapScreen(flavor: _currentFlavor),
-            ),
-          );
-        } else if (index == 2) { // Messages
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MessagesScreen(flavor: _currentFlavor),
-            ),
-          );
-        } else if (index == 3) { // Profile
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProfileScreen(flavor: _currentFlavor),
-            ),
-          );
-        }
-      },
+      onTap: () => controller.selectTab(index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

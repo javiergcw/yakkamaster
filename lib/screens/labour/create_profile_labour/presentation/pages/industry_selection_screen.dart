@@ -1,57 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
-import 'create_profile_screen.dart';
+import '../../logic/controllers/industry_selection_controller.dart';
 
-class IndustrySelectionScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class IndustrySelectionScreen extends StatelessWidget {
+  static const String id = '/industry-selection';
+  
+  IndustrySelectionScreen({super.key});
 
-  const IndustrySelectionScreen({
-    super.key,
-    this.flavor,
-  });
+  final IndustrySelectionController controller = Get.put(IndustrySelectionController());
 
-  @override
-  State<IndustrySelectionScreen> createState() => _IndustrySelectionScreenState();
-}
-
-class _IndustrySelectionScreenState extends State<IndustrySelectionScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  // NEW: sombras tipo tarjeta (una sombra dura cercana + una suave más profunda)
+  // Sombras tipo tarjeta (una sombra dura cercana + una suave más profunda)
   final List<BoxShadow> strongCardShadows = const [
-    BoxShadow( // NEW
-      color: Color(0x33000000), // NEW (20% negro)
-      offset: Offset(6, 8),     // NEW
-      blurRadius: 0,            // NEW
-      spreadRadius: 0,          // NEW
+    BoxShadow(
+      color: Color(0x33000000), // 20% negro
+      offset: Offset(6, 8),
+      blurRadius: 0,
+      spreadRadius: 0,
     ),
-    BoxShadow( // NEW
-      color: Color(0x40000000), // NEW (25% negro)
-      offset: Offset(0, 18),    // NEW
-      blurRadius: 28,           // NEW
-      spreadRadius: 0,          // NEW
+    BoxShadow(
+      color: Color(0x40000000), // 25% negro
+      offset: Offset(0, 18),
+      blurRadius: 28,
+      spreadRadius: 0,
     ),
   ];
-
-  void _handleConstructionSelection() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => CreateProfileScreen(flavor: _currentFlavor)),
-    );
-  }
-
-  void _handleHospitalitySelection() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => CreateProfileScreen(flavor: _currentFlavor)),
-    );
-  }
-
-  void _handleBothSelection() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => CreateProfileScreen(flavor: _currentFlavor)),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +93,7 @@ class _IndustrySelectionScreenState extends State<IndustrySelectionScreen> {
                         title: "CONSTRUCTION",
                         subtitle: "Work in construction projects, farms or warehouses.",
                         icon: Icons.construction,
-                        onTap: _handleConstructionSelection,
+                        onTap: controller.handleConstructionSelection,
                         iconSize: iconSize,
                         cardTitleFontSize: cardTitleFontSize,
                         cardSubtitleFontSize: cardSubtitleFontSize,
@@ -132,7 +107,7 @@ class _IndustrySelectionScreenState extends State<IndustrySelectionScreen> {
                         title: "HOSPITALITY",
                         subtitle: "Join restaurants, cafes or staff for events.",
                         icon: Icons.restaurant,
-                        onTap: _handleHospitalitySelection,
+                        onTap: controller.handleHospitalitySelection,
                         iconSize: iconSize,
                         cardTitleFontSize: cardTitleFontSize,
                         cardSubtitleFontSize: cardSubtitleFontSize,
@@ -148,7 +123,7 @@ class _IndustrySelectionScreenState extends State<IndustrySelectionScreen> {
                 title: "BOTH",
                 subtitle: "Maximize opportunities in both industries.",
                 icon: Icons.check_circle,
-                onTap: _handleBothSelection,
+                onTap: controller.handleBothSelection,
                 iconSize: iconSize,
                 cardTitleFontSize: cardTitleFontSize,
                 cardSubtitleFontSize: cardSubtitleFontSize,

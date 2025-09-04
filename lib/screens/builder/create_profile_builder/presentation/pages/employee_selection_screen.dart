@@ -1,35 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
-import 'respect_screen.dart';
+import '../../logic/controllers/employee_selection_controller.dart';
 
-class EmployeeSelectionScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class EmployeeSelectionScreen extends StatelessWidget {
+  static const String id = '/employee-selection';
+  
+  EmployeeSelectionScreen({super.key});
 
-  const EmployeeSelectionScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<EmployeeSelectionScreen> createState() => _EmployeeSelectionScreenState();
-}
-
-class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
-  String? _selectedEmployeeRange;
-
-  final List<String> _employeeRanges = [
-    '0-1',
-    '2-6',
-    '7-15',
-    '16-49',
-    '50+',
-  ];
+  final EmployeeSelectionController controller = Get.put(EmployeeSelectionController());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return Obx(() => Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
@@ -40,7 +25,7 @@ class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () => Get.back(),
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     child: const Icon(
@@ -65,7 +50,7 @@ class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
                   ),
                   const SizedBox(width: 8),
                   Image.asset(
-                    AssetsConfig.getEmployees(widget.flavor ?? AppFlavorConfig.currentFlavor),
+                    AssetsConfig.getEmployees(controller.currentFlavor.value),
                     height: 60,
                     width: 60,
                   ),
@@ -96,27 +81,23 @@ class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
               // Opciones de empleados
               Expanded(
                 child: Column(
-                  children: _employeeRanges.map((range) {
-                    final isSelected = _selectedEmployeeRange == range;
+                  children: controller.employeeRanges.map((range) {
+                    final isSelected = controller.selectedEmployeeRange?.value == range;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedEmployeeRange = range;
-                          });
-                        },
+                        onTap: () => controller.selectEmployeeRange(range),
                         child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                           decoration: BoxDecoration(
                             color: isSelected 
-                                ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                                 : Colors.grey[200],
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: isSelected 
-                                  ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                  ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                                   : Colors.grey[300]!,
                               width: 1,
                             ),
@@ -142,9 +123,9 @@ class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 20),
                 child: ElevatedButton(
-                  onPressed: _selectedEmployeeRange != null ? _handleNext : null,
+                  onPressed: controller.selectedEmployeeRange?.value.isNotEmpty == true ? controller.handleNext : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     foregroundColor: Colors.black,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
@@ -166,20 +147,6 @@ class _EmployeeSelectionScreenState extends State<EmployeeSelectionScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  void _handleNext() {
-    if (_selectedEmployeeRange != null) {
-      // Navegar a la pantalla de respeto
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RespectScreen(
-            flavor: widget.flavor,
-          ),
-        ),
-      );
-    }
+    ));
   }
 }

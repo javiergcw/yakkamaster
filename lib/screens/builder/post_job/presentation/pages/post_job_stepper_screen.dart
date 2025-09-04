@@ -5,81 +5,38 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/search_input_field.dart';
-import 'post_job_stepper_step2_screen.dart';
 import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/post_job_stepper_controller.dart';
 
-class PostJobStepperScreen extends StatefulWidget {
+class PostJobStepperScreen extends StatelessWidget {
+  static const String id = '/builder/post-job';
+  
   final AppFlavor? flavor;
   final List<dynamic>? selectedJobSites;
 
-  const PostJobStepperScreen({
+  PostJobStepperScreen({
     super.key,
     this.flavor,
     this.selectedJobSites,
   });
 
-  @override
-  State<PostJobStepperScreen> createState() => _PostJobStepperScreenState();
-}
+  final PostJobStepperController controller = Get.put(PostJobStepperController());
 
-class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  final _searchController = TextEditingController();
-  List<String> _filteredSkills = [];
-  
-  // Lista completa de habilidades
-  final List<String> _allSkills = [
-    'General Labourer',
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'Bricklayer',
-    'Concreter',
-    'Painter',
-    'Excavator Operator',
-    'Truck Driver',
-    'Forklift Driver',
-    'Paver Operator',
-    'Truck LR Driver',
-    'Asbestos Remover',
-    'Elevator operator',
-    'Foreman',
-    'Tow Truck Driver',
-    'Lawn mower',
-    'Construction Foreman',
-    'Bulldozer Operator',
-    'Heavy Rigid Truck Driver',
-    'Traffic Controller',
-    'Bartender',
-    'Gardener',
-    'Truck HC Driver',
-  ];
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.put(PostJobController());
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(1);
-    _filteredSkills = List.from(_allSkills);
-    
-    // Si hay jobsites seleccionados, inicializarlos en el controlador
-    if (widget.selectedJobSites != null && widget.selectedJobSites!.isNotEmpty) {
-      // TODO: Pasar los jobsites seleccionados al controlador
-      print('Selected job sites: ${widget.selectedJobSites}');
-    }
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    
+    // Si hay jobsites seleccionados, inicializarlos en el controlador
+    if (selectedJobSites != null && selectedJobSites!.isNotEmpty) {
+      // TODO: Pasar los jobsites seleccionados al controlador
+      print('Selected job sites: ${selectedJobSites}');
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -87,7 +44,7 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
     // Calcular valores responsive
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
-         final titleFontSize = screenWidth * 0.055; // Tamaño normal para el título del appbar
+    final titleFontSize = screenWidth * 0.055; // Tamaño normal para el título del appbar
     final questionFontSize = screenWidth * 0.045;
     final instructionFontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
@@ -115,11 +72,11 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
               child: Row(
                 children: [
                                      // Back Button
-                   GestureDetector(
-                     onTap: () {
-                       _controller.handleBackNavigation();
-                       Navigator.of(context).pop();
-                     },
+                                        GestureDetector(
+                       onTap: () {
+                         controller.handleBackNavigation();
+                         Get.back();
+                       },
                      child: Icon(
                        Icons.arrow_back,
                        color: Colors.black,
@@ -157,7 +114,7 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
                   Expanded(
                     flex: 1,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     ),
                   ),
                   // Remaining (grey)
@@ -208,23 +165,23 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
                     
                                                               // Search Bar
                      SearchInputField(
-                       controller: _searchController,
+                       controller: controller.searchController,
                        hintText: "Search for a type of labour",
-                       flavor: _currentFlavor,
+                       flavor: controller.currentFlavor.value,
                        onChanged: (value) {
-                         _performSearch(); // Búsqueda en tiempo real
+                         controller.performSearch(); // Búsqueda en tiempo real
                        },
-                       onSearch: _performSearch,
+                       onSearch: controller.performSearch,
                      ),
                     
                     SizedBox(height: verticalSpacing * 2),
                     
                     // Skills Grid
-                    Wrap(
+                    Obx(() => Wrap(
                       spacing: horizontalPadding * 0.3, // Reducido el espaciado horizontal
                       runSpacing: verticalSpacing * 0.5, // Reducido el espaciado vertical
-                      children: _filteredSkills.map((skill) => _buildSkillChip(skill)).toList(),
-                    ),
+                      children: controller.filteredSkills.map((skill) => _buildSkillChip(skill)).toList(),
+                    )),
                     
                     SizedBox(height: verticalSpacing * 3),
                   ],
@@ -237,9 +194,9 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
               padding: EdgeInsets.all(horizontalPadding),
               child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _controller.canProceedToNextStep() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? controller.handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
+                flavor: controller.currentFlavor.value,
               )),
             ),
           ],
@@ -249,7 +206,7 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
   }
 
   Widget _buildSkillChip(String skill) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -258,11 +215,11 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
     final chipFontSize = screenWidth * 0.03; // Reducido para chips más pequeños
     
     return Obx(() {
-      final isSelected = _controller.postJobData.selectedSkill == skill;
+      final isSelected = controller.postJobController.postJobData.selectedSkill == skill;
       
       return GestureDetector(
         onTap: () {
-          _controller.updateSelectedSkill(skill);
+          controller.updateSelectedSkill(skill);
         },
         child: Container(
           padding: EdgeInsets.symmetric(
@@ -271,12 +228,12 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
           ),
           decoration: BoxDecoration(
             color: isSelected 
-                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                 : Colors.grey[100],
             borderRadius: BorderRadius.circular(15), // Reducido el border radius
             border: Border.all(
               color: isSelected 
-                  ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                  ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                   : Colors.grey[300]!,
               width: 1,
             ),
@@ -293,30 +250,5 @@ class _PostJobStepperScreenState extends State<PostJobStepperScreen> {
         ),
       );
     });
-  }
-
-  void _performSearch() {
-    final query = _searchController.text.toLowerCase().trim();
-    
-    setState(() {
-      if (query.isEmpty) {
-        _filteredSkills = List.from(_allSkills);
-      } else {
-        _filteredSkills = _allSkills
-            .where((skill) => skill.toLowerCase().contains(query))
-            .toList();
-      }
-    });
-  }
-
-  void _handleContinue() {
-    if (_controller.canProceedToNextStep()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep2Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
@@ -17,144 +18,147 @@ import '../../data/applied_job_dto.dart';
 import '../widgets/applied_job_card.dart';
 import 'applied_jobs_screen.dart';
 import 'notifications_screen.dart';
+import '../../logic/controllers/home_screen_controller.dart';
 
-class Shift {
-  final String companyName;
-  final String jobSite;
-  final String startTime;
-  final String endTime;
-
-  Shift({
-    required this.companyName,
-    required this.jobSite,
-    required this.startTime,
-    required this.endTime,
-  });
-}
-
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
+  static const String id = '/labour/home';
+  
   final AppFlavor? flavor;
+  HomeScreen({super.key, this.flavor});
 
-  const HomeScreen({
-    super.key,
-    this.flavor,
-  });
+  final HomeScreenController controller = Get.put(HomeScreenController());
+
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? (AppFlavorConfig.currentFlavor);
-  int _selectedIndex = 0; // Home tab selected
-  bool _isSidebarOpen = false; // Control del sidebar
-  
-  // Variables para el modal de shifts
-  bool _isShiftsModalOpen = false;
-  DateTime _selectedDate = DateTime.now();
-  DateTime _focusedDate = DateTime.now();
-  
-  // Datos de ejemplo de shifts
-  late final Map<String, List<Shift>> _shiftsData;
-  
-  // Datos de ejemplo de trabajos aplicados
-  late final List<AppliedJobDto> _appliedJobs;
-  
-  // Variable para alternar entre estados (true = con trabajos, false = sin trabajos)
-  bool _hasAppliedJobs = true;
-  
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    final currentMonth = now.month.toString().padLeft(2, '0');
-    final currentYear = now.year;
-    
-    _shiftsData = {
-      '$currentYear-$currentMonth-15': [
-        Shift(
-          companyName: 'Yakka Labour',
-          jobSite: 'Australia LTD',
-          startTime: '8:00',
-          endTime: '6:00pm',
-        ),
-      ],
-      '$currentYear-$currentMonth-18': [
-        Shift(
-          companyName: 'Yakka Labour',
-          jobSite: 'Melbourne Construction',
-          startTime: '7:00',
-          endTime: '5:00pm',
-        ),
-      ],
-      '$currentYear-$currentMonth-22': [
-        Shift(
-          companyName: 'Yakka Labour',
-          jobSite: 'Sydney Projects',
-          startTime: '9:00',
-          endTime: '7:00pm',
-        ),
-      ],
-    };
-    
-    // Datos de ejemplo de trabajos aplicados
-    _appliedJobs = [
-      AppliedJobDto(
-        id: '1',
-        companyName: 'Test company by yakka',
-        jobTitle: 'Truck Driver',
-        location: 'Sydney',
-        status: 'Active',
-        appliedDate: DateTime.now().subtract(Duration(days: 5)),
-      ),
-      AppliedJobDto(
-        id: '2',
-        companyName: 'Construction Corp',
-        jobTitle: 'Laborer',
-        location: 'Melbourne',
-        status: 'Active',
-        appliedDate: DateTime.now().subtract(Duration(days: 3)),
-      ),
-    ];
-  }
-
-  void _handleApplyForJob() {
-    // Navegar a la pantalla de job listings
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JobListingsScreen(flavor: _currentFlavor),
-      ),
-    );
-  }
-
-  void _handleBottomNavTap(int index) {
-    if (index == 1) {
-      // Si se selecciona el tab de Shifts, abrir el modal
-      setState(() {
-        _isShiftsModalOpen = true;
-      });
-    } else {
-      setState(() {
-        _selectedIndex = index;
-        _isShiftsModalOpen = false;
-      });
+  Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
     }
-  }
 
-  void _toggleSidebar() {
-    setState(() {
-      _isSidebarOpen = !_isSidebarOpen;
-    });
-  }
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    
+    // Calcular valores responsive
+    final horizontalPadding = screenWidth * 0.06;
+    final verticalSpacing = screenHeight * 0.025;
+    final titleFontSize = screenWidth * 0.055;
+    final sectionTitleFontSize = screenWidth * 0.045;
+    final bodyFontSize = screenWidth * 0.035;
+    final buttonFontSize = screenWidth * 0.04;
+    final profileImageSize = screenWidth * 0.12;
 
-  void _closeSidebar() {
-    setState(() {
-      _isSidebarOpen = false;
-    });
+    return Obx(() => Stack(
+      children: [
+        Scaffold(
+          backgroundColor: controller.selectedIndex.value == 3 ? const Color(0xFF2C2C2C) : Colors.grey[100],
+          body: SafeArea(
+            child: Stack(
+              children: [
+                // Main Content basado en el tab seleccionado
+                _buildCurrentView(),
+                
+                // Banner flotante para Home tab
+                if (controller.selectedIndex.value == 0) _buildFloatingBanner(),
+              ],
+            ),
+          ),
+          
+          // Bottom Navigation Bar
+          bottomNavigationBar: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  offset: const Offset(0, -2),
+                  blurRadius: 4,
+                ),
+              ],
+            ),
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              currentIndex: controller.isShiftsModalOpen.value ? 1 : controller.selectedIndex.value,
+              onTap: controller.handleBottomNavTap,
+              selectedItemColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              unselectedItemColor: Colors.grey[600],
+              selectedLabelStyle: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                fontSize: bodyFontSize * 0.9,
+              ),
+              unselectedLabelStyle: GoogleFonts.poppins(
+                fontSize: bodyFontSize * 0.9,
+              ),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today),
+                  label: 'Shifts',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.message),
+                  label: 'Messages',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal)
+        if (controller.isSidebarOpen.value)
+          Positioned(
+            left: screenWidth * 0.7, // Empezar después del sidebar
+            top: 0,
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: controller.closeSidebar,
+              child: Container(
+                color: Colors.black.withOpacity(0.3),
+              ),
+            ),
+          ),
+        
+        // Sidebar (por encima de todo, sin overlay)
+        if (controller.isSidebarOpen.value)
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: screenWidth * 0.7,
+              child: Sidebar(
+                flavor: controller.currentFlavor.value,
+                onClose: controller.closeSidebar,
+              ),
+            ),
+          ),
+        
+        // Overlay semi-transparente para el modal de shifts
+        if (controller.isShiftsModalOpen.value)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+            ),
+          ),
+        
+        // Modal de Shifts (por encima de todo)
+        if (controller.isShiftsModalOpen.value)
+          _buildShiftsModal(),
+      ],
+    ));
   }
 
   Widget _buildCurrentView() {
-    switch (_selectedIndex) {
+    switch (controller.selectedIndex.value) {
       case 0:
         return _buildHomeView();
       case 1:
@@ -162,14 +166,14 @@ class _HomeScreenState extends State<HomeScreen> {
       case 2:
         return _buildMessagesView();
       case 3:
-        return ProfileScreen(flavor: _currentFlavor);
+        return ProfileScreen(flavor: controller.currentFlavor.value);
       default:
         return _buildHomeView();
     }
   }
 
   Widget _buildHomeView() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -202,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   // Profile Image (clickeable para abrir sidebar)
                   GestureDetector(
-                    onTap: _toggleSidebar,
+                    onTap: controller.toggleSidebar,
                     child: Container(
                       width: profileImageSize,
                       height: profileImageSize,
@@ -236,13 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Notification Icon
                   IconButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => NotificationsScreen(
-                            flavor: _currentFlavor,
-                          ),
-                        ),
-                      );
+                      controller.navigateToNotifications();
                     },
                     icon: Icon(
                       Icons.notifications,
@@ -268,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ACTIVE JOBS Section (solo si hay trabajos aplicados)
-                if (_hasAppliedJobs && _appliedJobs.isNotEmpty) _buildActiveJobsSection(),
+                if (controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty) _buildActiveJobsSection(),
                 
                 // ACTIVITY Section
                 Text(
@@ -288,12 +286,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.receipt,
                   title: "Invoices",
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InvoiceScreen(flavor: _currentFlavor),
-                      ),
-                    );
+                    controller.navigateToInvoice();
                   },
                 ),
                 
@@ -303,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.work,
                   title: "Applied jobs",
                   onTap: () {
-                    print('Applied jobs pressed');
+                    controller.navigateToAppliedJobs();
                   },
                 ),
                 
@@ -352,11 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: "Show your QR",
                   subtitle: "Share your profile to get hired",
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => DigitalIdScreen(flavor: _currentFlavor),
-                      ),
-                    );
+                    controller.navigateToDigitalId();
                   },
                 ),
                 
@@ -375,12 +364,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMessagesView() {
-    return MessagesScreen(flavor: _currentFlavor);
+    return MessagesScreen(flavor: controller.currentFlavor.value);
   }
 
   void _showUrlDialog(String url) {
     showDialog(
-      context: context,
+      context: Get.context!,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Report Harassment'),
@@ -411,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildApplyForJobBanner() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -420,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final bodyFontSize = screenWidth * 0.035;
 
     return GestureDetector(
-      onTap: _handleApplyForJob,
+      onTap: controller.handleApplyForJob,
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
@@ -443,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(
               Icons.search,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               size: bodyFontSize * 1.3,
             ),
             SizedBox(width: horizontalPadding * 0.4),
@@ -453,13 +442,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: bodyFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               size: bodyFontSize * 1.1,
             ),
           ],
@@ -469,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildActiveJobsSection() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -496,21 +485,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => AppliedJobsScreen(
-                      flavor: _currentFlavor,
-                      appliedJobs: _appliedJobs,
-                    ),
-                  ),
-                );
+                controller.navigateToAppliedJobs();
               },
               child: Text(
                 'Show all',
                 style: GoogleFonts.poppins(
                   fontSize: bodyFontSize * 0.9,
                   fontWeight: FontWeight.w500,
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -530,9 +512,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             height: screenHeight * 0.4, // Altura reducida para cards más compactas
             child: PageView.builder(
-            itemCount: _appliedJobs.length,
+            itemCount: controller.appliedJobs.length,
             itemBuilder: (context, index) {
-              final job = _appliedJobs[index];
+              final job = controller.appliedJobs[index];
               return Center(
                 child: Container(
                   width: screenWidth * 0.65, // Aumentar un poco más el ancho
@@ -558,7 +540,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFloatingBanner() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
@@ -572,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> {
       top: verticalSpacing * 6,
       left: horizontalPadding,
       right: horizontalPadding,
-      child: _hasAppliedJobs && _appliedJobs.isNotEmpty 
+      child: controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty 
         ? _buildApplyForJobBanner()
         : Container(
             padding: EdgeInsets.all(horizontalPadding * 0.4),
@@ -616,9 +598,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: screenWidth * 0.45,
                     height: screenHeight * 0.05,
                     child: ElevatedButton(
-                      onPressed: _handleApplyForJob,
+                      onPressed: controller.handleApplyForJob,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -642,131 +624,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    
-    // Calcular valores responsive
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final titleFontSize = screenWidth * 0.055;
-    final sectionTitleFontSize = screenWidth * 0.045;
-    final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
-    final profileImageSize = screenWidth * 0.12;
-
-    return Stack(
-      children: [
-        Scaffold(
-          backgroundColor: _selectedIndex == 3 ? const Color(0xFF2C2C2C) : Colors.grey[100],
-          body: SafeArea(
-            child: Stack(
-              children: [
-                // Main Content basado en el tab seleccionado
-                _buildCurrentView(),
-                
-                // Banner flotante para Home tab
-                if (_selectedIndex == 0) _buildFloatingBanner(),
-              ],
-            ),
-          ),
-          
-          // Bottom Navigation Bar
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  offset: const Offset(0, -2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: _isShiftsModalOpen ? 1 : _selectedIndex,
-              onTap: _handleBottomNavTap,
-              selectedItemColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-              unselectedItemColor: Colors.grey[600],
-              selectedLabelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: bodyFontSize * 0.9,
-              ),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                fontSize: bodyFontSize * 0.9,
-              ),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today),
-                  label: 'Shifts',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.message),
-                  label: 'Messages',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
-            ),
-          ),
-        ),
-        
-        // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal)
-        if (_isSidebarOpen)
-          Positioned(
-            left: screenWidth * 0.7, // Empezar después del sidebar
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: GestureDetector(
-              onTap: _closeSidebar,
-              child: Container(
-                color: Colors.black.withOpacity(0.3),
-              ),
-            ),
-          ),
-        
-        // Sidebar (por encima de todo, sin overlay)
-        if (_isSidebarOpen)
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: screenWidth * 0.7,
-              child: Sidebar(
-                flavor: _currentFlavor,
-                onClose: _closeSidebar,
-              ),
-            ),
-          ),
-        
-        // Overlay semi-transparente para el modal de shifts
-        if (_isShiftsModalOpen)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-            ),
-          ),
-        
-        // Modal de Shifts (por encima de todo)
-        if (_isShiftsModalOpen)
-          _buildShiftsModal(),
-      ],
-    );
-  }
   
   Widget _buildShiftsModal() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
 
@@ -808,9 +668,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      setState(() {
-                        _isShiftsModalOpen = false;
-                      });
+                      controller.closeShiftsModal();
                     },
                     icon: Icon(
                       Icons.close,
@@ -844,12 +702,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   IconButton(
                     onPressed: () {
-                      setState(() {
-                        _focusedDate = DateTime(
-                          _focusedDate.year,
-                          _focusedDate.month - 1,
-                        );
-                      });
+                      controller.navigateMonth(false);
                     },
                     icon: Icon(
                       Icons.arrow_back_ios,
@@ -859,7 +712,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   Expanded(
                     child: Text(
-                      _getMonthYearString(_focusedDate),
+                      controller.getMonthYearString(controller.focusedDate.value),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: subtitleFontSize,
@@ -871,12 +724,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   IconButton(
                     onPressed: () {
-                      setState(() {
-                        _focusedDate = DateTime(
-                          _focusedDate.year,
-                          _focusedDate.month + 1,
-                        );
-                      });
+                      controller.navigateMonth(true);
                     },
                     icon: Icon(
                       Icons.arrow_forward_ios,
@@ -922,7 +770,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Expanded(
                       child: _buildCalendarGrid(),
                     ),
-                    if (_hasShiftsForSelectedDate()) ...[
+                    if (controller.hasShiftsForSelectedDate()) ...[
                       SizedBox(height: verticalSpacing),
                       _buildShiftsSection(),
                     ],
@@ -939,12 +787,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCalendarGrid() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final subtitleFontSize = screenWidth * 0.035;
 
-    final firstDayOfMonth = DateTime(_focusedDate.year, _focusedDate.month, 1);
-    final lastDayOfMonth = DateTime(_focusedDate.year, _focusedDate.month + 1, 0);
+    final firstDayOfMonth = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month, 1);
+    final lastDayOfMonth = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month + 1, 0);
     final firstWeekday = firstDayOfMonth.weekday;
     final daysInMonth = lastDayOfMonth.day;
 
@@ -957,29 +805,27 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Agregar días del mes
     for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(_focusedDate.year, _focusedDate.month, day);
-      final isSelected = date.year == _selectedDate.year &&
-          date.month == _selectedDate.month &&
-          date.day == _selectedDate.day;
+      final date = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month, day);
+      final isSelected = date.year == controller.selectedDate.value.year &&
+          date.month == controller.selectedDate.value.month &&
+          date.day == controller.selectedDate.value.day;
       
       final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-      final hasShift = _shiftsData.containsKey(dateKey);
+      final hasShift = controller.hasShiftsForDate(date);
 
       calendarDays.add(
         Material(
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              setState(() {
-                _selectedDate = date;
-              });
+              controller.selectDate(date);
             },
             borderRadius: BorderRadius.circular(8),
             child: Container(
               width: double.infinity,
               height: 40,
               decoration: BoxDecoration(
-                color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)) : Colors.transparent,
+                color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)) : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Stack(
@@ -1003,7 +849,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         width: 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -1028,35 +874,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  String _getMonthYearString(DateTime date) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${months[date.month - 1]} ${date.year}';
-  }
-
-  bool _hasShiftsForSelectedDate() {
-    final dateKey = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-    return _shiftsData.containsKey(dateKey);
-  }
 
   Widget _buildShiftsSection() {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final subtitleFontSize = screenWidth * 0.035;
 
-    final dateKey = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
-    final shifts = _shiftsData[dateKey] ?? [];
+    final shifts = controller.getShiftsForSelectedDate();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
                   Text(
-            'Shifts for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+            'Shifts for ${controller.selectedDate.value.day}/${controller.selectedDate.value.month}/${controller.selectedDate.value.year}',
             style: GoogleFonts.poppins(
               fontSize: subtitleFontSize,
               fontWeight: FontWeight.w600,
@@ -1071,7 +904,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildShiftCard(Shift shift) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     final horizontalPadding = screenWidth * 0.06;
@@ -1115,7 +948,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: GoogleFonts.poppins(
               fontSize: subtitleFontSize * 0.9,
               fontWeight: FontWeight.w500,
-              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               decoration: TextDecoration.none,
             ),
           ),

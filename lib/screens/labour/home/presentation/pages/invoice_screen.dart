@@ -2,34 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../logic/invoice_controller.dart';
 import '../widgets/invoice_card.dart';
+import '../../logic/controllers/invoice_screen_controller.dart';
 
-class InvoiceScreen extends StatefulWidget {
+class InvoiceScreen extends StatelessWidget {
+  static const String id = '/labour/invoice';
+  
   final AppFlavor? flavor;
 
-  const InvoiceScreen({
+  InvoiceScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<InvoiceScreen> createState() => _InvoiceScreenState();
-}
-
-class _InvoiceScreenState extends State<InvoiceScreen> {
-  final InvoiceController _invoiceController = Get.put(InvoiceController());
-  
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void initState() {
-    super.initState();
-    print('InvoiceScreen initialized');
-  }
+  final InvoiceScreenController controller = Get.put(InvoiceScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si se proporciona
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -51,7 +44,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: controller.handleBackNavigation,
                     child: Container(
                       width: screenWidth * 0.12,
                       height: screenWidth * 0.12,
@@ -92,14 +85,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                 children: [
                   Expanded(
                     child: Obx(() => GestureDetector(
-                      onTap: () => _invoiceController.setFilter('unpaid'),
+                      onTap: () => controller.setFilter('unpaid'),
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: verticalSpacing),
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: _invoiceController.selectedFilter.value == 'unpaid'
-                                  ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                              color: controller.invoiceController.selectedFilter.value == 'unpaid'
+                                  ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                                   : Colors.transparent,
                               width: 2,
                             ),
@@ -111,7 +104,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: tabFontSize,
                             fontWeight: FontWeight.w600,
-                            color: _invoiceController.selectedFilter.value == 'unpaid'
+                            color: controller.invoiceController.selectedFilter.value == 'unpaid'
                                 ? Colors.black
                                 : Colors.grey[600],
                           ),
@@ -121,14 +114,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                   ),
                   Expanded(
                     child: Obx(() => GestureDetector(
-                      onTap: () => _invoiceController.setFilter('paid'),
+                      onTap: () => controller.setFilter('paid'),
                       child: Container(
                         padding: EdgeInsets.symmetric(vertical: verticalSpacing),
                         decoration: BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: _invoiceController.selectedFilter.value == 'paid'
-                                  ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                              color: controller.invoiceController.selectedFilter.value == 'paid'
+                                  ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
                                   : Colors.transparent,
                               width: 2,
                             ),
@@ -140,7 +133,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           style: GoogleFonts.poppins(
                             fontSize: tabFontSize,
                             fontWeight: FontWeight.w600,
-                            color: _invoiceController.selectedFilter.value == 'paid'
+                            color: controller.invoiceController.selectedFilter.value == 'paid'
                                 ? Colors.black
                                 : Colors.grey[600],
                           ),
@@ -159,13 +152,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Obx(() {
-                  if (_invoiceController.isLoading.value) {
+                  if (controller.invoiceController.isLoading.value) {
                     return const Center(
                       child: CircularProgressIndicator(),
                     );
                   }
                   
-                  final filteredInvoices = _invoiceController.filteredInvoices;
+                  final filteredInvoices = controller.invoiceController.filteredInvoices;
                   
                   if (filteredInvoices.isEmpty) {
                     return Center(
@@ -179,7 +172,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           ),
                           SizedBox(height: verticalSpacing),
                           Text(
-                            'No hay facturas ${_invoiceController.selectedFilter.value == 'unpaid' ? 'pendientes' : 'pagadas'}',
+                            'No hay facturas ${controller.invoiceController.selectedFilter.value == 'unpaid' ? 'pendientes' : 'pagadas'}',
                             style: GoogleFonts.poppins(
                               fontSize: tabFontSize,
                               color: Colors.grey[600],
@@ -198,9 +191,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                         padding: EdgeInsets.only(bottom: verticalSpacing),
                         child: InvoiceCard(
                           invoice: invoice,
-                          onView: () => _invoiceController.viewInvoice(invoice),
-                          onEdit: () => _invoiceController.editInvoice(invoice),
-                          flavor: _currentFlavor,
+                          onView: () => controller.invoiceController.viewInvoice(invoice),
+                          onEdit: () => controller.invoiceController.editInvoice(invoice),
+                          flavor: controller.currentFlavor.value,
                         ),
                       );
                     },

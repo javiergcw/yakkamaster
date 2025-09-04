@@ -1,103 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../../../../features/widgets/custom_text_field.dart';
 import '../widgets/login_tabs.dart';
 import '../widgets/terms_conditions.dart';
-import 'stepper_selection_screen.dart';
+import '../../logic/controllers/email_login_controller.dart';
 
-class EmailLoginScreen extends StatefulWidget {
-  final AppFlavor? flavor;
+class EmailLoginScreen extends StatelessWidget {
+  static const String id = '/email-login';
+  
+  EmailLoginScreen({super.key});
 
-  const EmailLoginScreen({
-    super.key,
-    this.flavor,
-  });
-
-  @override
-  State<EmailLoginScreen> createState() => _EmailLoginScreenState();
-}
-
-class _EmailLoginScreenState extends State<EmailLoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  bool _isLogin = true;
-  bool _rememberMe = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-  bool _agreeToTerms = false;
-
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
-
-  void _handleTabChanged(bool isLogin) {
-    setState(() {
-      _isLogin = isLogin;
-      // Limpiar campos cuando se cambia de pestaña
-      if (isLogin) {
-        _confirmPasswordController.clear();
-        _agreeToTerms = false;
-      }
-    });
-  }
-
-  void _handleLogin() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simular proceso de login
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => StepperSelectionScreen(flavor: _currentFlavor)),
-          );
-        }
-      });
-    }
-  }
-
-  void _handleForgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Forgot password coming soon!')),
-    );
-  }
-
-  void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // Simular proceso de registro
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => StepperSelectionScreen(flavor: _currentFlavor)),
-          );
-        }
-      });
-    }
-  }
+  final EmailLoginController controller = Get.put(EmailLoginController());
 
   @override
   Widget build(BuildContext context) {
@@ -128,143 +45,108 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
             ),
             child: IntrinsicHeight(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header con botón de regreso
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: Colors.black87,
-                            size: screenWidth * 0.06,
+                              child: Form(
+                  key: controller.formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header con botón de regreso
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () => Get.back(),
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: Colors.black87,
+                              size: screenWidth * 0.06,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: screenWidth * 0.02),
-                        Text(
-                          'E-mail login',
-                          style: GoogleFonts.poppins(
-                            fontSize: titleFontSize,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                          SizedBox(width: screenWidth * 0.02),
+                          Text(
+                            'E-mail login',
+                            style: GoogleFonts.poppins(
+                              fontSize: titleFontSize,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                    
-                    // Tabs de Login/Register
-                    LoginTabs(
-                      isLogin: _isLogin,
-                      onTabChanged: _handleTabChanged,
-                      flavor: _currentFlavor,
-                    ),
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                    
-                    // Email field
-                    CustomTextField(
-                      controller: _emailController,
-                      hintText: 'Your Email',
-                      keyboardType: TextInputType.emailAddress,
-                      flavor: _currentFlavor,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                          return 'Please enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    SizedBox(height: verticalSpacing),
-                    
-                    // Password field
-                    CustomTextField(
-                      controller: _passwordController,
-                      hintText: 'Password',
-                      obscureText: _obscurePassword,
-                      flavor: _currentFlavor,
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                          color: Colors.grey[600],
-                          size: screenWidth * 0.05,
-                        ),
+                        ],
                       ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    // Confirm Password field (solo para Register)
-                    if (!_isLogin) ...[
-                      SizedBox(height: verticalSpacing),
+                      
+                      SizedBox(height: verticalSpacing * 2),
+                      
+                      // Tabs de Login/Register
+                      Obx(() => LoginTabs(
+                        isLogin: controller.isLogin.value,
+                        onTabChanged: controller.handleTabChanged,
+                        flavor: controller.currentFlavor.value,
+                      )),
+                      
+                      SizedBox(height: verticalSpacing * 2),
+                      
+                      // Email field
                       CustomTextField(
-                        controller: _confirmPasswordController,
-                        hintText: 'Confirm Password',
-                        obscureText: _obscureConfirmPassword,
-                        flavor: _currentFlavor,
+                        controller: controller.emailController,
+                        hintText: 'Your Email',
+                        keyboardType: TextInputType.emailAddress,
+                        flavor: controller.currentFlavor.value,
+                        validator: controller.validateEmail,
+                      ),
+                      
+                      SizedBox(height: verticalSpacing),
+                      
+                      // Password field
+                      Obx(() => CustomTextField(
+                        controller: controller.passwordController,
+                        hintText: 'Password',
+                        obscureText: controller.obscurePassword.value,
+                        flavor: controller.currentFlavor.value,
                         suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
-                            });
-                          },
+                          onPressed: controller.togglePasswordVisibility,
                           icon: Icon(
-                            _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                            controller.obscurePassword.value ? Icons.visibility_off : Icons.visibility,
                             color: Colors.grey[600],
                             size: screenWidth * 0.05,
                           ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please confirm your password';
-                          }
-                          if (value != _passwordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                    
-                    SizedBox(height: verticalSpacing),
-                    
-                    // Remember me and Forgot password (solo para Login)
-                    if (_isLogin) ...[
-                      Row(
+                        validator: controller.validatePassword,
+                      )),
+                      
+                      // Confirm Password field (solo para Register)
+                      Obx(() => !controller.isLogin.value ? Column(
+                        children: [
+                          SizedBox(height: verticalSpacing),
+                          CustomTextField(
+                            controller: controller.confirmPasswordController,
+                            hintText: 'Confirm Password',
+                            obscureText: controller.obscureConfirmPassword.value,
+                            flavor: controller.currentFlavor.value,
+                            suffixIcon: IconButton(
+                              onPressed: controller.toggleConfirmPasswordVisibility,
+                              icon: Icon(
+                                controller.obscureConfirmPassword.value ? Icons.visibility_off : Icons.visibility,
+                                color: Colors.grey[600],
+                                size: screenWidth * 0.05,
+                              ),
+                            ),
+                            validator: controller.validateConfirmPassword,
+                          ),
+                        ],
+                      ) : const SizedBox.shrink()),
+                      
+                      SizedBox(height: verticalSpacing),
+                      
+                      // Remember me and Forgot password (solo para Login)
+                      Obx(() => controller.isLogin.value ? Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           // Remember me checkbox
                           Row(
                             children: [
                               Checkbox(
-                                value: _rememberMe,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _rememberMe = value ?? false;
-                                  });
-                                },
-                                activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                value: controller.rememberMe.value,
+                                onChanged: controller.toggleRememberMe,
+                                activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                               ),
                               Text(
                                 'Remember Me',
@@ -277,23 +159,21 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                           ),
                           // Forgot password link
                           GestureDetector(
-                            onTap: _handleForgotPassword,
+                            onTap: controller.handleForgotPassword,
                             child: Text(
                               'Forgot password',
                               style: GoogleFonts.poppins(
                                 fontSize: linkFontSize,
-                                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                    
-                    // Terms and conditions (solo para Register)
-                    if (!_isLogin) ...[
-                      Container(
+                      ) : const SizedBox.shrink()),
+                      
+                      // Terms and conditions (solo para Register)
+                      Obx(() => !controller.isLogin.value ? Container(
                         width: double.infinity,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -301,13 +181,9 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             Transform.translate(
                               offset: Offset(-12, 0),
                               child: Checkbox(
-                                value: _agreeToTerms,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _agreeToTerms = value ?? false;
-                                  });
-                                },
-                                activeColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                value: controller.agreeToTerms.value,
+                                onChanged: controller.toggleAgreeToTerms,
+                                activeColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                               ),
                             ),
@@ -325,7 +201,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                       TextSpan(
                                         text: 'Terms of Services',
                                         style: TextStyle(
-                                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -333,7 +209,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                       TextSpan(
                                         text: 'Privacy Policy',
                                         style: TextStyle(
-                                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                           fontWeight: FontWeight.w500,
                                         ),
                                       ),
@@ -344,51 +220,50 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                    
-                    // Login/Register button
-                    CustomButton(
-                      text: _isLogin ? 'Login' : 'Register',
-                      onPressed: _isLogin ? _handleLogin : _handleRegister,
-                      type: ButtonType.primary,
-                      isLoading: _isLoading,
-                      flavor: _currentFlavor,
-                    ),
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                    
-                    // Footer link
-                    Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _isLogin ? "Don't have an account? " : "Have any account? ",
-                            style: GoogleFonts.poppins(
-                              fontSize: linkFontSize,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: _handleRegister,
-                            child: Text(
-                              _isLogin ? 'Register' : 'Login',
+                      ) : const SizedBox.shrink()),
+                      
+                      SizedBox(height: verticalSpacing * 2),
+                      
+                      // Login/Register button
+                      Obx(() => CustomButton(
+                        text: controller.getButtonText(),
+                        onPressed: controller.isLogin.value ? controller.handleLogin : controller.handleRegister,
+                        type: ButtonType.primary,
+                        isLoading: controller.isLoading.value,
+                        flavor: controller.currentFlavor.value,
+                      )),
+                      
+                      SizedBox(height: verticalSpacing * 2),
+                      
+                      // Footer link
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Obx(() => Text(
+                              controller.getFooterText(),
                               style: GoogleFonts.poppins(
                                 fontSize: linkFontSize,
-                                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
                               ),
+                            )),
+                            GestureDetector(
+                              onTap: controller.toggleMode,
+                              child: Obx(() => Text(
+                                controller.getFooterLinkText(),
+                                style: GoogleFonts.poppins(
+                                  fontSize: linkFontSize,
+                                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              )),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
             ),
           ),
         ),

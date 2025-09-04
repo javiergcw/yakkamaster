@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../data/dto/job_details_dto.dart';
 import '../widgets/job_map.dart';
 import '../widgets/application_success_modal.dart';
-import '../../../labour/home/presentation/pages/edit_bank_details_screen.dart';
+import '../../logic/controllers/job_details_screen_controller.dart';
 
 /*
  * CONFIGURACIÓN DE VERIFICACIÓN BANCARIA EN JOB DETAILS:
@@ -18,224 +19,30 @@ import '../../../labour/home/presentation/pages/edit_bank_details_screen.dart';
  * - Cambiar _hasBankDetails() para retornar true
  */
 
-class JobDetailsScreen extends StatefulWidget {
+class JobDetailsScreen extends StatelessWidget {
+  static const String id = '/job-details';
+  
   final JobDetailsDto jobDetails;
   final AppFlavor? flavor;
   final bool isFromAppliedJobs;
 
-  const JobDetailsScreen({
+  JobDetailsScreen({
     super.key,
     required this.jobDetails,
     this.flavor,
     this.isFromAppliedJobs = false,
   });
 
-  @override
-  State<JobDetailsScreen> createState() => _JobDetailsScreenState();
-}
-
-class _JobDetailsScreenState extends State<JobDetailsScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  bool _hasApplied = false; // Estado para controlar si ya se aplicó
-  bool _showSuccessModal = false; // Estado para mostrar el modal
-
-  @override
-  void initState() {
-    super.initState();
-    // Si viene de trabajos aplicados, marcar como ya aplicado
-    _hasApplied = widget.isFromAppliedJobs;
-  }
-
-  // Variable para activar/desactivar la verificación bancaria
-  static const bool _enableBankVerification = false; // Cambiar a false para desactivar
-
-  // Función para verificar si el usuario tiene datos bancarios configurados
-  bool _hasBankDetails() {
-    // TODO: Implementar verificación real de datos bancarios
-    // Por ahora, simulamos que no tiene datos bancarios para probar el flujo
-    return false; // Cambiar a true cuando tenga datos bancarios reales
-  }
-
-  void _handleApply() {
-    // Verificar si el usuario tiene datos bancarios configurados (solo si está habilitado)
-    if (_enableBankVerification && !_hasBankDetails()) {
-      // Mostrar diálogo para configurar datos bancarios
-      _showBankDetailsDialog();
-      return;
-    }
-    
-    // Si tiene datos bancarios o la verificación está deshabilitada, proceder con la aplicación
-    setState(() {
-      _hasApplied = true;
-      _showSuccessModal = true;
-    });
-    print('Apply for job: ${widget.jobDetails.title}');
-  }
-
-  void _showBankDetailsDialog() {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    
-    // Calcular tamaños responsive
-    final dialogWidth = screenWidth * 0.85;
-    final titleFontSize = screenWidth * 0.045;
-    final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.035;
-    
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Container(
-            width: dialogWidth,
-            constraints: BoxConstraints(
-              maxHeight: screenHeight * 0.4,
-            ),
-            padding: EdgeInsets.all(screenWidth * 0.05),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Icono y título
-                Container(
-                  width: screenWidth * 0.12,
-                  height: screenWidth * 0.12,
-                  decoration: BoxDecoration(
-                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.account_balance,
-                    color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                    size: screenWidth * 0.06,
-                  ),
-                ),
-                
-                SizedBox(height: screenHeight * 0.02),
-                
-                // Título
-                Text(
-                  'Bank Details Required',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: titleFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                
-                SizedBox(height: screenHeight * 0.015),
-                
-                // Mensaje
-                Text(
-                  'You need to configure your bank details before applying for this job. This ensures you can receive payments.',
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: bodyFontSize,
-                    color: Colors.black54,
-                    height: 1.4,
-                  ),
-                ),
-                
-                SizedBox(height: screenHeight * 0.025),
-                
-                // Botones
-                Row(
-                  children: [
-                    // Botón Cancel
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          side: BorderSide(
-                            color: Colors.grey[400]!,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: GoogleFonts.poppins(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ),
-                    
-                    SizedBox(width: screenWidth * 0.03),
-                    
-                    // Botón Configure Now
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => EditBankDetailsScreen(
-                                flavor: _currentFlavor,
-                              ),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                          foregroundColor: Colors.black87,
-                          padding: EdgeInsets.symmetric(vertical: screenHeight * 0.015),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'Configure Now',
-                          style: GoogleFonts.poppins(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _handleCloseModal() {
-    setState(() {
-      _showSuccessModal = false;
-    });
-  }
-
-  void _handleViewAppliedJobs() {
-    // TODO: Navegar a la pantalla de trabajos aplicados
-    print('Navigate to applied jobs');
-    _handleCloseModal();
-  }
-
-  void _handleReportJob() {
-    // TODO: Implementar lógica de reporte
-    print('Report job: ${widget.jobDetails.title}');
-  }
+  final JobDetailsScreenController controller = Get.put(JobDetailsScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer datos en el controlador
+    controller.jobDetails.value = jobDetails;
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    controller.isFromAppliedJobs.value = isFromAppliedJobs;
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -271,7 +78,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                         color: Colors.black87,
                         size: iconSize,
                       ),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: controller.handleBackNavigation,
                     ),
                     Expanded(
                       child: Text(
@@ -307,7 +114,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      widget.jobDetails.title,
+                                      jobDetails.title,
                                       style: GoogleFonts.poppins(
                                         fontSize: titleFontSize * 0.85,
                                         fontWeight: FontWeight.bold,
@@ -316,11 +123,11 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                     ),
                                   ),
                                   Text(
-                                    '\$${widget.jobDetails.hourlyRate.toStringAsFixed(1)}/hr',
+                                    '\$${jobDetails.hourlyRate.toStringAsFixed(1)}/hr',
                                     style: GoogleFonts.poppins(
                                       fontSize: titleFontSize * 0.7,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                     ),
                                   ),
                                 ],
@@ -332,7 +139,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               _buildDetailRow(
                                 icon: Icons.business,
                                 label: 'Company',
-                                value: widget.jobDetails.company,
+                                value: jobDetails.company,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -342,7 +149,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               _buildDetailRow(
                                 icon: Icons.location_on,
                                 label: 'Address',
-                                value: widget.jobDetails.address,
+                                value: jobDetails.address,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -352,7 +159,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               Padding(
                                 padding: EdgeInsets.only(left: iconSize + horizontalPadding * 0.5),
                                 child: Text(
-                                  'Suburb: ${widget.jobDetails.suburb}',
+                                  'Suburb: ${jobDetails.suburb}',
                                   style: GoogleFonts.poppins(
                                     fontSize: bodyFontSize,
                                     color: Colors.black87,
@@ -365,7 +172,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               Padding(
                                 padding: EdgeInsets.only(left: iconSize + horizontalPadding * 0.5),
                                 child: Text(
-                                  'City: ${widget.jobDetails.city}',
+                                  'City: ${jobDetails.city}',
                                   style: GoogleFonts.poppins(
                                     fontSize: bodyFontSize,
                                     color: Colors.black87,
@@ -378,7 +185,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               _buildDetailRow(
                                 icon: Icons.calendar_today,
                                 label: 'Start date',
-                                value: widget.jobDetails.startDate,
+                                value: jobDetails.startDate,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -388,7 +195,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               _buildDetailRow(
                                 icon: Icons.access_time,
                                 label: 'Time',
-                                value: widget.jobDetails.time,
+                                value: jobDetails.time,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -398,7 +205,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               _buildDetailRow(
                                 icon: Icons.description,
                                 label: 'Payment is expected',
-                                value: widget.jobDetails.paymentExpected,
+                                value: jobDetails.paymentExpected,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -426,7 +233,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               SizedBox(height: verticalSpacing),
                               
                               Text(
-                                widget.jobDetails.aboutJob,
+                                jobDetails.aboutJob,
                                 style: GoogleFonts.poppins(
                                   fontSize: bodyFontSize,
                                   color: Colors.black87,
@@ -448,7 +255,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               
                               SizedBox(height: verticalSpacing),
                               
-                              ...widget.jobDetails.requirements.map((requirement) => 
+                              ...jobDetails.requirements.map((requirement) => 
                                 Padding(
                                   padding: EdgeInsets.only(bottom: verticalSpacing * 0.5),
                                   child: Row(
@@ -483,9 +290,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               
                               // Mapa
                               JobMap(
-                                latitude: widget.jobDetails.latitude,
-                                longitude: widget.jobDetails.longitude,
-                                address: widget.jobDetails.address,
+                                latitude: jobDetails.latitude,
+                                longitude: jobDetails.longitude,
+                                address: jobDetails.address,
                                 height: mapHeight,
                               ),
                               
@@ -524,7 +331,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '\$${widget.jobDetails.hourlyRate.toStringAsFixed(2)}',
+                                      '\$${jobDetails.hourlyRate.toStringAsFixed(2)}',
                                       style: GoogleFonts.poppins(
                                         fontSize: bodyFontSize,
                                         fontWeight: FontWeight.w600,
@@ -538,10 +345,10 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                               SizedBox(height: verticalSpacing * 2),
                               
                               // Report job button (solo aparece si ya se aplicó)
-                              if (_hasApplied)
-                                Center(
+                              Obx(() => controller.hasApplied.value
+                                ? Center(
                                   child: TextButton.icon(
-                                    onPressed: _handleReportJob,
+                                    onPressed: controller.handleReportJob,
                                     icon: Container(
                                       width: 20,
                                       height: 20,
@@ -565,7 +372,8 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       ),
                                     ),
                                   ),
-                                ),
+                                )
+                                : const SizedBox.shrink()),
                               
                               SizedBox(height: verticalSpacing * 3),
                             ],
@@ -594,7 +402,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                             // Botón Apply o indicador de ya aplicado
                             SizedBox(
                               width: double.infinity,
-                              child: _hasApplied
+                              child: Obx(() => controller.hasApplied.value
                                   ? Container(
                                       padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.5),
                                       decoration: BoxDecoration(
@@ -626,9 +434,9 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                       ),
                                     )
                                   : ElevatedButton(
-                                      onPressed: _handleApply,
+                                      onPressed: controller.handleApply,
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                                         foregroundColor: Colors.black87,
                                         padding: EdgeInsets.symmetric(vertical: verticalSpacing * 1.2),
                                         shape: RoundedRectangleBorder(
@@ -644,7 +452,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
                                           color: Colors.black87,
                                         ),
                                       ),
-                                    ),
+                                    )),
                             ),
                             
                             SizedBox(height: verticalSpacing * 0.2),
@@ -659,23 +467,24 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
           ),
           
           // Modal de éxito de aplicación
-          if (_showSuccessModal)
-            Positioned.fill(
+          Obx(() => controller.showSuccessModal.value
+            ? Positioned.fill(
               child: Container(
                 color: Colors.black.withOpacity(0.5),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ApplicationSuccessModal(
-                      jobDetails: widget.jobDetails,
-                      flavor: _currentFlavor,
-                      onClose: _handleCloseModal,
-                      onViewAppliedJobs: _handleViewAppliedJobs,
+                      jobDetails: jobDetails,
+                      flavor: controller.currentFlavor.value,
+                      onClose: controller.handleCloseModal,
+                      onViewAppliedJobs: controller.handleViewAppliedJobs,
                     ),
                   ],
                 ),
               ),
-            ),
+            )
+            : const SizedBox.shrink()),
         ],
       ),
     );
@@ -688,7 +497,7 @@ class _JobDetailsScreenState extends State<JobDetailsScreen> {
     required double iconSize,
     required double bodyFontSize,
   }) {
-    final mediaQuery = MediaQuery.of(context);
+    final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final horizontalPadding = screenWidth * 0.06;
     
