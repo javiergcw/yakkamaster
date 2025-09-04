@@ -4,55 +4,27 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import '../../logic/controllers/post_job_controller.dart';
-import 'post_job_stepper_step5_screen.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
-class PostJobStepperStep4Screen extends StatefulWidget {
+class PostJobStepperStep4Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step4';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep4Screen({
+  PostJobStepperStep4Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep4Screen> createState() => _PostJobStepperStep4ScreenState();
-}
-
-class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedStartDate;
-  DateTime? _selectedEndDate;
-  DateTimeRange? _selectedDateRange;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(4);
-    
-    // Inicializar fechas si ya existen en el controlador
-    if (_controller.postJobData.startDate != null) {
-      _selectedStartDate = _controller.postJobData.startDate;
-      _focusedDay = _selectedStartDate!;
-    }
-    if (_controller.postJobData.endDate != null) {
-      _selectedEndDate = _controller.postJobData.endDate;
-    }
-    if (_selectedStartDate != null && _selectedEndDate != null) {
-      _selectedDateRange = DateTimeRange(
-        start: _selectedStartDate!,
-        end: _selectedEndDate!,
-      );
-    }
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -61,8 +33,9 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
     final questionFontSize = screenWidth * 0.075;
-    final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = controller.currentFlavor.value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -89,8 +62,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      _controller.handleBackNavigation();
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -129,7 +101,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                   Expanded(
                     flex: 4,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -176,22 +148,22 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                                          SizedBox(height: verticalSpacing * 1.0),
                      
                                           // Ongoing work checkbox
-                      _buildOngoingWorkCheckbox(),
+                      _buildOngoingWorkCheckbox(context),
                     
                     SizedBox(height: verticalSpacing * 0.8),
                     
                     // Calendar
-                    _buildCalendar(),
+                    _buildCalendar(context),
                     
                     SizedBox(height: verticalSpacing * 0.02),
                     
                     // Date input fields
-                    _buildDateInputFields(),
+                    _buildDateInputFields(context),
                     
                     SizedBox(height: verticalSpacing * 1.0),
                     
                     // Work days options
-                    _buildWorkDaysOptions(),
+                    _buildWorkDaysOptions(context),
                     
                     SizedBox(height: verticalSpacing * 3),
                   ],
@@ -202,12 +174,14 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                          // Continue Button
              Padding(
                padding: EdgeInsets.all(horizontalPadding),
-               child: CustomButton(
-                 text: "Continue",
-                 onPressed: _canProceed() ? _handleContinue : null,
-                 type: ButtonType.secondary,
-                 flavor: _currentFlavor,
-               ),
+               child: Obx(() {
+                 return CustomButton(
+                   text: "Continue",
+                   onPressed: _canProceed() ? _handleContinue : null,
+                   type: ButtonType.secondary,
+                   flavor: controller.currentFlavor.value,
+                 );
+               }),
              ),
           ],
         ),
@@ -215,68 +189,69 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     );
   }
 
-  Widget _buildOngoingWorkCheckbox() {
+  Widget _buildOngoingWorkCheckbox(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
     
     final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
     final checkboxSize = screenWidth * 0.05;
     final fontSize = screenWidth * 0.035;
 
-    return GestureDetector(
-             onTap: () {
-         final currentValue = _controller.postJobData.isOngoingWork ?? false;
-         _controller.updateIsOngoingWork(!currentValue);
-         setState(() {}); // Trigger rebuild
-         
-         // Si se activa "ongoing work", mostrar popup de confirmación
-         if (!currentValue) {
-           _showOngoingWorkDialog();
-         }
-       },
-             child: Row(
-         children: [
-           Container(
-             width: checkboxSize,
-             height: checkboxSize,
-             decoration: BoxDecoration(
-               color: (_controller.postJobData.isOngoingWork ?? false) 
-                   ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                   : Colors.white,
-               borderRadius: BorderRadius.circular(4),
-               border: Border.all(
-                 color: (_controller.postJobData.isOngoingWork ?? false)
-                     ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                     : Colors.grey[400]!,
-                 width: 2,
-               ),
-             ),
-             child: (_controller.postJobData.isOngoingWork ?? false)
-                 ? Icon(
-                     Icons.check,
-                     color: Colors.white,
-                     size: checkboxSize * 0.6,
-                   )
-                 : null,
-           ),
+    return Obx(() {
+      final currentFlavor = controller.currentFlavor.value;
+      final isOngoingWork = controller.postJobData.isOngoingWork ?? false;
+      
+      return GestureDetector(
+        onTap: () {
+          controller.updateIsOngoingWork(!isOngoingWork);
           
-          SizedBox(width: horizontalPadding * 0.5),
-          
-          Text(
-            "Ongoing work?",
-            style: GoogleFonts.poppins(
-              fontSize: fontSize,
-              color: Colors.black,
+          // Si se activa "ongoing work", mostrar popup de confirmación
+          if (!isOngoingWork) {
+            _showOngoingWorkDialog(context);
+          }
+        },
+        child: Row(
+          children: [
+            Container(
+              width: checkboxSize,
+              height: checkboxSize,
+              decoration: BoxDecoration(
+                color: isOngoingWork 
+                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(
+                  color: isOngoingWork
+                      ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                      : Colors.grey[400]!,
+                  width: 2,
+                ),
+              ),
+              child: isOngoingWork
+                  ? Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: checkboxSize * 0.6,
+                    )
+                  : null,
             ),
-          ),
-        ],
-      ),
-    );
+           
+           SizedBox(width: horizontalPadding * 0.5),
+           
+           Text(
+             "Ongoing work?",
+             style: GoogleFonts.poppins(
+               fontSize: fontSize,
+               color: Colors.black,
+             ),
+           ),
+         ],
+       ),
+      );
+    });
   }
 
-     Widget _buildCalendar() {
+     Widget _buildCalendar(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -284,113 +259,26 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
 
-    return Column(
-      children: [
-        // Calendar header
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding * 0.8,
-            vertical: verticalSpacing * 0.8,
-          ),
-          child: Row(
-            children: [
-              // Month selector
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _showMonthPicker(),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding * 0.5,
-                      vertical: verticalSpacing * 0.3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _getMonthName(_focusedDay.month),
-                            style: GoogleFonts.poppins(
-                              fontSize: screenWidth * 0.035,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.grey[600],
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              
-              SizedBox(width: horizontalPadding * 0.5),
-              
-              // Year selector
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _showYearPicker(),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: horizontalPadding * 0.5,
-                      vertical: verticalSpacing * 0.3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Colors.grey[300]!,
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            _focusedDay.year.toString(),
-                            style: GoogleFonts.poppins(
-                              fontSize: screenWidth * 0.035,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down,
-                          color: Colors.grey[600],
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              
-              SizedBox(width: horizontalPadding * 0.5),
-              
-              // Navigation arrows
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1);
-                      });
-                    },
+    return Obx(() {
+      return Column(
+        children: [
+          // Calendar header
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding * 0.8,
+              vertical: verticalSpacing * 0.8,
+            ),
+            child: Row(
+              children: [
+                // Month selector
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _showMonthPicker(context),
                     child: Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding * 0.5,
+                        vertical: verticalSpacing * 0.3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
@@ -399,24 +287,41 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                           width: 1,
                         ),
                       ),
-                      child: Icon(
-                        Icons.chevron_left,
-                        color: Colors.grey[600],
-                        size: 20,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _getMonthName(controller.focusedDay.value.month),
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.035,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.grey[600],
+                            size: 20,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  
-                  SizedBox(width: 8),
-                  
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1);
-                      });
-                    },
+                ),
+                
+                SizedBox(width: horizontalPadding * 0.5),
+                
+                // Year selector
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _showYearPicker(context),
                     child: Container(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding * 0.5,
+                        vertical: verticalSpacing * 0.3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
@@ -425,27 +330,95 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                           width: 1,
                         ),
                       ),
-                      child: Icon(
-                        Icons.chevron_right,
-                        color: Colors.grey[600],
-                        size: 20,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              controller.focusedDay.value.year.toString(),
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.035,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down,
+                            color: Colors.grey[600],
+                            size: 20,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
-            ],
+                ),
+                
+                SizedBox(width: horizontalPadding * 0.5),
+                
+                // Navigation arrows
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                          controller.updateFocusedDay(DateTime(controller.focusedDay.value.year, controller.focusedDay.value.month - 1));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.chevron_left,
+                          color: Colors.grey[600],
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    
+                    SizedBox(width: 8),
+                    
+                    GestureDetector(
+                      onTap: () {
+                          controller.updateFocusedDay(DateTime(controller.focusedDay.value.year, controller.focusedDay.value.month + 1));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey[600],
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        
-        // Calendar grid
-        _buildCalendarGrid(),
-      ],
-    );
+          
+          // Calendar grid
+          _buildCalendarGrid(context),
+        ],
+      );
+    });
   } 
 
 
-  Widget _buildCalendarGrid() {
+  Widget _buildCalendarGrid(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -456,102 +429,106 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     final dayFontSize = screenWidth * 0.03;
     final headerFontSize = screenWidth * 0.025;
 
-    // Get days of the month
-    final daysInMonth = DateTime(_focusedDay.year, _focusedDay.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(_focusedDay.year, _focusedDay.month, 1);
-    final firstWeekday = firstDayOfMonth.weekday;
+    return Obx(() {
+      final currentFlavor = controller.currentFlavor.value;
+      
+      // Get days of the month
+      final daysInMonth = DateTime(controller.focusedDay.value.year, controller.focusedDay.value.month + 1, 0).day;
+      final firstDayOfMonth = DateTime(controller.focusedDay.value.year, controller.focusedDay.value.month, 1);
+      final firstWeekday = firstDayOfMonth.weekday;
 
-    return Padding(
-      padding: EdgeInsets.all(horizontalPadding * 0.8),
-      child: Column(
-        children: [
-          // Days of week header
-          Row(
-            children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
-              return Expanded(
-                child: Container(
-                  height: daySize * 0.6,
-                  child: Center(
-                    child: Text(
-                      day,
-                      style: GoogleFonts.poppins(
-                        fontSize: headerFontSize,
-                        color: Colors.grey[600],
+      return Padding(
+        padding: EdgeInsets.all(horizontalPadding * 0.8),
+        child: Column(
+          children: [
+            // Days of week header
+            Row(
+              children: ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day) {
+                return Expanded(
+                  child: Container(
+                    height: daySize * 0.6,
+                    child: Center(
+                      child: Text(
+                        day,
+                        style: GoogleFonts.poppins(
+                          fontSize: headerFontSize,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-          
-          SizedBox(height: verticalSpacing * 0.5),
-          
-          // Calendar days
-          ...List.generate((daysInMonth + firstWeekday - 1) ~/ 7 + 1, (weekIndex) {
-            return Padding(
-              padding: EdgeInsets.only(bottom: verticalSpacing * 0.3),
-              child: Row(
-                children: List.generate(7, (dayIndex) {
-                  final dayNumber = weekIndex * 7 + dayIndex - firstWeekday + 1;
-                  
-                  if (dayNumber < 1 || dayNumber > daysInMonth) {
-                    return Expanded(child: SizedBox(height: daySize));
-                  }
-                  
-                  final currentDate = DateTime(_focusedDay.year, _focusedDay.month, dayNumber);
-                  final today = DateTime.now();
-                  final todayStart = DateTime(today.year, today.month, today.day);
-                  final currentDateStart = DateTime(currentDate.year, currentDate.month, currentDate.day);
-                  final isPastDay = currentDateStart.isBefore(todayStart);
-                  
-                  final isSelected = (_selectedStartDate != null && 
-                      currentDate.isAtSameMomentAs(_selectedStartDate!)) ||
-                      (_selectedDateRange != null &&
-                      (currentDate.isAtSameMomentAs(_selectedDateRange!.start) ||
-                       currentDate.isAtSameMomentAs(_selectedDateRange!.end) ||
-                       (currentDate.isAfter(_selectedDateRange!.start) &&
-                        currentDate.isBefore(_selectedDateRange!.end))));
-                  
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: isPastDay ? null : () => _onDaySelected(currentDate),
-                      child: Container(
-                        height: daySize,
-                        margin: EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(daySize * 0.5),
-                          border: Border.all(
-                            color: isSelected
-                                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                                : Colors.transparent,
-                            width: isSelected ? 2 : 0,
+                );
+              }).toList(),
+            ),
+            
+            SizedBox(height: verticalSpacing * 0.5),
+            
+            // Calendar days
+            ...List.generate((daysInMonth + firstWeekday - 1) ~/ 7 + 1, (weekIndex) {
+              return Padding(
+                padding: EdgeInsets.only(bottom: verticalSpacing * 0.3),
+                child: Row(
+                  children: List.generate(7, (dayIndex) {
+                    final dayNumber = weekIndex * 7 + dayIndex - firstWeekday + 1;
+                    
+                    if (dayNumber < 1 || dayNumber > daysInMonth) {
+                      return Expanded(child: SizedBox(height: daySize));
+                    }
+                    
+                    final currentDate = DateTime(controller.focusedDay.value.year, controller.focusedDay.value.month, dayNumber);
+                    final today = DateTime.now();
+                    final todayStart = DateTime(today.year, today.month, today.day);
+                    final currentDateStart = DateTime(currentDate.year, currentDate.month, currentDate.day);
+                    final isPastDay = currentDateStart.isBefore(todayStart);
+                    
+                    final isSelected = (controller.selectedStartDate.value != null && 
+                        currentDate.isAtSameMomentAs(controller.selectedStartDate.value!)) ||
+                        (controller.selectedDateRange.value != null &&
+                        (currentDate.isAtSameMomentAs(controller.selectedDateRange.value!.start) ||
+                         currentDate.isAtSameMomentAs(controller.selectedDateRange.value!.end) ||
+                         (currentDate.isAfter(controller.selectedDateRange.value!.start) &&
+                          currentDate.isBefore(controller.selectedDateRange.value!.end))));
+                    
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: isPastDay ? null : () => _onDaySelected(currentDate),
+                        child: Container(
+                          height: daySize,
+                          margin: EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(daySize * 0.5),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                                  : Colors.transparent,
+                              width: isSelected ? 2 : 0,
+                            ),
                           ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            dayNumber.toString(),
-                            style: GoogleFonts.poppins(
-                              fontSize: dayFontSize,
-                              fontWeight: FontWeight.w500,
-                              color: isPastDay ? Colors.grey[400] : Colors.black,
+                          child: Center(
+                            child: Text(
+                              dayNumber.toString(),
+                              style: GoogleFonts.poppins(
+                                fontSize: dayFontSize,
+                                fontWeight: FontWeight.w500,
+                                color: isPastDay ? Colors.grey[400] : Colors.black,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
+                    );
+                  }),
+                ),
+              );
+            }),
+          ],
+        ),
+      );
+    });
   }
 
-  Widget _buildDateInputFields() {
+  Widget _buildDateInputFields(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -559,62 +536,66 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-                 Text(
-           "Selected dates",
-           style: GoogleFonts.poppins(
-             fontSize: screenWidth * 0.04,
-             fontWeight: FontWeight.w600,
-             color: Colors.black,
-           ),
-         ),
-         
-                 SizedBox(height: verticalSpacing * 0.3),
-         
-         Row(
-          children: [
-                         // Start date field
-             Expanded(
-               child: CustomTextField(
-                 labelText: "Start date",
-                 hintText: "dd-mm-yyyy",
-                 controller: TextEditingController(
-                   text: _selectedStartDate != null 
-                       ? "${_selectedStartDate!.day.toString().padLeft(2, '0')}-${_selectedStartDate!.month.toString().padLeft(2, '0')}-${_selectedStartDate!.year}"
-                       : "",
-                 ),
-                 enabled: false,
-                 onTap: () => _showDatePicker(true),
-                 flavor: _currentFlavor,
-               ),
-             ),
-            
-            SizedBox(width: horizontalPadding * 0.5),
-            
-                         // End date field
-             Expanded(
-               child: CustomTextField(
-                 labelText: "End date",
-                 hintText: "dd-mm-yyyy",
-                 controller: TextEditingController(
-                   text: _selectedEndDate != null 
-                       ? "${_selectedEndDate!.day.toString().padLeft(2, '0')}-${_selectedEndDate!.month.toString().padLeft(2, '0')}-${_selectedEndDate!.year}"
-                       : "",
-                 ),
-                 enabled: false,
-                 onTap: () => _showDatePicker(false),
-                 flavor: _currentFlavor,
-               ),
-             ),
-          ],
-        ),
-      ],
-    );
+    return Obx(() {
+      final currentFlavor = controller.currentFlavor.value;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Selected dates",
+            style: GoogleFonts.poppins(
+              fontSize: screenWidth * 0.04,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          
+          SizedBox(height: verticalSpacing * 0.3),
+          
+          Row(
+            children: [
+              // Start date field
+              Expanded(
+                child: CustomTextField(
+                  labelText: "Start date",
+                  hintText: "dd-mm-yyyy",
+                  controller: TextEditingController(
+                    text: controller.selectedStartDate.value != null 
+                        ? "${controller.selectedStartDate.value!.day.toString().padLeft(2, '0')}-${controller.selectedStartDate.value!.month.toString().padLeft(2, '0')}-${controller.selectedStartDate.value!.year}"
+                        : "",
+                  ),
+                  enabled: false,
+                  onTap: () => _showDatePicker(context, true),
+                  flavor: currentFlavor,
+                ),
+              ),
+             
+             SizedBox(width: horizontalPadding * 0.5),
+             
+              // End date field
+              Expanded(
+                child: CustomTextField(
+                  labelText: "End date",
+                  hintText: "dd-mm-yyyy",
+                  controller: TextEditingController(
+                    text: controller.selectedEndDate.value != null 
+                        ? "${controller.selectedEndDate.value!.day.toString().padLeft(2, '0')}-${controller.selectedEndDate.value!.month.toString().padLeft(2, '0')}-${controller.selectedEndDate.value!.year}"
+                        : "",
+                  ),
+                  enabled: false,
+                  onTap: () => _showDatePicker(context, false),
+                  flavor: currentFlavor,
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    });
   }
 
-  Widget _buildWorkDaysOptions() {
+  Widget _buildWorkDaysOptions(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -624,59 +605,107 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     final checkboxSize = screenWidth * 0.05;
     final fontSize = screenWidth * 0.035;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "Work days",
-          style: GoogleFonts.poppins(
-            fontSize: screenWidth * 0.04,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
+    return Obx(() {
+      final currentFlavor = controller.currentFlavor.value;
+      final workOnSaturdays = controller.postJobData.workOnSaturdays ?? false;
+      final workOnSundays = controller.postJobData.workOnSundays ?? false;
+      
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work days",
+            style: GoogleFonts.poppins(
+              fontSize: screenWidth * 0.04,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
           ),
-        ),
-        
-        SizedBox(height: verticalSpacing),
-        
-        // Work on Saturdays
-        GestureDetector(
-                     onTap: () {
-             final currentValue = _controller.postJobData.workOnSaturdays ?? false;
-             _controller.updateWorkOnSaturdays(!currentValue);
-             setState(() {}); // Trigger rebuild
-           },
-          child: Padding(
-            padding: EdgeInsets.only(bottom: verticalSpacing * 0.5),
+          
+          SizedBox(height: verticalSpacing),
+          
+          // Work on Saturdays
+          GestureDetector(
+            onTap: () {
+              controller.updateWorkOnSaturdays(!workOnSaturdays);
+            },
+            child: Padding(
+              padding: EdgeInsets.only(bottom: verticalSpacing * 0.5),
+              child: Row(
+                children: [
+                  Container(
+                    width: checkboxSize,
+                    height: checkboxSize,
+                    decoration: BoxDecoration(
+                      color: workOnSaturdays 
+                          ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                        color: workOnSaturdays
+                            ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                            : Colors.grey[400]!,
+                        width: 2,
+                      ),
+                    ),
+                    child: workOnSaturdays
+                        ? Icon(
+                            Icons.check,
+                            color: Colors.white,
+                            size: checkboxSize * 0.6,
+                          )
+                        : null,
+                  ),
+                  
+                  SizedBox(width: horizontalPadding * 0.5),
+                  
+                  Text(
+                    "Work on Saturdays",
+                    style: GoogleFonts.poppins(
+                      fontSize: fontSize,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Work on Sundays
+          GestureDetector(
+            onTap: () {
+              controller.updateWorkOnSundays(!workOnSundays);
+            },
             child: Row(
               children: [
-                                 Container(
-                   width: checkboxSize,
-                   height: checkboxSize,
-                   decoration: BoxDecoration(
-                     color: (_controller.postJobData.workOnSaturdays ?? false) 
-                         ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                         : Colors.white,
-                     borderRadius: BorderRadius.circular(4),
-                     border: Border.all(
-                       color: (_controller.postJobData.workOnSaturdays ?? false)
-                           ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                           : Colors.grey[400]!,
-                       width: 2,
-                     ),
-                   ),
-                   child: (_controller.postJobData.workOnSaturdays ?? false)
-                       ? Icon(
-                           Icons.check,
-                           color: Colors.white,
-                           size: checkboxSize * 0.6,
-                         )
-                       : null,
-                 ),
+                Container(
+                  width: checkboxSize,
+                  height: checkboxSize,
+                  decoration: BoxDecoration(
+                    color: workOnSundays 
+                        ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: workOnSundays
+                          ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                          : Colors.grey[400]!,
+                      width: 2,
+                    ),
+                  ),
+                  child: workOnSundays
+                      ? Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: checkboxSize * 0.6,
+                        )
+                      : null,
+                ),
                 
                 SizedBox(width: horizontalPadding * 0.5),
                 
                 Text(
-                  "Work on Saturdays",
+                  "Work on Sundays",
                   style: GoogleFonts.poppins(
                     fontSize: fontSize,
                     color: Colors.black,
@@ -685,114 +714,29 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
               ],
             ),
           ),
-        ),
-        
-        // Work on Sundays
-        GestureDetector(
-                     onTap: () {
-             final currentValue = _controller.postJobData.workOnSundays ?? false;
-             _controller.updateWorkOnSundays(!currentValue);
-             setState(() {}); // Trigger rebuild
-           },
-          child: Row(
-            children: [
-                             Container(
-                 width: checkboxSize,
-                 height: checkboxSize,
-                 decoration: BoxDecoration(
-                   color: (_controller.postJobData.workOnSundays ?? false) 
-                       ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                       : Colors.white,
-                   borderRadius: BorderRadius.circular(4),
-                   border: Border.all(
-                     color: (_controller.postJobData.workOnSundays ?? false)
-                         ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                         : Colors.grey[400]!,
-                     width: 2,
-                   ),
-                 ),
-                 child: (_controller.postJobData.workOnSundays ?? false)
-                     ? Icon(
-                         Icons.check,
-                         color: Colors.white,
-                         size: checkboxSize * 0.6,
-                       )
-                     : null,
-               ),
-              
-              SizedBox(width: horizontalPadding * 0.5),
-              
-              Text(
-                "Work on Sundays",
-                style: GoogleFonts.poppins(
-                  fontSize: fontSize,
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _onDaySelected(DateTime selectedDay) {
-    // No permitir seleccionar días anteriores a hoy
-    final today = DateTime.now();
-    final todayStart = DateTime(today.year, today.month, today.day);
-    final selectedDayStart = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-    
-    if (selectedDayStart.isBefore(todayStart)) {
-      return; // No hacer nada si el día seleccionado es anterior a hoy
-    }
-    
-    setState(() {
-      if (_selectedStartDate == null) {
-        // First selection - set start date
-        _selectedStartDate = selectedDay;
-        _selectedEndDate = null;
-        _selectedDateRange = null;
-      } else if (_selectedEndDate == null) {
-        // Second selection - set end date and create range
-        if (selectedDay.isBefore(_selectedStartDate!)) {
-          // If selected day is before start date, swap them
-          _selectedEndDate = _selectedStartDate;
-          _selectedStartDate = selectedDay;
-        } else {
-          _selectedEndDate = selectedDay;
-        }
-        _selectedDateRange = DateTimeRange(
-          start: _selectedStartDate!,
-          end: _selectedEndDate!,
-        );
-      } else {
-        // Third selection - start new selection
-        _selectedStartDate = selectedDay;
-        _selectedEndDate = null;
-        _selectedDateRange = null;
-      }
-      
-      // Update controller
-      _controller.updateStartDate(_selectedStartDate!);
-      if (_selectedEndDate != null) {
-        _controller.updateEndDate(_selectedEndDate!);
-      }
+        ],
+      );
     });
   }
 
-  void _showDatePicker(bool isStartDate) {
+  void _onDaySelected(DateTime selectedDay) {
+    controller.onDaySelected(selectedDay);
+  }
+
+  void _showDatePicker(BuildContext context, bool isStartDate) {
+    final currentFlavor = controller.currentFlavor.value;
     showDatePicker(
       context: context,
       initialDate: isStartDate 
-          ? (_selectedStartDate ?? DateTime.now())
-          : (_selectedEndDate ?? _selectedStartDate ?? DateTime.now()),
-      firstDate: isStartDate ? DateTime.now() : (_selectedStartDate ?? DateTime.now()),
+          ? (controller.selectedStartDate.value ?? DateTime.now())
+          : (controller.selectedEndDate.value ?? controller.selectedStartDate.value ?? DateTime.now()),
+      firstDate: isStartDate ? DateTime.now() : (controller.selectedStartDate.value ?? DateTime.now()),
       lastDate: DateTime.now().add(Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              primary: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
             ),
           ),
           child: child!,
@@ -800,29 +744,27 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
       },
     ).then((selectedDate) {
       if (selectedDate != null) {
-        setState(() {
           if (isStartDate) {
-            _selectedStartDate = selectedDate;
-            _controller.updateStartDate(selectedDate);
+            controller.selectedStartDate.value = selectedDate;
+            controller.updateStartDate(selectedDate);
           } else {
-            _selectedEndDate = selectedDate;
-            _controller.updateEndDate(selectedDate);
+            controller.selectedEndDate.value = selectedDate;
+            controller.updateEndDate(selectedDate);
           }
           
-                     // Update date range if both dates are selected
-           if (_selectedStartDate != null && _selectedEndDate != null) {
-             _selectedDateRange = DateTimeRange(
-               start: _selectedStartDate!,
-               end: _selectedEndDate!,
-             );
-           }
-           setState(() {}); // Trigger rebuild for button state
-        });
-      }
+          // Update date range if both dates are selected
+          if (controller.selectedStartDate.value != null && controller.selectedEndDate.value != null) {
+            controller.selectedDateRange.value = DateTimeRange(
+              start: controller.selectedStartDate.value!,
+              end: controller.selectedEndDate.value!,
+            );
+          }
+        }
     });
   }
 
-     void _showOngoingWorkDialog() {
+     void _showOngoingWorkDialog(BuildContext context) {
+     final currentFlavor = controller.currentFlavor.value;
      showDialog(
        context: context,
        builder: (context) => AlertDialog(
@@ -842,7 +784,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
             onPressed: () {
               Navigator.of(context).pop();
               // Revert the checkbox
-              _controller.updateIsOngoingWork(false);
+              controller.updateIsOngoingWork(false);
             },
             child: Text(
               "Cancel",
@@ -854,17 +796,15 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-                                            // Clear end date when ongoing work is confirmed
-               _controller.updateEndDate(null);
-               setState(() {
-                 _selectedEndDate = null;
-                 _selectedDateRange = null;
-               });
+              // Clear end date when ongoing work is confirmed
+              controller.updateEndDate(null);
+              controller.selectedEndDate.value = null;
+              controller.selectedDateRange.value = null;
             },
             child: Text(
               "Confirm",
               style: GoogleFonts.poppins(
-                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -874,7 +814,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     );
   }
 
-  void _showMonthPicker() {
+  void _showMonthPicker(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -901,9 +841,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                   style: GoogleFonts.poppins(),
                 ),
                 onTap: () {
-                  setState(() {
-                    _focusedDay = DateTime(_focusedDay.year, monthIndex, 1);
-                  });
+                  controller.focusedDay.value = DateTime(controller.focusedDay.value.year, monthIndex, 1);
                   Navigator.of(context).pop();
                 },
               );
@@ -914,7 +852,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
     );
   }
 
-  void _showYearPicker() {
+  void _showYearPicker(BuildContext context) {
     final currentYear = DateTime.now().year;
     final startYear = 1990;
     final totalYears = currentYear - startYear + 10; // Desde 1990 hasta 10 años en el futuro
@@ -942,9 +880,7 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
                   style: GoogleFonts.poppins(),
                 ),
                 onTap: () {
-                  setState(() {
-                    _focusedDay = DateTime(year, _focusedDay.month, 1);
-                  });
+                  controller.focusedDay.value = DateTime(year, controller.focusedDay.value.month, 1);
                   Navigator.of(context).pop();
                 },
               );
@@ -964,22 +900,10 @@ class _PostJobStepperStep4ScreenState extends State<PostJobStepperStep4Screen> {
   }
 
   bool _canProceed() {
-    // Si es trabajo continuo, solo necesita fecha de inicio
-    if (_controller.postJobData.isOngoingWork == true) {
-      return _controller.postJobData.startDate != null;
-    }
-    // Si no es trabajo continuo, necesita fecha de inicio y fin
-    return _controller.postJobData.startDate != null && _controller.postJobData.endDate != null;
+    return controller.canProceedToNextStep();
   }
 
   void _handleContinue() {
-    if (_canProceed()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep5Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 }

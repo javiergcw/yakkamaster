@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/data.dart';
+import '../../logic/controllers/worker_profile_screen_controller.dart';
 
-class WorkerProfileScreen extends StatefulWidget {
+class WorkerProfileScreen extends StatelessWidget {
+  static const String id = '/worker-profile-screen';
+  
   final WorkerDto worker;
   final AppFlavor? flavor;
 
-  const WorkerProfileScreen({
+  WorkerProfileScreen({
     super.key,
     required this.worker,
     this.flavor,
   });
 
-  @override
-  State<WorkerProfileScreen> createState() => _WorkerProfileScreenState();
-}
-
-class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
+  final WorkerProfileScreenController controller = Get.put(WorkerProfileScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer datos en el controlador
+    controller.setWorker(worker);
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -50,7 +55,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                     Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                        color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                       ),
                       child: Column(
                         children: [
@@ -63,7 +68,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                             child: Row(
                               children: [
                                 GestureDetector(
-                                  onTap: () => Navigator.pop(context),
+                                  onTap: () => controller.handleBackNavigation(),
                                   child: Icon(
                                     Icons.arrow_back,
                                     color: Colors.black,
@@ -85,7 +90,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                                 width: 4,
                               ),
                               image: DecorationImage(
-                                image: NetworkImage(widget.worker.imageUrl),
+                                image: NetworkImage(worker.imageUrl),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -95,7 +100,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
 
                           // Name
                           Text(
-                            widget.worker.name,
+                            worker.name,
                             style: GoogleFonts.poppins(
                               fontSize: nameFontSize * 0.9,
                               fontWeight: FontWeight.bold,
@@ -128,7 +133,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
 
                           // User ID
                           Text(
-                            'User ID #${widget.worker.id}',
+                            'User ID #${worker.id}',
                             style: GoogleFonts.poppins(
                               fontSize: smallFontSize,
                               color: Colors.grey[600],
@@ -230,7 +235,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                               _buildSkillTag('Demolition Worker'),
                               _buildSkillTag('Landscaper'),
                               _buildSkillTag('Roofer'),
-                              _buildSkillTag(widget.worker.role),
+                              _buildSkillTag(worker.role),
                             ],
                           ),
 
@@ -297,8 +302,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                             height: 48,
                             child: ElevatedButton(
                               onPressed: () {
-                                // TODO: Implement view resume functionality
-                                print('View resume for ${widget.worker.name}');
+                                controller.viewResume();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
@@ -346,8 +350,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                       height: 48,
                       child: OutlinedButton(
                         onPressed: () {
-                          // TODO: Implement chat functionality
-                          print('Chat with ${widget.worker.name}');
+                          controller.startChat();
                         },
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.black),
@@ -386,8 +389,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                       height: 48,
                       child: OutlinedButton(
                         onPressed: () {
-                          // TODO: Implement call functionality
-                          print('Call ${widget.worker.name}');
+                          controller.makeCall();
                         },
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: Colors.black),
@@ -429,7 +431,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                           _showJobsPopup(context);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -489,9 +491,6 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
   }
 
   void _showJobsPopup(BuildContext context) {
-    // Create a local copy of jobs that can be modified
-    List<Map<String, String>> jobs = List.from(_mockJobs);
-    
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -513,7 +512,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                       children: [
                         Icon(
                           Icons.work,
-                          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                          color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                           size: 24,
                         ),
                         SizedBox(width: 12),
@@ -545,37 +544,26 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.4,
                       ),
-                      child: ListView.builder(
+                      child: Obx(() => ListView.builder(
                         shrinkWrap: true,
-                        itemCount: jobs.length,
+                        itemCount: controller.mockJobs.length,
                         itemBuilder: (context, index) {
-                          final job = jobs[index];
+                          final job = controller.mockJobs[index];
                           return GestureDetector(
                             onTap: () {
-                              // Toggle job selection
-                              setState(() {
-                                if (job['isSelected'] == 'true') {
-                                  job['isSelected'] = 'false';
-                                } else {
-                                  // Deselect all other jobs
-                                  for (var j in jobs) {
-                                    j['isSelected'] = 'false';
-                                  }
-                                  job['isSelected'] = 'true';
-                                }
-                              });
+                              controller.toggleJobSelection(index);
                             },
                             child: Container(
                               margin: EdgeInsets.only(bottom: 12),
                               padding: EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: job['isSelected'] == 'true' 
-                                    ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withValues(alpha: 0.1)
+                                    ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)).withValues(alpha: 0.1)
                                     : Colors.grey[50],
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: job['isSelected'] == 'true'
-                                      ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                                      ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                                       : Colors.grey[200]!,
                                   width: job['isSelected'] == 'true' ? 2 : 1,
                                 ),
@@ -637,7 +625,7 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                             ),
                           );
                         },
-                      ),
+                      )),
                     ),
                     
                     SizedBox(height: 20),
@@ -673,33 +661,11 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
                             height: 48,
                             child: ElevatedButton(
                               onPressed: () {
-                                // Find selected job and update its status
-                                final selectedJob = jobs.firstWhere(
-                                  (job) => job['isSelected'] == 'true',
-                                  orElse: () => jobs.first,
-                                );
-                                
-                                setState(() {
-                                  selectedJob['status'] = 'Active';
-                                  selectedJob['isSelected'] = 'false';
-                                });
-                                
-                                // Show success message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      '${widget.worker.name} has been rehired for ${selectedJob['title']}',
-                                      style: GoogleFonts.poppins(),
-                                    ),
-                                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                                    duration: Duration(seconds: 3),
-                                  ),
-                                );
-                                
+                                controller.rehireWorker();
                                 Navigator.pop(context);
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -727,36 +693,4 @@ class _WorkerProfileScreenState extends State<WorkerProfileScreen> {
       },
     );
   }
-
-  // Mock jobs data
-  final List<Map<String, String>> _mockJobs = [
-    {
-      'title': 'Construction Worker - 15 Ernest St',
-      'location': '15 Ernest St, Balgowlah Heights, Sydney',
-      'date': 'Dec 15, 2024 - Dec 20, 2024',
-      'status': 'Active',
-      'isSelected': 'false',
-    },
-    {
-      'title': 'Plumber - Downtown Project',
-      'location': '123 Main St, Sydney CBD',
-      'date': 'Dec 18, 2024 - Dec 25, 2024',
-      'status': 'Active',
-      'isSelected': 'false',
-    },
-    {
-      'title': 'General Labourer - Warehouse',
-      'location': '456 Industrial Ave, Botany',
-      'date': 'Dec 10, 2024 - Dec 12, 2024',
-      'status': 'Completed',
-      'isSelected': 'false',
-    },
-    {
-      'title': 'Electrician - Office Building',
-      'location': '789 Business Blvd, North Sydney',
-      'date': 'Dec 22, 2024 - Dec 30, 2024',
-      'status': 'Active',
-      'isSelected': 'false',
-    },
-  ];
 }

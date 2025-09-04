@@ -3,36 +3,28 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 import '../widgets/workers_count_modal.dart';
-import 'post_job_stepper_step3_screen.dart';
 
-class PostJobStepperStep2Screen extends StatefulWidget {
+class PostJobStepperStep2Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step2';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep2Screen({
+  PostJobStepperStep2Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep2Screen> createState() => _PostJobStepperStep2ScreenState();
-}
-
-class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(2);
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -43,6 +35,8 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
     final titleFontSize = screenWidth * 0.055;
     final questionFontSize = screenWidth * 0.075;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,8 +63,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
                                      // Back Button
                    GestureDetector(
                      onTap: () {
-                       _controller.handleBackNavigation();
-                       Navigator.of(context).pop();
+                       controller.handleBackNavigation();
                      },
                      child: Icon(
                        Icons.arrow_back,
@@ -109,7 +102,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
                   Expanded(
                     flex: 2,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -145,7 +138,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
                     SizedBox(height: verticalSpacing * 2),
                     
                     // Options Grid
-                    _buildOptionsGrid(),
+                    _buildOptionsGrid(context),
                     
                     SizedBox(height: verticalSpacing * 3),
                   ],
@@ -158,9 +151,9 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
               padding: EdgeInsets.all(horizontalPadding),
               child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _controller.canProceedToNextStep() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? _handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
+                flavor: currentFlavor,
               )),
             ),
           ],
@@ -169,7 +162,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
     );
   }
 
-  Widget _buildOptionsGrid() {
+  Widget _buildOptionsGrid(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -191,6 +184,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
                 // First button in row
                 Expanded(
                   child: _buildOptionButton(
+                    context,
                     options[i],
                     buttonHeight,
                     buttonFontSize,
@@ -203,6 +197,7 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
                 if (i + 1 < options.length)
                   Expanded(
                     child: _buildOptionButton(
+                      context,
                       options[i + 1],
                       buttonHeight,
                       buttonFontSize,
@@ -217,30 +212,31 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
     );
   }
 
-  Widget _buildOptionButton(String option, double height, double fontSize) {
+  Widget _buildOptionButton(BuildContext context, String option, double height, double fontSize) {
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
     return Obx(() {
-      final isSelected = _controller.postJobData.workersNeeded != null &&
-          ((option == 'More than 5' && _controller.postJobData.workersNeeded! > 5) ||
-           (option != 'More than 5' && _controller.postJobData.workersNeeded == int.parse(option)));
+      final isSelected = controller.postJobData.workersNeeded != null &&
+          ((option == 'More than 5' && controller.postJobData.workersNeeded! > 5) ||
+           (option != 'More than 5' && controller.postJobData.workersNeeded == int.parse(option)));
 
              return GestureDetector(
          onTap: () {
            if (option == 'More than 5') {
-             _showWorkersCountModal();
+             _showWorkersCountModal(context);
            } else {
-             _controller.updateWorkersNeeded(int.parse(option));
+             controller.updateWorkersNeeded(int.parse(option));
            }
          },
         child: Container(
           height: height,
           decoration: BoxDecoration(
             color: isSelected 
-                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                 : Colors.white,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected 
-                  ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                   : Colors.grey[300]!,
               width: 1,
             ),
@@ -260,22 +256,16 @@ class _PostJobStepperStep2ScreenState extends State<PostJobStepperStep2Screen> {
     });
   }
 
-  void _showWorkersCountModal() {
+  void _showWorkersCountModal(BuildContext context) {
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => WorkersCountModal(flavor: _currentFlavor),
+      builder: (context) => WorkersCountModal(flavor: currentFlavor),
     );
   }
 
   void _handleContinue() {
-    if (_controller.canProceedToNextStep()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep3Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 }

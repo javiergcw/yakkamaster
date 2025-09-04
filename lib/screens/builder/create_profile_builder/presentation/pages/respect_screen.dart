@@ -1,34 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import 'lets_be_clear_screen.dart';
+import '../../logic/controllers/respect_controller.dart';
 
-class RespectScreen extends StatefulWidget {
+class RespectScreen extends StatelessWidget {
+  static const String id = '/builder/respect';
+  
   final AppFlavor? flavor;
 
-  const RespectScreen({
+  RespectScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<RespectScreen> createState() => _RespectScreenState();
-}
-
-class _RespectScreenState extends State<RespectScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleCommit() {
-    // Navegar a la pantalla "Let's Be Clear" después del compromiso
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LetsBeClearScreen(flavor: _currentFlavor)),
-    );
-  }
+  final RespectController controller = Get.put(RespectController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -39,8 +35,9 @@ class _RespectScreenState extends State<RespectScreen> {
     final titleFontSize = screenWidth * 0.055;
     final headlineFontSize = screenWidth * 0.065;
     final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
     final iconSize = screenWidth * 0.25;
+    
+    final currentFlavor = controller.currentFlavor.value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -53,7 +50,7 @@ class _RespectScreenState extends State<RespectScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: controller.handleBackNavigation,
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -89,7 +86,7 @@ class _RespectScreenState extends State<RespectScreen> {
                       width: iconSize,
                       height: iconSize,
                       child: Image.asset(
-                        AssetsConfig.getRespect(_currentFlavor),
+                        AssetsConfig.getRespect(currentFlavor),
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -130,7 +127,7 @@ class _RespectScreenState extends State<RespectScreen> {
               padding: EdgeInsets.all(horizontalPadding),
               child: CustomButton(
                 text: "I commit to being respectful",
-                onPressed: _handleCommit,
+                onPressed: controller.handleCommit,
                 isLoading: false,
               ),
             ),

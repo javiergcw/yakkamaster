@@ -3,51 +3,27 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/search_input_field.dart';
-import '../../logic/controllers/staff_controller.dart';
 import '../../data/data.dart';
-import 'move_workers_stepper.dart';
-import 'extend_shifts_stepper.dart';
-import 'unhire_workers_stepper.dart';
-import '../widgets/feedback_modal.dart';
-import '../widgets/extend_shifts_modal.dart';
-import '../widgets/unhire_confirmation_modal.dart';
-import '../../../home/presentation/pages/chat_screen.dart';
-import 'worker_profile_screen.dart';
+import '../../logic/controllers/staff_screen_controller.dart';
 
-class StaffScreen extends StatefulWidget {
+class StaffScreen extends StatelessWidget {
+  static const String id = '/builder/staff';
+  
   final AppFlavor? flavor;
 
-  const StaffScreen({
+  StaffScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<StaffScreen> createState() => _StaffScreenState();
-}
-
-class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  late StaffController _staffController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _searchController.text = '';
-    _staffController = Get.put(StaffController());
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
+  final StaffScreenController controller = Get.put(StaffScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -71,20 +47,18 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
               ),
               child: Column(
                 children: [
-                                     // Search Bar
-                   SearchInputField(
-                     controller: _searchController,
-                     hintText: 'Search Workers',
-                     flavor: widget.flavor,
-                     height: 40,
-                     fontSize: 14,
-                     onChanged: (value) {
-                       _staffController.setSearchQuery(value);
-                     },
-                     onSearch: () {
-                       // Search is handled by onChanged
-                     },
-                   ),
+                                                       // Search Bar
+                  SearchInputField(
+                    controller: controller.searchController.value,
+                    hintText: 'Search Workers',
+                    flavor: flavor,
+                    height: 40,
+                    fontSize: 14,
+                    onChanged: controller.handleSearchChanged,
+                    onSearch: () {
+                      // Search is handled by onChanged
+                    },
+                  ),
                   
                   SizedBox(height: verticalSpacing),
                   
@@ -93,20 +67,20 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                      children: [
                        Expanded(
                          child: _buildDropdown(
-                           value: _staffController.selectedJobsite,
-                           items: _staffController.getAvailableJobsites(),
+                           value: controller.staffController.selectedJobsite,
+                           items: controller.staffController.getAvailableJobsites(),
                            onChanged: (value) {
-                             _staffController.setSelectedJobsite(value!);
+                             controller.staffController.setSelectedJobsite(value!);
                            },
                          ),
                        ),
                        SizedBox(width: 12),
                        Expanded(
                          child: _buildDropdown(
-                           value: _staffController.selectedSkill,
-                           items: _staffController.getAvailableSkills(),
+                           value: controller.staffController.selectedSkill,
+                           items: controller.staffController.getAvailableSkills(),
                            onChanged: (value) {
-                             _staffController.setSelectedSkill(value!);
+                             controller.staffController.setSelectedSkill(value!);
                            },
                          ),
                        ),
@@ -122,56 +96,17 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                       _buildQuickActionButton(
                         icon: Icons.people,
                         label: 'Move Workers',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _staffController.getActiveJobsiteWorkers()
-                              : _staffController.getInactiveJobsiteWorkers();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MoveWorkersStepper(
-                                flavor: widget.flavor,
-                                workers: currentWorkers,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToMoveWorkers,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.access_time,
                         label: 'Extend shifts',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _staffController.getActiveJobsiteWorkers()
-                              : _staffController.getInactiveJobsiteWorkers();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ExtendShiftsStepper(
-                                flavor: widget.flavor,
-                                workers: currentWorkers,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToExtendShifts,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.person_remove,
                         label: 'Unhire workers',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _staffController.getActiveJobsiteWorkers()
-                              : _staffController.getInactiveJobsiteWorkers();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => UnhireWorkersStepper(
-                                flavor: widget.flavor,
-                                workers: currentWorkers,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToUnhireWorkers,
                       ),
                     ],
                   ),
@@ -182,7 +117,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
             // Workers List
             Expanded(
               child: TabBarView(
-                controller: _tabController,
+                controller: controller.tabController,
                 children: [
                   _buildWorkersList(true), // Active workers
                   _buildWorkersList(false), // Inactive workers
@@ -206,7 +141,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
             children: [
               GestureDetector(
                 onTap: () {
-                  Navigator.pop(context);
+                  controller.handleBackNavigation();
                 },
                 child: Icon(
                   Icons.arrow_back,
@@ -230,32 +165,30 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
           
                      // Tabs
            AnimatedBuilder(
-             animation: _tabController,
+             animation: controller.tabController,
              builder: (context, child) {
                return Row(
                  children: [
                    Expanded(
                      child: GestureDetector(
-                       onTap: () {
-                         _tabController.animateTo(0);
-                       },
+                       onTap: () => controller.handleTabChange(0),
                        child: Column(
                          children: [
                            Text(
                              'Active',
                              style: GoogleFonts.poppins(
                                fontSize: 16,
-                               fontWeight: _tabController.index == 0 ? FontWeight.w600 : FontWeight.w400,
+                               fontWeight: controller.tabController.index == 0 ? FontWeight.w600 : FontWeight.w400,
                                color: Colors.white,
                              ),
                            ),
                                                       SizedBox(height: 12),
-                           if (_tabController.index == 0)
+                           if (controller.tabController.index == 0)
                              Container(
                                height: 3,
                                width: 150,
                                 decoration: BoxDecoration(
-                                  color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                                  color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
@@ -265,26 +198,24 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                    ),
                    Expanded(
                      child: GestureDetector(
-                       onTap: () {
-                         _tabController.animateTo(1);
-                       },
+                       onTap: () => controller.handleTabChange(1),
                        child: Column(
                          children: [
                            Text(
                              'Inactive',
                              style: GoogleFonts.poppins(
                                fontSize: 16,
-                               fontWeight: _tabController.index == 1 ? FontWeight.w600 : FontWeight.w400,
+                               fontWeight: controller.tabController.index == 1 ? FontWeight.w600 : FontWeight.w400,
                                color: Colors.white,
                              ),
                            ),
                                                       SizedBox(height: 12),
-                           if (_tabController.index == 1)
+                           if (controller.tabController.index == 1)
                              Container(
                                height: 3,
                                width: 150,
                                 decoration: BoxDecoration(
-                                  color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                                  color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                                   borderRadius: BorderRadius.circular(2),
                                 ),
                               ),
@@ -349,7 +280,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -376,10 +307,10 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
     Widget _buildWorkersList(bool isActive) {
     return Obx(() {
       final jobsiteWorkers = isActive 
-          ? _staffController.getActiveJobsiteWorkers()
-          : _staffController.getInactiveJobsiteWorkers();
+          ? controller.staffController.getActiveJobsiteWorkers()
+          : controller.staffController.getInactiveJobsiteWorkers();
       
-      if (_staffController.isLoading) {
+      if (controller.staffController.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
       
@@ -490,18 +421,10 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                         ),
                         // Chat Button
                         GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChatScreen(
-                                  recipientName: worker.name,
-                                  recipientAvatar: worker.name.isNotEmpty ? worker.name[0].toUpperCase() : 'W',
-                                  flavor: widget.flavor,
-                                ),
-                              ),
-                            );
-                          },
+                          onTap: () => controller.navigateToChat(
+                            worker.name,
+                            worker.name.isNotEmpty ? worker.name[0].toUpperCase() : 'W',
+                          ),
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -567,20 +490,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                     height: 32,
                     child: OutlinedButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => FeedbackModal(
-                            workerName: worker.name,
-                            flavor: widget.flavor,
-                            onSubmit: (rating, feedback) {
-                              _staffController.rateWorker(worker.id, rating);
-                              // TODO: Handle feedback submission
-                              print('Rating: $rating, Feedback: $feedback for ${worker.name}');
-                            },
-                          ),
-                        );
+                        controller.showFeedbackModal(worker.id, worker.name);
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey[300]!),
@@ -616,23 +526,10 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                     height: 32,
                     child: ElevatedButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => ExtendShiftsModal(
-                            workerName: worker.name,
-                            flavor: widget.flavor,
-                            onSubmit: (startDate, endDate, isOngoing, workSaturdays, workSundays) {
-                              _staffController.extendWorker(worker.id, endDate);
-                              // TODO: Handle extended shift submission with all parameters
-                              print('Extend shift for ${worker.name}: Start: $startDate, End: $endDate, Ongoing: $isOngoing, Saturdays: $workSaturdays, Sundays: $workSundays');
-                            },
-                          ),
-                        );
+                        controller.showExtendShiftsModal(worker.id, worker.name);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6),
@@ -665,19 +562,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                     height: 32,
                     child: ElevatedButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => UnhireConfirmationModal(
-                            workerName: worker.name,
-                            workerRole: worker.role,
-                            flavor: widget.flavor,
-                            onConfirm: () {
-                              _staffController.unhireWorker(worker.id);
-                            },
-                          ),
-                        );
+                        controller.showUnhireConfirmationModal(worker.id, worker.name);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.grey[800],
@@ -716,20 +601,7 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                     height: 32,
                     child: OutlinedButton(
                       onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => FeedbackModal(
-                            workerName: worker.name,
-                            flavor: widget.flavor,
-                            onSubmit: (rating, feedback) {
-                              _staffController.rateWorker(worker.id, rating);
-                              // TODO: Handle feedback submission
-                              print('Rating: $rating, Feedback: $feedback for ${worker.name}');
-                            },
-                          ),
-                        );
+                        controller.showFeedbackModal(worker.id, worker.name);
                       },
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: Colors.grey[300]!),
@@ -764,19 +636,9 @@ class _StaffScreenState extends State<StaffScreen> with SingleTickerProviderStat
                   child: SizedBox(
                     height: 32,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => WorkerProfileScreen(
-                              worker: worker,
-                              flavor: widget.flavor,
-                            ),
-                          ),
-                        );
-                      },
+                      onPressed: () => controller.navigateToWorkerProfile(worker),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(6),

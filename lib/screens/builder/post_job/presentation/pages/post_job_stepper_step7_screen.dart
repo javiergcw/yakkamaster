@@ -4,56 +4,37 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/post_job_controller.dart';
-import 'post_job_stepper_step8_screen.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
-class PostJobStepperStep7Screen extends StatefulWidget {
+class PostJobStepperStep7Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step7';
+
   final AppFlavor? flavor;
 
-  const PostJobStepperStep7Screen({
-    super.key,
-    this.flavor,
-  });
+  PostJobStepperStep7Screen({super.key, this.flavor});
 
-  @override
-  State<PostJobStepperStep7Screen> createState() => _PostJobStepperStep7ScreenState();
-}
-
-class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  String? _selectedPaymentOption;
-  DateTime? _selectedPayDay;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(7);
-    
-    // Inicializar datos si ya existen en el controlador
-    if (_controller.postJobData.paymentFrequency != null) {
-      _selectedPaymentOption = _controller.postJobData.paymentFrequency;
-    }
-    if (_controller.postJobData.payDay != null) {
-      _selectedPayDay = _controller.postJobData.payDay;
-    }
-  }
+  final UnifiedPostJobController controller =
+      Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
     final questionFontSize = screenWidth * 0.075;
     final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,10 +50,7 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
               ),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey[300]!,
-                    width: 1,
-                  ),
+                  bottom: BorderSide(color: Colors.grey[300]!, width: 1),
                 ),
               ),
               child: Row(
@@ -80,8 +58,7 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      _controller.handleBackNavigation();
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -89,9 +66,9 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                       size: iconSize,
                     ),
                   ),
-                  
+
                   SizedBox(width: horizontalPadding),
-                  
+
                   // Title
                   Expanded(
                     child: Text(
@@ -104,12 +81,12 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  
+
                   SizedBox(width: horizontalPadding + iconSize),
                 ],
               ),
             ),
-            
+
             // Progress Indicator
             Container(
               width: double.infinity,
@@ -120,20 +97,17 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                   Expanded(
                     flex: 7,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(
+                        AppFlavorConfig.getPrimaryColor(currentFlavor),
+                      ),
                     ),
                   ),
                   // Remaining (grey)
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      color: Colors.grey[300],
-                    ),
-                  ),
+                  Expanded(flex: 2, child: Container(color: Colors.grey[300])),
                 ],
               ),
             ),
-            
+
             // Main Content
             Expanded(
               child: SingleChildScrollView(
@@ -142,7 +116,7 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: verticalSpacing * 0.2),
-                    
+
                     // Main Question
                     Text(
                       "When will the worker be paid?",
@@ -152,131 +126,140 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                         color: Colors.black,
                       ),
                     ),
-                    
-                                         SizedBox(height: verticalSpacing),
-                     
-                     // Choose pay day option
-                     _buildPaymentOption(
-                       "Choose pay day",
-                       isSelected: _selectedPaymentOption == "choose_pay_day",
-                       onTap: () {
-                         setState(() {
-                           _selectedPaymentOption = "choose_pay_day";
-                         });
-                         _controller.updatePaymentFrequency("choose_pay_day");
-                         _showPayDayPicker();
-                       },
-                     ),
-                     
-                     SizedBox(height: verticalSpacing),
-                     
-                     // On going jobs section
-                     Text(
-                       "On going jobs",
-                       style: GoogleFonts.poppins(
-                         fontSize: subtitleFontSize,
-                         fontWeight: FontWeight.w600,
-                         color: Colors.black,
-                       ),
-                     ),
-                     
-                     SizedBox(height: verticalSpacing * 0.5),
-                     
-                     // Weekly payment option
-                     _buildPaymentOption(
-                       "Weekly payment",
-                       isSelected: _selectedPaymentOption == "weekly",
-                       onTap: () {
-                         setState(() {
-                           _selectedPaymentOption = "weekly";
-                         });
-                         _controller.updatePaymentFrequency("weekly");
-                       },
-                     ),
-                     
-                     SizedBox(height: verticalSpacing * 0.5),
-                     
-                     // Fortnightly payment option
-                     _buildPaymentOption(
-                       "Fortnightly payment",
-                       isSelected: _selectedPaymentOption == "fortnightly",
-                       onTap: () {
-                         setState(() {
-                           _selectedPaymentOption = "fortnightly";
-                         });
-                         _controller.updatePaymentFrequency("fortnightly");
-                       },
-                     ),
-                     
-                     SizedBox(height: verticalSpacing * 2),
-                    
-                                         // Warning box
-                     GestureDetector(
-                       onTap: _openFAQsPage,
-                       child: Container(
-                         width: double.infinity,
-                         padding: EdgeInsets.all(horizontalPadding),
-                         decoration: BoxDecoration(
-                           color: Colors.grey[100],
-                           borderRadius: BorderRadius.circular(12),
-                           border: Border.all(
-                             color: Colors.grey[300]!,
-                             width: 1,
-                           ),
-                         ),
-                         child: Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-                             Row(
-                               children: [
-                                 Icon(
-                                   Icons.warning_amber_rounded,
-                                   color: Colors.orange[600],
-                                   size: screenWidth * 0.05,
-                                 ),
-                                 SizedBox(width: horizontalPadding * 0.5),
-                                 Expanded(
-                                   child: Text(
-                                     "What happens if I don't pay the labourer?",
-                                     style: GoogleFonts.poppins(
-                                       fontSize: screenWidth * 0.035,
-                                       fontWeight: FontWeight.w600,
-                                       color: Colors.black,
-                                     ),
-                                   ),
-                                 ),
-                                 Icon(
-                                   Icons.arrow_forward_ios,
-                                   color: Colors.grey[600],
-                                   size: screenWidth * 0.04,
-                                 ),
-                               ],
-                             ),
-                             SizedBox(height: verticalSpacing * 0.5),
-                             Text(
-                               "YAKKA cannot get involved. However, if payment is not made, the worker may take legal action, and your reputation on the platform may be affected.",
-                               style: GoogleFonts.poppins(
-                                 fontSize: screenWidth * 0.032,
-                                 color: Colors.black87,
-                               ),
-                             ),
-                           ],
-                         ),
-                       ),
-                     ),
+
+                    SizedBox(height: verticalSpacing),
+
+                    // Choose pay day option
+                    Obx(
+                      () => _buildPaymentOption(
+                        context,
+                        "Choose pay day",
+                        isSelected:
+                            controller.selectedPaymentOption.value ==
+                            "choose_pay_day",
+                        onTap: () {
+                          controller.selectPaymentOption("choose_pay_day");
+                          _showPayDayPicker(context);
+                        },
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing),
+
+                    // On going jobs section
+                    Text(
+                      "On going jobs",
+                      style: GoogleFonts.poppins(
+                        fontSize: subtitleFontSize,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing * 0.5),
+
+                    // Weekly payment option
+                    Obx(
+                      () => _buildPaymentOption(
+                        context,
+                        "Weekly payment",
+                        isSelected:
+                            controller.selectedPaymentOption.value == "weekly",
+                        onTap: () {
+                          controller.selectPaymentOption("weekly");
+                        },
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing * 0.5),
+
+                    // Fortnightly payment option
+                    Obx(
+                      () => _buildPaymentOption(
+                        context,
+                        "Fortnightly payment",
+                        isSelected:
+                            controller.selectedPaymentOption.value ==
+                            "fortnightly",
+                        onTap: () {
+                          controller.selectPaymentOption("fortnightly");
+                        },
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing * 2),
+
+                    // Warning box
+                    GestureDetector(
+                      onTap: _openFAQsPage,
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(horizontalPadding),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.orange[600],
+                                  size: screenWidth * 0.05,
+                                ),
+                                SizedBox(width: horizontalPadding * 0.5),
+                                Expanded(
+                                  child: Text(
+                                    "What happens if I don't pay the labourer?",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: screenWidth * 0.035,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.grey[600],
+                                  size: screenWidth * 0.04,
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Text(
+                              "YAKKA cannot get involved. However, if payment is not made, the worker may take legal action, and your reputation on the platform may be affected.",
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.032,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
-            
+
             // Continue Button
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
-              child: CustomButton(
-                text: "Continue",
-                onPressed: _canProceed() ? _handleContinue : null,
-                type: ButtonType.secondary,
-                flavor: _currentFlavor,
+              child: Obx(
+                () => CustomButton(
+                  text: "Continue",
+                  onPressed: controller.canProceedToNextStep()
+                      ? _handleContinue
+                      : null,
+                  type: ButtonType.secondary,
+                  flavor: currentFlavor,
+                ),
               ),
             ),
           ],
@@ -285,13 +268,19 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
     );
   }
 
-  Widget _buildPaymentOption(String text, {required bool isSelected, required VoidCallback onTap}) {
+  Widget _buildPaymentOption(
+    BuildContext context,
+    String text, {
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return GestureDetector(
       onTap: onTap,
@@ -301,34 +290,34 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
           horizontal: horizontalPadding,
           vertical: verticalSpacing * 0.8,
         ),
-                 decoration: BoxDecoration(
-           color: Colors.white,
-           borderRadius: BorderRadius.circular(12),
-           border: Border.all(
-             color: isSelected 
-                 ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                 : Colors.black,
-             width: isSelected ? 1 : 2,
-           ),
-         ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                : Colors.black,
+            width: isSelected ? 1 : 2,
+          ),
+        ),
         child: Row(
           children: [
             // Radio button
-                         Container(
-               width: screenWidth * 0.05,
-               height: screenWidth * 0.05,
-               decoration: BoxDecoration(
-                 shape: BoxShape.circle,
-                 border: Border.all(
-                   color: isSelected 
-                       ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                       : Colors.black,
-                   width: isSelected ? 2 : 3,
-                 ),
-                 color: isSelected 
-                     ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                     : Colors.transparent,
-               ),
+            Container(
+              width: screenWidth * 0.05,
+              height: screenWidth * 0.05,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected
+                      ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                      : Colors.black,
+                  width: isSelected ? 2 : 3,
+                ),
+                color: isSelected
+                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                    : Colors.transparent,
+              ),
               child: isSelected
                   ? Icon(
                       Icons.check,
@@ -337,9 +326,9 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                     )
                   : null,
             ),
-            
+
             SizedBox(width: horizontalPadding * 0.8),
-            
+
             // Text
             Expanded(
               child: Text(
@@ -351,14 +340,15 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
                 ),
               ),
             ),
-            
+
             // Show selected pay day if applicable
-            if (text == "Choose pay day" && _selectedPayDay != null)
+            if (text == "Choose pay day" &&
+                controller.selectedPayDay.value != null)
               Text(
-                _formatDate(_selectedPayDay!),
+                controller.formatDate(controller.selectedPayDay.value!),
                 style: GoogleFonts.poppins(
                   fontSize: screenWidth * 0.03,
-                  color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -368,21 +358,21 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}";
-  }
-
-  void _showPayDayPicker() async {
+  void _showPayDayPicker(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedPayDay ?? DateTime.now(),
+      initialDate: controller.selectedPayDay.value ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+              primary: Color(
+                AppFlavorConfig.getPrimaryColor(
+                  flavor ?? AppFlavorConfig.currentFlavor,
+                ),
+              ),
             ),
           ),
           child: child!,
@@ -391,31 +381,17 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
     );
 
     if (picked != null) {
-      setState(() {
-        _selectedPayDay = picked;
-      });
-      _controller.updatePayDay(picked);
+      controller.updatePayDay(picked);
     }
-  }
-
-  bool _canProceed() {
-    return _selectedPaymentOption != null && _selectedPaymentOption!.isNotEmpty;
   }
 
   void _handleContinue() {
-    if (_canProceed()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep8Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 
   void _openFAQsPage() async {
     const url = 'https://yakkalabour.com.au/faqs/';
-    
+
     try {
       final uri = Uri.parse(url);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -424,6 +400,4 @@ class _PostJobStepperStep7ScreenState extends State<PostJobStepperStep7Screen> {
       // No mostrar ningún modal, simplemente no hacer nada
     }
   }
-  
-
 }

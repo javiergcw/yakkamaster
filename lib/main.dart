@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'config/app_flavor.dart';
-import 'config/assets_config.dart';
+
 import 'screens/join_splash_screen.dart';
 import 'app/routes/app_pages.dart';
 import 'app/bindings/join_splash_binding.dart';
@@ -39,10 +38,7 @@ class YakkaSportsApp extends StatelessWidget {
       ),
       initialRoute: JoinSplashScreen.id,
       getPages: AppPages.pages,
-      defaultTransition: Transition.fadeIn,
       initialBinding: JoinSplashBinding(),
     );
   }
 }
-
-

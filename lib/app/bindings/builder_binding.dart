@@ -8,10 +8,14 @@ import '../../screens/builder/home/logic/controllers/job_sites_list_controller.d
 import '../../screens/builder/home/logic/controllers/map_screen_controller.dart';
 import '../../screens/builder/home/logic/controllers/worker_list_controller.dart';
 import '../../screens/builder/home/logic/controllers/chat_screen_controller.dart';
-import '../../screens/builder/post_job/logic/controllers/post_job_stepper_controller.dart';
+import '../../screens/builder/post_job/logic/controllers/post_job_controller.dart';
+import '../../screens/builder/post_job/logic/controllers/unified_post_job_controller.dart';
+import '../../screens/builder/post_job/logic/controllers/job_site_controller.dart';
 import '../../screens/builder/post_job/logic/controllers/job_sites_screen_controller.dart';
 import '../../screens/builder/post_job/logic/controllers/create_edit_job_site_screen_controller.dart';
-import '../../screens/builder/post_job/logic/controllers/post_job_review_screen_controller.dart';
+import '../../screens/builder/my_jobs/logic/controllers/my_jobs_controller.dart';
+import '../../screens/builder/invoices/logic/controllers/invoices_screen_controller.dart';
+import '../../screens/builder/staff/logic/controllers/staff_screen_controller.dart';
 
 class BuilderBinding extends Bindings {
   @override
@@ -26,9 +30,13 @@ class BuilderBinding extends Bindings {
     Get.lazyPut<MapScreenController>(() => MapScreenController());
     Get.lazyPut<WorkerListController>(() => WorkerListController());
     Get.lazyPut<ChatScreenController>(() => ChatScreenController());
-    Get.lazyPut<PostJobStepperController>(() => PostJobStepperController());
+    Get.lazyPut<PostJobController>(() => PostJobController());
+    Get.lazyPut<UnifiedPostJobController>(() => UnifiedPostJobController());
+    Get.lazyPut<JobSiteController>(() => JobSiteController());
     Get.lazyPut<JobSitesScreenController>(() => JobSitesScreenController());
     Get.lazyPut<CreateEditJobSiteScreenController>(() => CreateEditJobSiteScreenController());
-    Get.lazyPut<PostJobReviewScreenController>(() => PostJobReviewScreenController());
+    Get.lazyPut<MyJobsController>(() => MyJobsController());
+    Get.lazyPut<InvoicesScreenController>(() => InvoicesScreenController());
+    Get.lazyPut<StaffScreenController>(() => StaffScreenController());
   }
 }

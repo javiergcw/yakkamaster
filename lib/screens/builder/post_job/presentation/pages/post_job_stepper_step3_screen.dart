@@ -3,36 +3,30 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 import '../widgets/cost_edit_modal.dart';
-import 'post_job_stepper_step4_screen.dart';
+// import 'post_job_stepper_step4_screen.dart'; // Removed to avoid Container name conflict
 
-class PostJobStepperStep3Screen extends StatefulWidget {
+class PostJobStepperStep3Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step3';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep3Screen({
+  PostJobStepperStep3Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep3Screen> createState() => _PostJobStepperStep3ScreenState();
-}
-
-class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(3);
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    // El controlador ya se inicializa en onInit()
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -43,6 +37,8 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
     final questionFontSize = screenWidth * 0.075;
     final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -69,7 +65,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                                      // Back Button
                    GestureDetector(
                      onTap: () {
-                       _controller.handleBackNavigation();
+                       controller.handleBackNavigation();
                        Navigator.of(context).pop();
                      },
                      child: Icon(
@@ -109,7 +105,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                   Expanded(
                     flex: 3,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -171,39 +167,43 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                     
                                          // Wage (Hourly Rate)
                      Obx(() => _buildCostCard(
+                       context,
                        "Wage (Hourly Rate)*",
-                       _controller.postJobData.hourlyRate ?? 28.0,
+                       controller.postJobData.hourlyRate ?? 28.0,
                        isRequired: true,
-                       hasError: _controller.postJobData.hourlyRate == null || _controller.postJobData.hourlyRate! <= 0,
+                       hasError: controller.postJobData.hourlyRate == null || controller.postJobData.hourlyRate! <= 0,
                        errorMessage: "This field is required.",
-                       onTap: () => _showCostModal("Wage (Hourly Rate)", _controller.postJobData.hourlyRate ?? 28.0, _controller.updateHourlyRate),
+                       onTap: () => _showCostModal(context, "Wage (Hourly Rate)", controller.postJobData.hourlyRate ?? 28.0, controller.updateHourlyRate),
                      )),
                      
                      SizedBox(height: verticalSpacing * 0.5),
                      
                      // Site Allowance
                      Obx(() => _buildCostCard(
+                       context,
                        "Site Allowance (\$/hr)",
-                       _controller.postJobData.siteAllowance ?? 0.0,
-                       onTap: () => _showCostModal("Site Allowance", _controller.postJobData.siteAllowance ?? 0.0, _controller.updateSiteAllowance),
+                       controller.postJobData.siteAllowance ?? 0.0,
+                       onTap: () => _showCostModal(context, "Site Allowance", controller.postJobData.siteAllowance ?? 0.0, controller.updateSiteAllowance),
                      )),
                      
                      SizedBox(height: verticalSpacing * 0.5),
                      
                      // Leading Hand Allowance
                      Obx(() => _buildCostCard(
+                       context,
                        "Leading Hand Allowance (\$/hr)",
-                       _controller.postJobData.leadingHandAllowance ?? 0.0,
-                       onTap: () => _showCostModal("Leading Hand Allowance", _controller.postJobData.leadingHandAllowance ?? 0.0, _controller.updateLeadingHandAllowance),
+                       controller.postJobData.leadingHandAllowance ?? 0.0,
+                       onTap: () => _showCostModal(context, "Leading Hand Allowance", controller.postJobData.leadingHandAllowance ?? 0.0, controller.updateLeadingHandAllowance),
                      )),
                      
                      SizedBox(height: verticalSpacing * 0.5),
                      
                      // Productivity Allowance
                      Obx(() => _buildCostCard(
+                       context,
                        "Productivity Allowance (\$/hr)",
-                       _controller.postJobData.productivityAllowance ?? 0.0,
-                       onTap: () => _showCostModal("Productivity Allowance", _controller.postJobData.productivityAllowance ?? 0.0, _controller.updateProductivityAllowance),
+                       controller.postJobData.productivityAllowance ?? 0.0,
+                       onTap: () => _showCostModal(context, "Productivity Allowance", controller.postJobData.productivityAllowance ?? 0.0, controller.updateProductivityAllowance),
                      )),
                     
                                          SizedBox(height: verticalSpacing),
@@ -224,6 +224,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                       
                       // Yakka Service Fee
                       _buildServiceCard(
+                        context,
                         "Yakka Service Fee",
                         "\$2.80/hr",
                       ),
@@ -239,6 +240,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                       
                       // GST
                       _buildServiceCard(
+                        context,
                         "GST (+10%)",
                         "\$0.28/hr",
                       ),
@@ -282,20 +284,22 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
                      
                      // Overtime Rate
                      Obx(() => _buildCostCardWithDescription(
+                       context,
                        "Overtime Rate (\$/hr)",
-                       _controller.postJobData.overtimeRate ?? 0.0,
+                       controller.postJobData.overtimeRate ?? 0.0,
                        "Rate for hours worked beyond the regular schedule. (Hourly Rate)",
-                       onTap: () => _showCostModal("Overtime Rate", _controller.postJobData.overtimeRate ?? 0.0, _controller.updateOvertimeRate),
+                       onTap: () => _showCostModal(context, "Overtime Rate", controller.postJobData.overtimeRate ?? 0.0, controller.updateOvertimeRate),
                      )),
                      
                      SizedBox(height: verticalSpacing * 0.5),
                      
                      // Travel Allowance
                      Obx(() => _buildCostCardWithDescription(
+                       context,
                        "Travel Allowance",
-                       _controller.postJobData.travelAllowance ?? 0.0,
+                       controller.postJobData.travelAllowance ?? 0.0,
                        "Compensation for travel-related expenses.",
-                       onTap: () => _showCostModal("Travel Allowance", _controller.postJobData.travelAllowance ?? 0.0, _controller.updateTravelAllowance),
+                       onTap: () => _showCostModal(context, "Travel Allowance", controller.postJobData.travelAllowance ?? 0.0, controller.updateTravelAllowance),
                      )),
                      
                      SizedBox(height: verticalSpacing * 2),
@@ -340,9 +344,9 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
               padding: EdgeInsets.all(horizontalPadding),
               child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _controller.canProceedToNextStep() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? _handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
+                flavor: currentFlavor,
               )),
             ),
           ],
@@ -351,7 +355,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
     );
   }
 
-  Widget _buildCostCard(String title, double value, {bool isRequired = false, bool hasError = false, String? errorMessage, VoidCallback? onTap}) {
+  Widget _buildCostCard(BuildContext context, String title, double value, {bool isRequired = false, bool hasError = false, String? errorMessage, VoidCallback? onTap}) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -445,7 +449,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
     );
   }
 
-  Widget _buildServiceCard(String title, String value) {
+  Widget _buildServiceCard(BuildContext context, String title, String value) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -484,7 +488,7 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
     );
   }
 
-  Widget _buildCostCardWithDescription(String title, double value, String description, {VoidCallback? onTap}) {
+  Widget _buildCostCardWithDescription(BuildContext context, String title, double value, String description, {VoidCallback? onTap}) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -563,13 +567,14 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
     );
   }
 
-  void _showCostModal(String title, double initialValue, Function(double) onSave) {
+  void _showCostModal(BuildContext context, String title, double initialValue, Function(double) onSave) {
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => CostEditModal(
-        flavor: _currentFlavor,
+        flavor: currentFlavor,
         title: title,
         initialValue: initialValue,
         onSave: onSave,
@@ -578,27 +583,10 @@ class _PostJobStepperStep3ScreenState extends State<PostJobStepperStep3Screen> {
   }
 
   double _calculateTotalCost() {
-    final hourlyRate = _controller.postJobData.hourlyRate ?? 0.0;
-    final siteAllowance = _controller.postJobData.siteAllowance ?? 0.0;
-    final leadingHandAllowance = _controller.postJobData.leadingHandAllowance ?? 0.0;
-    final productivityAllowance = _controller.postJobData.productivityAllowance ?? 0.0;
-    final overtimeRate = _controller.postJobData.overtimeRate ?? 0.0;
-    final travelAllowance = _controller.postJobData.travelAllowance ?? 0.0;
-    final yakkaServiceFee = 2.80; // Fixed value
-    final gst = 0.28; // Fixed value (10% of Yakka Service Fee)
-    
-    return hourlyRate + siteAllowance + leadingHandAllowance + productivityAllowance + 
-           overtimeRate + travelAllowance + yakkaServiceFee + gst;
+    return controller.calculateTotalCost();
   }
 
   void _handleContinue() {
-    if (_controller.canProceedToNextStep()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep4Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 }

@@ -238,9 +238,8 @@ class PostJobController extends GetxController {
       // TODO: Implement actual API call to post job
       await Future.delayed(Duration(seconds: 2)); // Simulate API call
       
-      // Success - reset data and go back to home
+      // Success - reset data
       reset();
-      Get.back(); // Go back to home screen
       
     } catch (e) {
       _errorMessage.value = 'Error posting job: ${e.toString()}';

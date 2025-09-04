@@ -1,38 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../data/data.dart';
+import '../../logic/controllers/extend_shifts_stepper_controller.dart';
 
-class ExtendShiftsStepper extends StatefulWidget {
+class ExtendShiftsStepper extends StatelessWidget {
+  static const String id = '/extend-shifts-stepper';
+  
   final AppFlavor? flavor;
   final List<JobsiteWorkersDto> workers;
 
-  const ExtendShiftsStepper({
+  ExtendShiftsStepper({
     super.key,
     this.flavor,
     required this.workers,
   });
 
-  @override
-  State<ExtendShiftsStepper> createState() => _ExtendShiftsStepperState();
-}
-
-class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
-  int _currentStep = 0;
-  List<String> _selectedWorkerIds = [];
-  DateTime? _selectedEndDate;
-  List<WorkerDto> get _allWorkers {
-    List<WorkerDto> allWorkers = [];
-    for (var jobsite in widget.workers) {
-      allWorkers.addAll(jobsite.workers);
-    }
-    return allWorkers;
-  }
+  final ExtendShiftsStepperController controller = Get.put(ExtendShiftsStepperController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer datos en el controlador
+    controller.workers = workers;
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -57,7 +52,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
         children: [
                      // Logo
                        SvgPicture.asset(
-              AssetsConfig.getLogoMiddle(widget.flavor ?? AppFlavorConfig.currentFlavor),
+              AssetsConfig.getLogoMiddle(flavor ?? AppFlavorConfig.currentFlavor),
               width: 48,
               height: 48,
               fit: BoxFit.cover,
@@ -76,7 +71,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                      // Close button
            IconButton(
              onPressed: () {
-               Navigator.pop(context);
+               controller.handleBackNavigation();
              },
              icon: Icon(Icons.close, color: Colors.black, size: 24),
            ),
@@ -86,16 +81,18 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
   }
 
   Widget _buildCurrentStep() {
-    switch (_currentStep) {
-      case 0:
-        return _buildStep1();
-      case 1:
-        return _buildStep2();
-      case 2:
-        return _buildStep3();
-      default:
-        return _buildStep1();
-    }
+    return Obx(() {
+      switch (controller.currentStep.value) {
+        case 0:
+          return _buildStep1();
+        case 1:
+          return _buildStep2();
+        case 2:
+          return _buildStep3();
+        default:
+          return _buildStep1();
+      }
+    });
   }
 
   Widget _buildStep1() {
@@ -142,7 +139,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -169,13 +166,11 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
               Spacer(),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                            if (_selectedWorkerIds.length == _allWorkers.length) {
-          _selectedWorkerIds.clear();
-        } else {
-          _selectedWorkerIds = _allWorkers.map((w) => w.id).toList();
-        }
-                  });
+                  if (controller.selectedWorkerIds.length == controller.allWorkers.length) {
+                    controller.deselectAllWorkers();
+                  } else {
+                    controller.selectAllWorkers();
+                  }
                 },
                 child: Row(
                   children: [
@@ -194,11 +189,11 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[400]!),
                         borderRadius: BorderRadius.circular(4),
-                        color: _selectedWorkerIds.length == _allWorkers.length 
-                            ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                        color: controller.selectedWorkerIds.length == controller.allWorkers.length 
+                            ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                             : Colors.transparent,
                       ),
-                      child: _selectedWorkerIds.length == _allWorkers.length
+                      child: controller.selectedWorkerIds.length == controller.allWorkers.length
                           ? Icon(
                               Icons.check,
                               size: 16,
@@ -215,19 +210,19 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
           // Workers list
           Expanded(
             child: ListView.builder(
-                              itemCount: _allWorkers.length,
+                              itemCount: controller.allWorkers.length,
                 itemBuilder: (context, index) {
-                  final worker = _allWorkers[index];
-                final isSelected = _selectedWorkerIds.contains(worker.id);
+                  final worker = controller.allWorkers[index];
+                final isSelected = controller.selectedWorkerIds.contains(worker.id);
                 
                 return Container(
                   margin: EdgeInsets.only(bottom: 12),
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)).withValues(alpha: 0.1) : Colors.white,
+                    color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)).withValues(alpha: 0.1) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
+                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
                     ),
                   ),
                   child: Row(
@@ -271,13 +266,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                       // Selection checkbox
                       GestureDetector(
                         onTap: () {
-                          setState(() {
-                            if (isSelected) {
-                              _selectedWorkerIds.remove(worker.id);
-                            } else {
-                              _selectedWorkerIds.add(worker.id);
-                            }
-                          });
+                          controller.toggleWorkerSelection(worker.id);
                         },
                         child: Container(
                           width: 24,
@@ -285,12 +274,12 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: isSelected 
-                                  ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                  ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                                   : Colors.grey[400]!,
                             ),
                             borderRadius: BorderRadius.circular(4),
                             color: isSelected 
-                                ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                                 : Colors.transparent,
                           ),
                           child: isSelected
@@ -352,15 +341,13 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                 GestureDetector(
                   onTap: () async {
                     final date = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedEndDate ?? DateTime.now().add(Duration(days: 7)),
+                      context: Get.context!,
+                      initialDate: controller.selectedEndDate.value ?? DateTime.now().add(Duration(days: 7)),
                       firstDate: DateTime.now(),
                       lastDate: DateTime.now().add(Duration(days: 365)),
                     );
                     if (date != null) {
-                      setState(() {
-                        _selectedEndDate = date;
-                      });
+                      controller.setSelectedEndDate(date);
                     }
                   },
                   child: Container(
@@ -379,12 +366,12 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                         ),
                         SizedBox(width: 12),
                         Text(
-                          _selectedEndDate != null
-                              ? '${_selectedEndDate!.day}/${_selectedEndDate!.month}/${_selectedEndDate!.year}'
+                          controller.selectedEndDate.value != null
+                              ? '${controller.selectedEndDate.value!.day}/${controller.selectedEndDate.value!.month}/${controller.selectedEndDate.value!.year}'
                               : 'Select end date',
                           style: GoogleFonts.poppins(
                             fontSize: 16,
-                            color: _selectedEndDate != null ? Colors.black : Colors.grey[600],
+                            color: controller.selectedEndDate.value != null ? Colors.black : Colors.grey[600],
                           ),
                         ),
                         Spacer(),
@@ -403,7 +390,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
            SizedBox(height: 24),
            // Selected workers preview
           Text(
-            'Selected Workers (${_selectedWorkerIds.length})',
+            'Selected Workers (${controller.selectedWorkerIds.length})',
             style: GoogleFonts.poppins(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -415,8 +402,8 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
             child: Wrap(
               spacing: 12,
               runSpacing: 12,
-              children: _selectedWorkerIds.map((workerId) {
-                final worker = _allWorkers.firstWhere((w) => w.id == workerId);
+              children: controller.selectedWorkerIds.map((workerId) {
+                final worker = controller.allWorkers.firstWhere((w) => w.id == workerId);
                 return Stack(
                   children: [
                     Container(
@@ -435,9 +422,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                       right: 0,
                       child: GestureDetector(
                         onTap: () {
-                          setState(() {
-                            _selectedWorkerIds.remove(worker.id);
-                          });
+                          controller.toggleWorkerSelection(worker.id);
                         },
                         child: Container(
                           width: 24,
@@ -488,7 +473,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Confirm to extend shifts for ${_selectedWorkerIds.length}\nworkers until ${_selectedEndDate != null ? '${_selectedEndDate!.day}/${_selectedEndDate!.month}/${_selectedEndDate!.year}' : 'selected date'}',
+                  'Confirm to extend shifts for ${controller.selectedWorkerIds.length}\nworkers until ${controller.selectedEndDate.value != null ? '${controller.selectedEndDate.value!.day}/${controller.selectedEndDate.value!.month}/${controller.selectedEndDate.value!.year}' : 'selected date'}',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
@@ -501,8 +486,8 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
-                  children: _selectedWorkerIds.map((workerId) {
-                    final worker = _allWorkers.firstWhere((w) => w.id == workerId);
+                  children: controller.selectedWorkerIds.map((workerId) {
+                    final worker = controller.allWorkers.firstWhere((w) => w.id == workerId);
                     return Stack(
                       children: [
                         Container(
@@ -521,9 +506,7 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              setState(() {
-                                _selectedWorkerIds.remove(worker.id);
-                              });
+                              controller.toggleWorkerSelection(worker.id);
                             },
                             child: Container(
                               width: 24,
@@ -579,12 +562,10 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
         children: [
           TextButton(
             onPressed: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep--;
-                });
+              if (controller.currentStep.value > 0) {
+                controller.previousStep();
               } else {
-                Navigator.pop(context);
+                controller.handleBackNavigation();
               }
             },
             child: Text(
@@ -599,24 +580,21 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
           Spacer(),
           ElevatedButton(
             onPressed: _canProceed() ? () {
-              if (_currentStep < 2) {
-                setState(() {
-                  _currentStep++;
-                });
+              if (controller.currentStep.value < 2) {
+                controller.nextStep();
               } else {
-                // TODO: Execute extend shifts
-                Navigator.pop(context);
+                controller.completeExtendShifts();
               }
             } : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: Text(
-              _currentStep == 2 ? 'Extend ${_selectedWorkerIds.length} shifts' : 'Next',
+              controller.currentStep.value == 2 ? 'Extend ${controller.selectedWorkerIds.length} shifts' : 'Next',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -630,13 +608,13 @@ class _ExtendShiftsStepperState extends State<ExtendShiftsStepper> {
   }
 
   bool _canProceed() {
-    switch (_currentStep) {
+    switch (controller.currentStep.value) {
       case 0:
-        return _selectedWorkerIds.isNotEmpty;
+        return controller.selectedWorkerIds.isNotEmpty;
       case 1:
-        return _selectedWorkerIds.isNotEmpty && _selectedEndDate != null;
+        return controller.selectedWorkerIds.isNotEmpty && controller.selectedEndDate.value != null;
       case 2:
-        return _selectedWorkerIds.isNotEmpty && _selectedEndDate != null;
+        return controller.selectedWorkerIds.isNotEmpty && controller.selectedEndDate.value != null;
       default:
         return false;
     }

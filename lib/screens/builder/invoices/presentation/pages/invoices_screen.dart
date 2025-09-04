@@ -3,51 +3,28 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/search_input_field.dart';
-import '../../logic/controllers/invoice_controller.dart';
 import '../widgets/invoice_card.dart';
-import '../../data/dto/invoice_dto.dart';
-import '../../../staff/presentation/pages/move_workers_stepper.dart';
-import '../../../staff/presentation/pages/extend_shifts_stepper.dart';
-import '../../../staff/presentation/pages/unhire_workers_stepper.dart';
-import '../../../staff/data/dto/worker_dto.dart';
-import '../../../staff/data/dto/jobsite_workers_dto.dart';
-import '../widgets/report_modal.dart';
 import '../widgets/skill_filter_input.dart';
+import '../../logic/controllers/invoices_screen_controller.dart';
 
-class InvoicesScreen extends StatefulWidget {
+class InvoicesScreen extends StatelessWidget {
+  static const String id = '/builder/invoices';
+  
   final AppFlavor? flavor;
 
-  const InvoicesScreen({
+  InvoicesScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<InvoicesScreen> createState() => _InvoicesScreenState();
-}
-
-class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  late InvoiceController _invoiceController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 2, vsync: this);
-    _searchController.text = '';
-    _invoiceController = Get.put(InvoiceController());
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    super.dispose();
-  }
+  final InvoicesScreenController controller = Get.put(InvoicesScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -92,14 +69,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                   
                   // Search Bar
                   SearchInputField(
-                    controller: _searchController,
+                    controller: controller.searchController.value,
                     hintText: 'Search Workers',
-                    flavor: widget.flavor,
+                    flavor: flavor,
                     height: 40,
                     fontSize: 14,
-                    onChanged: (value) {
-                      _invoiceController.setSearchQuery(value);
-                    },
+                    onChanged: controller.handleSearchChanged,
                     onSearch: () {
                       // Search is handled by onChanged
                     },
@@ -112,22 +87,18 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                     children: [
                       Expanded(
                         child: _buildDropdown(
-                          value: _invoiceController.selectedJobsite,
-                          items: _invoiceController.getAvailableJobsites(),
-                          onChanged: (value) {
-                            _invoiceController.setSelectedJobsite(value!);
-                          },
+                          value: controller.invoiceController.selectedJobsite,
+                          items: controller.invoiceController.getAvailableJobsites(),
+                          onChanged: controller.handleJobsiteChanged,
                         ),
                       ),
                       SizedBox(width: 12),
                       Expanded(
                         child: SkillFilterInput(
-                          flavor: widget.flavor,
-                          availableSkills: _invoiceController.getAvailableSkills(),
-                          selectedSkill: _invoiceController.selectedSkill,
-                          onSkillSelected: (skill) {
-                            _invoiceController.setSelectedSkill(skill);
-                          },
+                          flavor: flavor,
+                          availableSkills: controller.invoiceController.getAvailableSkills(),
+                          selectedSkill: controller.invoiceController.selectedSkill,
+                          onSkillSelected: controller.handleSkillSelected,
                         ),
                       ),
                     ],
@@ -142,116 +113,17 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                       _buildQuickActionButton(
                         icon: Icons.people,
                         label: 'Move Workers',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _invoiceController.getOutstandingInvoices().expand((jobsite) => jobsite.invoices).toList()
-                              : _invoiceController.getCompletedInvoices().expand((jobsite) => jobsite.invoices).toList();
-                          
-                          // Convertir invoices a JobsiteWorkersDto para compatibilidad
-                          final workersData = _invoiceController.jobsiteInvoices.map((jobsite) {
-                            return JobsiteWorkersDto(
-                              jobsiteId: jobsite.jobsiteId,
-                              jobsiteName: jobsite.jobsiteName,
-                              jobsiteAddress: jobsite.jobsiteAddress,
-                              workers: jobsite.invoices.map((invoice) => WorkerDto(
-                                id: invoice.id,
-                                name: invoice.workerName,
-                                role: invoice.workerRole,
-                                hourlyRate: '\$${invoice.total.toStringAsFixed(2)}',
-                                imageUrl: invoice.workerImageUrl,
-                                isActive: !invoice.isPaid,
-                                jobsiteId: jobsite.jobsiteId,
-                                jobsiteName: jobsite.jobsiteName,
-                              )).toList(),
-                            );
-                          }).toList();
-                          
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MoveWorkersStepper(
-                                flavor: widget.flavor,
-                                workers: workersData,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToMoveWorkers,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.access_time,
                         label: 'Extend shifts',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _invoiceController.getOutstandingInvoices().expand((jobsite) => jobsite.invoices).toList()
-                              : _invoiceController.getCompletedInvoices().expand((jobsite) => jobsite.invoices).toList();
-                          
-                          // Convertir invoices a JobsiteWorkersDto para compatibilidad
-                          final workersData = _invoiceController.jobsiteInvoices.map((jobsite) {
-                            return JobsiteWorkersDto(
-                              jobsiteId: jobsite.jobsiteId,
-                              jobsiteName: jobsite.jobsiteName,
-                              jobsiteAddress: jobsite.jobsiteAddress,
-                              workers: jobsite.invoices.map((invoice) => WorkerDto(
-                                id: invoice.id,
-                                name: invoice.workerName,
-                                role: invoice.workerRole,
-                                hourlyRate: '\$${invoice.total.toStringAsFixed(2)}',
-                                imageUrl: invoice.workerImageUrl,
-                                isActive: !invoice.isPaid,
-                                jobsiteId: jobsite.jobsiteId,
-                                jobsiteName: jobsite.jobsiteName,
-                              )).toList(),
-                            );
-                          }).toList();
-                          
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ExtendShiftsStepper(
-                                flavor: widget.flavor,
-                                workers: workersData,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToExtendShifts,
                       ),
                       _buildQuickActionButton(
                         icon: Icons.person_remove,
                         label: 'Unhire workers',
-                        onTap: () {
-                          final currentWorkers = _tabController.index == 0 
-                              ? _invoiceController.getOutstandingInvoices().expand((jobsite) => jobsite.invoices).toList()
-                              : _invoiceController.getCompletedInvoices().expand((jobsite) => jobsite.invoices).toList();
-                          
-                          // Convertir invoices a JobsiteWorkersDto para compatibilidad
-                          final workersData = _invoiceController.jobsiteInvoices.map((jobsite) {
-                            return JobsiteWorkersDto(
-                              jobsiteId: jobsite.jobsiteId,
-                              jobsiteName: jobsite.jobsiteName,
-                              jobsiteAddress: jobsite.jobsiteAddress,
-                              workers: jobsite.invoices.map((invoice) => WorkerDto(
-                                id: invoice.id,
-                                name: invoice.workerName,
-                                role: invoice.workerRole,
-                                hourlyRate: '\$${invoice.total.toStringAsFixed(2)}',
-                                imageUrl: invoice.workerImageUrl,
-                                isActive: !invoice.isPaid,
-                                jobsiteId: jobsite.jobsiteId,
-                                jobsiteName: jobsite.jobsiteName,
-                              )).toList(),
-                            );
-                          }).toList();
-                          
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => UnhireWorkersStepper(
-                                flavor: widget.flavor,
-                                workers: workersData,
-                              ),
-                            ),
-                          );
-                        },
+                        onTap: controller.navigateToUnhireWorkers,
                       ),
                     ],
                   ),
@@ -262,7 +134,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
             // Invoices List
             Expanded(
               child: TabBarView(
-                controller: _tabController,
+                controller: controller.tabController,
                 children: [
                   _buildInvoicesList(true), // Outstanding invoices
                   _buildInvoicesList(false), // Payment history
@@ -285,9 +157,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: controller.handleBackNavigation,
                 child: Icon(
                   Icons.arrow_back,
                   color: Colors.white,
@@ -310,33 +180,30 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
           
           // Tabs
           AnimatedBuilder(
-            animation: _tabController,
+            animation: controller.tabController,
             builder: (context, child) {
               return Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        _tabController.animateTo(0);
-                        _invoiceController.setCurrentTabIndex(0);
-                      },
+                      onTap: () => controller.handleTabChange(0),
                       child: Column(
                         children: [
                           Text(
                             'Completed jobs',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
-                              fontWeight: _tabController.index == 0 ? FontWeight.w600 : FontWeight.w400,
+                              fontWeight: controller.tabController.index == 0 ? FontWeight.w600 : FontWeight.w400,
                               color: Colors.white,
                             ),
                           ),
                           SizedBox(height: 12),
-                          if (_tabController.index == 0)
+                          if (controller.tabController.index == 0)
                             Container(
                               height: 3,
                               width: 150,
                               decoration: BoxDecoration(
-                                color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                                color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -346,27 +213,24 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                   ),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () {
-                        _tabController.animateTo(1);
-                        _invoiceController.setCurrentTabIndex(1);
-                      },
+                      onTap: () => controller.handleTabChange(1),
                       child: Column(
                         children: [
                           Text(
                             'Payment History',
                             style: GoogleFonts.poppins(
                               fontSize: 16,
-                              fontWeight: _tabController.index == 1 ? FontWeight.w600 : FontWeight.w400,
+                              fontWeight: controller.tabController.index == 1 ? FontWeight.w600 : FontWeight.w400,
                               color: Colors.white,
                             ),
                           ),
                           SizedBox(height: 12),
-                          if (_tabController.index == 1)
+                          if (controller.tabController.index == 1)
                             Container(
                               height: 3,
                               width: 150,
                               decoration: BoxDecoration(
-                                color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                                color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -431,7 +295,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+              color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -458,10 +322,10 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
   Widget _buildInvoicesList(bool isOutstanding) {
     return Obx(() {
       final jobsiteInvoices = isOutstanding 
-          ? _invoiceController.getOutstandingInvoices()
-          : _invoiceController.getCompletedInvoices();
+          ? controller.invoiceController.getOutstandingInvoices()
+          : controller.invoiceController.getCompletedInvoices();
       
-      if (_invoiceController.isLoading) {
+      if (controller.invoiceController.isLoading) {
         return const Center(child: CircularProgressIndicator());
       }
       
@@ -505,12 +369,12 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
                     final invoice = jobsite.invoices[invoiceIndex];
                     return InvoiceCard(
                       invoice: invoice,
-                      flavor: widget.flavor,
-                      onView: () => _invoiceController.viewInvoice(invoice.id),
-                      onSend: () => _invoiceController.sendInvoice(invoice.id),
-                      onReport: () => _showReportModal(invoice),
-                      onPay: () => _invoiceController.payInvoice(invoice.id),
-                      onToggleSelection: () => _invoiceController.toggleInvoiceSelection(invoice.id),
+                      flavor: flavor,
+                      onView: () => controller.invoiceController.viewInvoice(invoice.id),
+                      onSend: () => controller.invoiceController.sendInvoice(invoice.id),
+                      onReport: () => controller.showReportModal(invoice.id, invoice.workerName),
+                      onPay: () => controller.invoiceController.payInvoice(invoice.id),
+                      onToggleSelection: () => controller.invoiceController.toggleInvoiceSelection(invoice.id),
                     );
                   },
                 ),
@@ -522,18 +386,4 @@ class _InvoicesScreenState extends State<InvoicesScreen> with SingleTickerProvid
     });
   }
 
-  void _showReportModal(InvoiceDto invoice) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return ReportModal(
-          flavor: widget.flavor,
-          invoiceId: invoice.id,
-          workerName: invoice.workerName,
-        );
-      },
-    );
-  }
 }

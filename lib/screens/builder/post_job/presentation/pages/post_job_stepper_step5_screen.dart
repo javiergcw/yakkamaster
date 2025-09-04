@@ -4,63 +4,28 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 import '../widgets/custom_time_picker_modal.dart';
-import 'post_job_stepper_step6_screen.dart';
 
-class PostJobStepperStep5Screen extends StatefulWidget {
+class PostJobStepperStep5Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step5';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep5Screen({
+  PostJobStepperStep5Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep5Screen> createState() => _PostJobStepperStep5ScreenState();
-}
-
-class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  TimeOfDay? _selectedStartTime;
-  TimeOfDay? _selectedEndTime;
-  String? _selectedJobType;
-
-  final List<String> _jobTypes = [
-    'Casual Job',
-    'Part time',
-    'Full time',
-    'Farms Job',
-    'Mining Job',
-    'FIFO',
-    'Seasonal job',
-    'W&H visa',
-    'Other',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(5);
-    
-    // Inicializar datos si ya existen en el controlador
-    if (_controller.postJobData.startTime != null) {
-      _selectedStartTime = _controller.postJobData.startTime;
-    }
-    if (_controller.postJobData.endTime != null) {
-      _selectedEndTime = _controller.postJobData.endTime;
-    }
-    if (_controller.postJobData.jobType != null) {
-      _selectedJobType = _controller.postJobData.jobType;
-    }
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -71,6 +36,8 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
     final questionFontSize = screenWidth * 0.075;
     final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -97,8 +64,7 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      _controller.handleBackNavigation();
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -137,7 +103,7 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
                   Expanded(
                     flex: 5,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -184,7 +150,7 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
                     SizedBox(height: verticalSpacing * 1.5),
                     
                     // Time input fields
-                    _buildTimeInputFields(),
+                    _buildTimeInputFields(context),
                     
                     SizedBox(height: verticalSpacing * 3),
                     
@@ -201,7 +167,7 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
                     SizedBox(height: verticalSpacing * 1.5),
                     
                     // Job type chips
-                    _buildJobTypeChips(),
+                    _buildJobTypeChips(context),
                     
                     SizedBox(height: verticalSpacing * 3),
                   ],
@@ -212,12 +178,12 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
             // Continue Button
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
-              child: CustomButton(
+              child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _canProceed() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? _handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
-              ),
+                flavor: currentFlavor,
+              )),
             ),
           ],
         ),
@@ -225,31 +191,32 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
     );
   }
 
-  Widget _buildTimeInputFields() {
+  Widget _buildTimeInputFields(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Row(
       children: [
         // Start time field
         Expanded(
           child: GestureDetector(
-            onTap: () => _showTimePicker(true),
-            child: CustomTextField(
+            onTap: () => _showTimePicker(context, true),
+            child: Obx(() => CustomTextField(
               labelText: "Start time",
               hintText: "hh:mm",
               controller: TextEditingController(
-                text: _selectedStartTime != null 
-                    ? "${_selectedStartTime!.hour.toString().padLeft(2, '0')}:${_selectedStartTime!.minute.toString().padLeft(2, '0')}"
+                text: controller.selectedStartTime.value != null 
+                    ? "${controller.selectedStartTime.value!.hour.toString().padLeft(2, '0')}:${controller.selectedStartTime.value!.minute.toString().padLeft(2, '0')}"
                     : "",
               ),
               enabled: false,
-              flavor: _currentFlavor,
-            ),
+              flavor: currentFlavor,
+            )),
           ),
         ),
         
@@ -258,25 +225,25 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
         // End time field
         Expanded(
           child: GestureDetector(
-            onTap: () => _showTimePicker(false),
-            child: CustomTextField(
+            onTap: () => _showTimePicker(context, false),
+            child: Obx(() => CustomTextField(
               labelText: "End time",
               hintText: "hh:mm",
               controller: TextEditingController(
-                text: _selectedEndTime != null 
-                    ? "${_selectedEndTime!.hour.toString().padLeft(2, '0')}:${_selectedEndTime!.minute.toString().padLeft(2, '0')}"
+                text: controller.selectedEndTime.value != null 
+                    ? "${controller.selectedEndTime.value!.hour.toString().padLeft(2, '0')}:${controller.selectedEndTime.value!.minute.toString().padLeft(2, '0')}"
                     : "",
               ),
               enabled: false,
-              flavor: _currentFlavor,
-            ),
+              flavor: currentFlavor,
+            )),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildJobTypeChips() {
+  Widget _buildJobTypeChips(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -285,20 +252,19 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
     final verticalSpacing = screenHeight * 0.025;
     final chipHeight = screenHeight * 0.045; // Reducido de 0.06 a 0.045
     final chipFontSize = screenWidth * 0.03; // Reducido de 0.035 a 0.03
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Wrap(
       spacing: horizontalPadding * 0.5,
       runSpacing: verticalSpacing * 0.8,
-      children: _jobTypes.map((jobType) {
-        final isSelected = _selectedJobType == jobType;
-        
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedJobType = jobType;
-            });
-            _controller.updateJobType(jobType);
-          },
+      children: controller.jobTypes.map((jobType) {
+        return Obx(() {
+          final isSelected = controller.selectedJobType.value == jobType;
+          
+          return GestureDetector(
+            onTap: () {
+              controller.updateJobType(jobType);
+            },
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding * 0.8,
@@ -306,12 +272,12 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
             ),
             decoration: BoxDecoration(
               color: isSelected 
-                  ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                   : Colors.white,
               borderRadius: BorderRadius.circular(chipHeight * 0.5),
               border: Border.all(
                 color: isSelected
-                    ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                     : Colors.grey[300]!,
                 width: 1,
               ),
@@ -326,51 +292,35 @@ class _PostJobStepperStep5ScreenState extends State<PostJobStepperStep5Screen> {
             ),
           ),
         );
+        });
       }).toList(),
     );
   }
 
-  void _showTimePicker(bool isStartTime) {
+  void _showTimePicker(BuildContext context, bool isStartTime) {
     print('_showTimePicker called: ${isStartTime ? "Start" : "End"} time');
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => CustomTimePickerModal(
-        flavor: _currentFlavor,
+        flavor: currentFlavor,
         initialTime: isStartTime 
-            ? (_selectedStartTime ?? TimeOfDay.now())
-            : (_selectedEndTime ?? _selectedStartTime ?? TimeOfDay.now()),
+            ? (controller.selectedStartTime.value ?? TimeOfDay.now())
+            : (controller.selectedEndTime.value ?? controller.selectedStartTime.value ?? TimeOfDay.now()),
         onTimeSelected: (selectedTime) {
           print('Time selected: ${selectedTime.format(context)}');
-          setState(() {
-            if (isStartTime) {
-              _selectedStartTime = selectedTime;
-              _controller.updateStartTime(selectedTime);
-            } else {
-              _selectedEndTime = selectedTime;
-              _controller.updateEndTime(selectedTime);
-            }
-          });
+          if (isStartTime) {
+            controller.updateStartTime(selectedTime);
+          } else {
+            controller.updateEndTime(selectedTime);
+          }
         },
       ),
     );
   }
 
-  bool _canProceed() {
-    return _selectedStartTime != null && 
-           _selectedEndTime != null &&
-           _selectedJobType != null &&
-           _selectedJobType!.isNotEmpty;
-  }
-
   void _handleContinue() {
-    if (_canProceed()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep6Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 }

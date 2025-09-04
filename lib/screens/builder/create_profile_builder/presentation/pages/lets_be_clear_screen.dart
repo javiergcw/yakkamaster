@@ -1,36 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import 'profile_created_screen.dart';
+import '../../logic/controllers/lets_be_clear_controller.dart';
 
-class LetsBeClearScreen extends StatefulWidget {
+class LetsBeClearScreen extends StatelessWidget {
+  static const String id = '/builder/lets-be-clear';
+  
   final AppFlavor? flavor;
 
-  const LetsBeClearScreen({
+  LetsBeClearScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<LetsBeClearScreen> createState() => _LetsBeClearScreenState();
-}
-
-class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleAccept() {
-    // Navegar a la pantalla de éxito
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => ProfileCreatedScreen(flavor: _currentFlavor)),
-      (route) => false, // Esto elimina todas las rutas anteriores del stack
-    );
-  }
+  final LetsBeClearController controller = Get.put(LetsBeClearController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -41,7 +35,6 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
     final titleFontSize = screenWidth * 0.055;
     final headlineFontSize = screenWidth * 0.065;
     final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
     final logoSize = screenWidth * 0.25;
 
     return Scaffold(
@@ -55,11 +48,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      if (mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
+                    onPressed: controller.handleBackNavigation,
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -97,7 +86,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                         width: logoSize,
                         height: logoSize,
                         child: SvgPicture.asset(
-                          AssetsConfig.getLogoMiddle(_currentFlavor),
+                          AssetsConfig.getLogoMiddle(controller.currentFlavor.value),
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -183,7 +172,7 @@ class _LetsBeClearScreenState extends State<LetsBeClearScreen> {
                     // Botón de aceptación usando CustomButton
                     CustomButton(
                       text: "I understand and accept",
-                      onPressed: mounted ? _handleAccept : null,
+                      onPressed: controller.handleAccept,
                       isLoading: false,
                     ),
                     

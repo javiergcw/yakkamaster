@@ -4,75 +4,27 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import '../../logic/controllers/post_job_controller.dart';
-import 'post_job_stepper_step7_screen.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
-class PostJobStepperStep6Screen extends StatefulWidget {
+class PostJobStepperStep6Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step6';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep6Screen({
+  PostJobStepperStep6Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep6Screen> createState() => _PostJobStepperStep6ScreenState();
-}
-
-class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  final List<String> _jobRequirements = [
-    'White Card',
-    'Clean the Job Place',
-    'Good English Level',
-    'Heavy Lifting',
-    'ABN job',
-    'SWMS',
-    'RSA',
-    'Must have experience',
-    'Demolition Job',
-    'Women Only',
-    'Full PPE',
-  ];
-  
-  final List<String> _credentials = [
-    'Driver License',
-    'Forklift License',
-    'White Card',
-    'First Aid Certificate',
-    'Working at Heights',
-    'Confined Spaces',
-    'Other'
-  ];
-  
-  final Set<String> _selectedRequirements = <String>{};
-  final Set<String> _selectedCredentials = <String>{};
-  String? _selectedCredential;
-  final TextEditingController _descriptionController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(6);
-    
-    // Inicializar datos si ya existen en el controlador
-    if (_controller.postJobData.requirements != null) {
-      _selectedRequirements.addAll(_controller.postJobData.requirements!);
-    }
-  }
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -81,8 +33,9 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
     final questionFontSize = screenWidth * 0.075;
-    final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -109,8 +62,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      _controller.handleBackNavigation();
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -149,7 +101,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                   Expanded(
                     flex: 6,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -197,7 +149,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                      SizedBox(height: verticalSpacing),
                      
                      // Requirements chips
-                     _buildRequirementsChips(),
+                     _buildRequirementsChips(context),
                      
                      SizedBox(height: verticalSpacing * 2),
                      
@@ -217,7 +169,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                        children: [
                          Expanded(
                            child: GestureDetector(
-                             onTap: _showCredentialDropdown,
+                             onTap: () => _showCredentialDropdown(context),
                              child: Container(
                                padding: EdgeInsets.symmetric(
                                  horizontal: horizontalPadding * 0.8,
@@ -231,13 +183,13 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                                child: Row(
                                  children: [
                                    Expanded(
-                                     child: Text(
-                                       _selectedCredential ?? "Select credential",
+                                     child: Obx(() => Text(
+                                       controller.selectedCredential.value.isNotEmpty ? controller.selectedCredential.value : "Select credential",
                                        style: GoogleFonts.poppins(
                                          fontSize: screenWidth * 0.035,
-                                         color: _selectedCredential != null ? Colors.black : Colors.grey[600],
+                                         color: controller.selectedCredential.value.isNotEmpty ? Colors.black : Colors.grey[600],
                                        ),
-                                     ),
+                                     )),
                                    ),
                                    Icon(
                                      Icons.keyboard_arrow_down,
@@ -251,12 +203,12 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                          ),
                          SizedBox(width: horizontalPadding * 0.5),
                                                    GestureDetector(
-                            onTap: _addCredential,
+                            onTap: () => controller.addCredential(),
                                                          child: Container(
                                width: screenWidth * 0.12,
                                height: screenWidth * 0.12,
                                decoration: BoxDecoration(
-                                 color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                 color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                                  borderRadius: BorderRadius.circular(12),
                                ),
                               child: Icon(
@@ -270,22 +222,25 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                      ),
                      
                                            // Selected credentials display
-                      if (_selectedCredentials.isNotEmpty) ...[
-                        SizedBox(height: verticalSpacing),
-                        Wrap(
-                         spacing: horizontalPadding * 0.5,
-                         runSpacing: verticalSpacing * 0.5,
-                         children: _selectedCredentials.map((credential) {
+                      Obx(() {
+                        if (controller.selectedCredentials.isNotEmpty) {
+                          return Column(
+                            children: [
+                              SizedBox(height: verticalSpacing),
+                              Wrap(
+                               spacing: horizontalPadding * 0.5,
+                               runSpacing: verticalSpacing * 0.5,
+                               children: controller.selectedCredentials.map((credential) {
                            return Container(
                              padding: EdgeInsets.symmetric(
                                horizontal: horizontalPadding * 0.6,
                                vertical: verticalSpacing * 0.4,
                              ),
                              decoration: BoxDecoration(
-                               color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.1),
+                               color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)).withOpacity(0.1),
                                borderRadius: BorderRadius.circular(20),
                                border: Border.all(
-                                 color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.3),
+                                 color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)).withOpacity(0.3),
                                ),
                              ),
                              child: Row(
@@ -295,28 +250,31 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                                    credential,
                                    style: GoogleFonts.poppins(
                                      fontSize: screenWidth * 0.03,
-                                     color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                     color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                                    ),
                                  ),
                                  SizedBox(width: horizontalPadding * 0.3),
                                  GestureDetector(
                                    onTap: () {
-                                     setState(() {
-                                       _selectedCredentials.remove(credential);
-                                     });
+                                     controller.removeCredential(credential);
                                    },
                                    child: Icon(
                                      Icons.close,
                                      size: screenWidth * 0.035,
-                                     color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                                     color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                                    ),
                                  ),
                                ],
                              ),
                            );
-                         }).toList(),
-                       ),
-                                           ],
+                               }).toList(),
+                             ),
+                            ],
+                          );
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      }),
                      
                      SizedBox(height: verticalSpacing * 2),
                      
@@ -335,13 +293,16 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                      Row(
                        children: [
                          Expanded(
-                           child: CustomTextField(
-                             labelText: "Description",
-                             hintText: "Description...",
-                             controller: _descriptionController,
-                             flavor: _currentFlavor,
-                             maxLines: 4,
-                           ),
+                           child: Obx(() {
+                             final textController = TextEditingController(text: controller.description.value);
+                             return CustomTextField(
+                               labelText: "Description",
+                               hintText: "Description...",
+                               controller: textController,
+                               flavor: currentFlavor,
+                               maxLines: 4,
+                             );
+                           }),
                          ),
                          SizedBox(width: horizontalPadding * 0.5),
                          TextButton(
@@ -350,7 +311,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                              FocusScope.of(context).unfocus();
                            },
                            style: TextButton.styleFrom(
-                             backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                             backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                              shape: RoundedRectangleBorder(
                                borderRadius: BorderRadius.circular(8),
                              ),
@@ -377,12 +338,12 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
             // Continue Button
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
-              child: CustomButton(
+              child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _canProceed() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? _handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
-              ),
+                flavor: currentFlavor,
+              )),
             ),
           ],
         ),
@@ -390,7 +351,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
     );
   }
 
-  Widget _buildRequirementsChips() {
+  Widget _buildRequirementsChips(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -399,133 +360,108 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
     final verticalSpacing = screenHeight * 0.025;
     final chipHeight = screenHeight * 0.045;
     final chipFontSize = screenWidth * 0.03;
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Column(
       children: [
-        for (int i = 0; i < _jobRequirements.length; i += 2)
+        for (int i = 0; i < controller.jobRequirements.length; i += 2)
           Padding(
             padding: EdgeInsets.only(bottom: verticalSpacing * 0.8),
             child: Row(
-              children: [
-                // First column
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        final requirement = _jobRequirements[i];
-                        if (_selectedRequirements.contains(requirement)) {
-                          _selectedRequirements.remove(requirement);
-                        } else {
-                          _selectedRequirements.add(requirement);
-                        }
-                      });
-                      _controller.updateRequirements(_selectedRequirements.toList());
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding * 0.8,
-                        vertical: verticalSpacing * 0.6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _selectedRequirements.contains(_jobRequirements[i])
-                            ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(chipHeight * 0.5),
-                        border: Border.all(
-                          color: _selectedRequirements.contains(_jobRequirements[i])
-                              ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                              : Colors.grey[300]!,
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        _jobRequirements[i],
-                        style: GoogleFonts.poppins(
-                          fontSize: chipFontSize,
-                          fontWeight: FontWeight.w500,
-                          color: _selectedRequirements.contains(_jobRequirements[i]) ? Colors.white : Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ),
-                
-                // Spacing between columns
-                SizedBox(width: horizontalPadding * 0.5),
-                
-                // Second column (if exists)
-                if (i + 1 < _jobRequirements.length)
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          final requirement = _jobRequirements[i + 1];
-                          if (_selectedRequirements.contains(requirement)) {
-                            _selectedRequirements.remove(requirement);
-                          } else {
-                            _selectedRequirements.add(requirement);
-                          }
-                        });
-                        _controller.updateRequirements(_selectedRequirements.toList());
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding * 0.8,
-                          vertical: verticalSpacing * 0.6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _selectedRequirements.contains(_jobRequirements[i + 1])
-                              ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(chipHeight * 0.5),
-                          border: Border.all(
-                            color: _selectedRequirements.contains(_jobRequirements[i + 1])
-                                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
-                                : Colors.grey[300]!,
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          _jobRequirements[i + 1],
-                          style: GoogleFonts.poppins(
-                            fontSize: chipFontSize,
-                            fontWeight: FontWeight.w500,
-                            color: _selectedRequirements.contains(_jobRequirements[i + 1]) ? Colors.white : Colors.black,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  Expanded(child: SizedBox()), // Empty space for odd number of items
-              ],
+              children: _buildRequirementRow(i, horizontalPadding, verticalSpacing, chipHeight, chipFontSize, currentFlavor),
             ),
           ),
       ],
     );
   }
 
-  bool _canProceed() {
-    // Para este paso, solo necesitamos que haya al menos un requisito seleccionado
-    // o que se haya ingresado una descripción
-    return _selectedRequirements.isNotEmpty || 
-           (_descriptionController.text.trim().isNotEmpty);
+  List<Widget> _buildRequirementRow(int i, double horizontalPadding, double verticalSpacing, double chipHeight, double chipFontSize, AppFlavor currentFlavor) {
+    return [
+      // First column
+      Expanded(
+        child: Obx(() => GestureDetector(
+          onTap: () {
+            controller.toggleRequirement(controller.jobRequirements[i]);
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding * 0.8,
+              vertical: verticalSpacing * 0.6,
+            ),
+            decoration: BoxDecoration(
+              color: controller.selectedRequirements.contains(controller.jobRequirements[i])
+                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                  : Colors.white,
+              borderRadius: BorderRadius.circular(chipHeight * 0.5),
+              border: Border.all(
+                color: controller.selectedRequirements.contains(controller.jobRequirements[i])
+                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                    : Colors.grey[300]!,
+                width: 1,
+              ),
+            ),
+            child: Text(
+              controller.jobRequirements[i],
+              style: GoogleFonts.poppins(
+                fontSize: chipFontSize,
+                fontWeight: FontWeight.w500,
+                color: controller.selectedRequirements.contains(controller.jobRequirements[i]) ? Colors.white : Colors.black,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        )),
+      ),
+      
+      // Spacing between columns
+      SizedBox(width: horizontalPadding * 0.5),
+      
+      // Second column (if exists)
+      if (i + 1 < controller.jobRequirements.length)
+        Expanded(
+          child: Obx(() => GestureDetector(
+            onTap: () {
+              controller.toggleRequirement(controller.jobRequirements[i + 1]);
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding * 0.8,
+                vertical: verticalSpacing * 0.6,
+              ),
+              decoration: BoxDecoration(
+                color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1])
+                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(chipHeight * 0.5),
+                border: Border.all(
+                  color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1])
+                      ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                      : Colors.grey[300]!,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                controller.jobRequirements[i + 1],
+                style: GoogleFonts.poppins(
+                  fontSize: chipFontSize,
+                  fontWeight: FontWeight.w500,
+                  color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1]) ? Colors.white : Colors.black,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )),
+        )
+      else
+        Expanded(child: SizedBox()), // Empty space for odd number of items
+    ];
   }
 
   void _handleContinue() {
-    if (_canProceed()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobStepperStep7Screen(flavor: _currentFlavor),
-        ),
-      );
-    }
+    controller.handleContinue();
   }
 
-  void _showCredentialDropdown() {
+  void _showCredentialDropdown(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final titleFontSize = screenWidth * 0.045;
@@ -568,20 +504,18 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: _credentials.length,
+                itemCount: controller.credentials.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(
-                      _credentials[index],
+                      controller.credentials[index],
                       style: GoogleFonts.poppins(
                         fontSize: itemFontSize,
                         color: Colors.black87,
                       ),
                     ),
                     onTap: () {
-                      setState(() {
-                        _selectedCredential = _credentials[index];
-                      });
+                      controller.setSelectedCredential(controller.credentials[index]);
                       Navigator.pop(context);
                     },
                   );
@@ -594,27 +528,4 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
     );
   }
 
-  void _addCredential() {
-    if (_selectedCredential == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona un tipo de credencial'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _selectedCredentials.add(_selectedCredential!);
-      _selectedCredential = null; // Reset selection
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Credencial agregada'),
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-      ),
-    );
-  }
 }

@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
-import '../../../../labour/create_profile_labour/presentation/pages/respect_screen.dart';
+import '../../presentation/pages/respect_screen.dart';
 
 class EmployeeSelectionController extends GetxController {
   final RxString? selectedEmployeeRange = RxString('');

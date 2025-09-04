@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/job_site_controller.dart';
+import '../../presentation/pages/create_edit_job_site_screen.dart';
+import '../../presentation/pages/post_job_stepper_screen.dart';
 
 class JobSitesScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
-  final JobSiteController jobSiteController = Get.find<JobSiteController>();
+  final JobSiteController jobSiteController = Get.put(JobSiteController());
 
   @override
   void onInit() {
@@ -18,11 +20,11 @@ class JobSitesScreenController extends GetxController {
   }
 
   void handleCreateJobSite() {
-    Get.toNamed('/builder/create-edit-job-site', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(CreateEditJobSiteScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleEditJobSite(dynamic jobSite) {
-    Get.toNamed('/builder/create-edit-job-site', arguments: {
+    Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
       'flavor': currentFlavor.value,
       'jobSite': jobSite,
     });
@@ -30,7 +32,7 @@ class JobSitesScreenController extends GetxController {
 
   void handleRequestWorkers() {
     // Navegar al stepper de post job con los jobsites seleccionados
-    Get.toNamed('/builder/post-job', arguments: {
+    Get.toNamed(PostJobStepperScreen.id, arguments: {
       'flavor': currentFlavor.value,
       'selectedJobSites': jobSiteController.selectedJobSites.toList(),
     });

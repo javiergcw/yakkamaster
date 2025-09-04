@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 // Importar pantallas principales
 import '../../screens/join_splash_screen.dart';
-import '../../config/app_flavor.dart';
 
 // Importar pantallas de login
 import '../../screens/login/presentation/pages/login_screen.dart';
@@ -23,6 +21,9 @@ import '../../screens/labour/create_profile_labour/presentation/pages/profile_cr
 import '../../screens/builder/create_profile_builder/presentation/pages/create_profile_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/employee_selection_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/register_new_company_screen.dart';
+import '../../screens/builder/create_profile_builder/presentation/pages/respect_screen.dart' as builder_respect;
+import '../../screens/builder/create_profile_builder/presentation/pages/lets_be_clear_screen.dart' as builder_lets_be_clear;
+import '../../screens/builder/create_profile_builder/presentation/pages/profile_created_screen.dart' as builder_profile_created;
 
 // Importar pantallas de builder
 import '../../screens/builder/home/presentation/pages/builder_home_screen.dart';
@@ -40,6 +41,26 @@ import '../../screens/builder/post_job/presentation/pages/post_job_stepper_scree
 import '../../screens/builder/post_job/presentation/pages/job_sites_screen.dart';
 import '../../screens/builder/post_job/presentation/pages/create_edit_job_site_screen.dart';
 import '../../screens/builder/post_job/presentation/pages/post_job_review_screen.dart';
+
+// Importar pantallas de my jobs
+import '../../screens/builder/my_jobs/presentation/pages/my_jobs_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step2_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step3_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step4_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step5_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step6_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step7_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step8_screen.dart';
+
+// Importar pantallas de invoices
+import '../../screens/builder/invoices/presentation/pages/invoices_screen.dart';
+
+// Importar pantallas de staff
+import '../../screens/builder/staff/presentation/pages/staff_screen.dart';
+import '../../screens/builder/staff/presentation/pages/move_workers_stepper.dart';
+import '../../screens/builder/staff/presentation/pages/extend_shifts_stepper.dart';
+import '../../screens/builder/staff/presentation/pages/unhire_workers_stepper.dart';
+import '../../screens/builder/staff/presentation/pages/worker_profile_screen.dart';
 
 // Importar pantallas de labour
 import '../../screens/labour/home/presentation/pages/home_screen.dart';
@@ -65,7 +86,7 @@ import '../bindings/labour_binding.dart';
 import '../bindings/job_listings_binding.dart';
 
 abstract class AppPages {
-  static const duration = Duration(milliseconds: 500);
+  static const duration = Duration(milliseconds: 800);
 
   static final pages = [
     // Pantalla de selección de tipo de usuario
@@ -74,7 +95,7 @@ abstract class AppPages {
       page: () => JoinSplashScreen(),
       binding: JoinSplashBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
 
     // Rutas de Login
@@ -83,105 +104,126 @@ abstract class AppPages {
       page: () => LoginScreen(),
       binding: LoginBinding(),
       transitionDuration: const Duration(milliseconds: 800),
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: EmailLoginScreen.id,
       page: () => EmailLoginScreen(),
       binding: LoginBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: StepperSelectionScreen.id,
       page: () => StepperSelectionScreen(),
       binding: LoginBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: IndustrySelectionScreen.id,
       page: () => IndustrySelectionScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: CreateProfileScreen.id,
       page: () => CreateProfileScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: SkillsExperienceScreen.id,
       page: () => SkillsExperienceScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: LocationScreen.id,
       page: () => LocationScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: PreviousEmployerScreen.id,
       page: () => PreviousEmployerScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: DocumentsScreen.id,
       page: () => DocumentsScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: RespectScreen.id,
       page: () => RespectScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: LetsBeClearScreen.id,
       page: () => LetsBeClearScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: ProfileCreatedScreen.id,
       page: () => ProfileCreatedScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: CreateProfileBuilderScreen.id,
       page: () => CreateProfileBuilderScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: EmployeeSelectionScreen.id,
       page: () => EmployeeSelectionScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: RegisterNewCompanyScreen.id,
       page: () => RegisterNewCompanyScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: builder_respect.RespectScreen.id,
+      page: () => builder_respect.RespectScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: builder_lets_be_clear.LetsBeClearScreen.id,
+      page: () => builder_lets_be_clear.LetsBeClearScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: builder_profile_created.ProfileCreatedScreen.id,
+      page: () => builder_profile_created.ProfileCreatedScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
     ),
 
     // Rutas de Builder - Home
@@ -190,97 +232,228 @@ abstract class AppPages {
       page: () => BuilderHomeScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: builder_profile.ProfileScreen.id,
       page: () => builder_profile.ProfileScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: builder_messages.MessagesScreen.id,
       page: () => builder_messages.MessagesScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: builder_notifications.NotificationsScreen.id,
       page: () => builder_notifications.NotificationsScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: EditPersonalDetailsScreen.id,
       page: () => EditPersonalDetailsScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: JobSitesListScreen.id,
       page: () => JobSitesListScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: MapScreen.id,
       page: () => MapScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: WorkerListScreen.id,
       page: () => WorkerListScreen(),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: builder_chat.ChatScreen.id,
       page: () => builder_chat.ChatScreen(
-        recipientName: 'Worker',
-        recipientAvatar: 'assets/employees.png',
+        recipientName: Get.arguments?['recipientName'] ?? 'Worker',
+        recipientAvatar: Get.arguments?['recipientAvatar'] ?? 'W',
+        flavor: Get.arguments?['flavor'],
       ),
       binding: BuilderBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
 
     // Rutas de Builder - Post Job
-          GetPage(
-        name: PostJobStepperScreen.id,
-        page: () => PostJobStepperScreen(),
-        binding: BuilderBinding(),
-        transitionDuration: duration,
-        transition: Transition.rightToLeftWithFade,
+    GetPage(
+      name: PostJobStepperScreen.id,
+      page: () => PostJobStepperScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep2Screen.id,
+      page: () => PostJobStepperStep2Screen(
+        flavor: Get.arguments?['flavor'],
       ),
-          GetPage(
-        name: JobSitesScreen.id,
-        page: () => JobSitesScreen(),
-        binding: BuilderBinding(),
-        transitionDuration: duration,
-        transition: Transition.rightToLeftWithFade,
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep3Screen.id,
+      page: () => PostJobStepperStep3Screen(
+        flavor: Get.arguments?['flavor'],
       ),
-          GetPage(
-        name: CreateEditJobSiteScreen.id,
-        page: () => CreateEditJobSiteScreen(),
-        binding: BuilderBinding(),
-        transitionDuration: duration,
-        transition: Transition.rightToLeftWithFade,
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep4Screen.id,
+      page: () => PostJobStepperStep4Screen(
+        flavor: Get.arguments?['flavor'],
       ),
-          GetPage(
-        name: PostJobReviewScreen.id,
-        page: () => PostJobReviewScreen(),
-        binding: BuilderBinding(),
-        transitionDuration: duration,
-        transition: Transition.rightToLeftWithFade,
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep5Screen.id,
+      page: () => PostJobStepperStep5Screen(
+        flavor: Get.arguments?['flavor'],
       ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep6Screen.id,
+      page: () => PostJobStepperStep6Screen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep7Screen.id,
+      page: () => PostJobStepperStep7Screen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobStepperStep8Screen.id,
+      page: () => PostJobStepperStep8Screen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: MyJobsScreen.id,
+      page: () => MyJobsScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: Duration(milliseconds: 1000),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: JobSitesScreen.id,
+      page: () => JobSitesScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: CreateEditJobSiteScreen.id,
+      page: () => CreateEditJobSiteScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PostJobReviewScreen.id,
+      page: () => PostJobReviewScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
+    // Rutas de Builder - Invoices
+    GetPage(
+      name: InvoicesScreen.id,
+      page: () => InvoicesScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
+    // Rutas de Builder - Staff
+    GetPage(
+      name: StaffScreen.id,
+      page: () => StaffScreen(),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: MoveWorkersStepper.id,
+      page: () => MoveWorkersStepper(
+        flavor: Get.arguments?['flavor'],
+        workers: Get.arguments?['workers'] ?? [],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: ExtendShiftsStepper.id,
+      page: () => ExtendShiftsStepper(
+        flavor: Get.arguments?['flavor'],
+        workers: Get.arguments?['workers'] ?? [],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: UnhireWorkersStepper.id,
+      page: () => UnhireWorkersStepper(
+        flavor: Get.arguments?['flavor'],
+        workers: Get.arguments?['workers'] ?? [],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: WorkerProfileScreen.id,
+      page: () => WorkerProfileScreen(
+        worker: Get.arguments?['worker'],
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
 
     // Rutas de Labour
     GetPage(
@@ -288,49 +461,49 @@ abstract class AppPages {
       page: () => HomeScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: labour_profile.ProfileScreen.id,
       page: () => labour_profile.ProfileScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: labour_messages.MessagesScreen.id,
       page: () => labour_messages.MessagesScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: labour_notifications.NotificationsScreen.id,
       page: () => labour_notifications.NotificationsScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: AppliedJobsScreen.id,
       page: () => AppliedJobsScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: WalletScreen.id,
       page: () => WalletScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: InvoiceScreen.id,
       page: () => InvoiceScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: labour_chat.ChatScreen.id,
@@ -340,7 +513,7 @@ abstract class AppPages {
       ),
       binding: LabourBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
 
     // Rutas de Job Listings
@@ -349,7 +522,7 @@ abstract class AppPages {
       page: () => JobListingsScreen(),
       binding: JobListingsBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: JobDetailsScreen.id,
@@ -378,7 +551,7 @@ abstract class AppPages {
       ),
       binding: JobListingsBinding(),
       transitionDuration: duration,
-      transition: Transition.rightToLeftWithFade,
+      transition: Transition.rightToLeft,
     ),
   ];
 }

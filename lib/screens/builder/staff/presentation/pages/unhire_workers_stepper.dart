@@ -1,37 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../data/data.dart';
+import '../../logic/controllers/unhire_workers_stepper_controller.dart';
 
-class UnhireWorkersStepper extends StatefulWidget {
+class UnhireWorkersStepper extends StatelessWidget {
+  static const String id = '/unhire-workers-stepper';
+  
   final AppFlavor? flavor;
   final List<JobsiteWorkersDto> workers;
 
-  const UnhireWorkersStepper({
+  UnhireWorkersStepper({
     super.key,
     this.flavor,
     required this.workers,
   });
 
-  @override
-  State<UnhireWorkersStepper> createState() => _UnhireWorkersStepperState();
-}
-
-class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
-  int _currentStep = 0;
-  List<String> _selectedWorkerIds = [];
-  List<WorkerDto> get _allWorkers {
-    List<WorkerDto> allWorkers = [];
-    for (var jobsite in widget.workers) {
-      allWorkers.addAll(jobsite.workers);
-    }
-    return allWorkers;
-  }
+  final UnhireWorkersStepperController controller = Get.put(UnhireWorkersStepperController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer datos en el controlador
+    controller.workers = workers;
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
@@ -56,7 +52,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
         children: [
                      // Logo
                        SvgPicture.asset(
-              AssetsConfig.getLogoMiddle(widget.flavor ?? AppFlavorConfig.currentFlavor),
+              AssetsConfig.getLogoMiddle(flavor ?? AppFlavorConfig.currentFlavor),
               width: 48,
               height: 48,
               fit: BoxFit.cover,
@@ -75,7 +71,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                      // Close button
            IconButton(
              onPressed: () {
-               Navigator.pop(context);
+               controller.handleBackNavigation();
              },
              icon: Icon(Icons.close, color: Colors.black, size: 24),
            ),
@@ -85,14 +81,16 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
   }
 
   Widget _buildCurrentStep() {
-    switch (_currentStep) {
-      case 0:
-        return _buildStep1();
-      case 1:
-        return _buildStep2();
-      default:
-        return _buildStep1();
-    }
+    return Obx(() {
+      switch (controller.currentStep.value) {
+        case 0:
+          return _buildStep1();
+        case 1:
+          return _buildStep2();
+        default:
+          return _buildStep1();
+      }
+    });
   }
 
   Widget _buildStep1() {
@@ -148,7 +146,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -175,13 +173,11 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
               Spacer(),
               GestureDetector(
                 onTap: () {
-                  setState(() {
-                            if (_selectedWorkerIds.length == _allWorkers.length) {
-          _selectedWorkerIds.clear();
-        } else {
-          _selectedWorkerIds = _allWorkers.map((w) => w.id).toList();
-        }
-                  });
+                  if (controller.selectedWorkerIds.length == controller.allWorkers.length) {
+                    controller.deselectAllWorkers();
+                  } else {
+                    controller.selectAllWorkers();
+                  }
                 },
                 child: Row(
                   children: [
@@ -200,11 +196,11 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.grey[400]!),
                         borderRadius: BorderRadius.circular(4),
-                        color: _selectedWorkerIds.length == _allWorkers.length 
-                            ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                        color: controller.selectedWorkerIds.length == controller.allWorkers.length 
+                            ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                             : Colors.transparent,
                       ),
-                      child: _selectedWorkerIds.length == _allWorkers.length
+                      child: controller.selectedWorkerIds.length == controller.allWorkers.length
                           ? Icon(
                               Icons.check,
                               size: 16,
@@ -221,10 +217,10 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
            // Workers list
           Expanded(
             child: ListView.builder(
-                              itemCount: _allWorkers.length,
+                              itemCount: controller.allWorkers.length,
                 itemBuilder: (context, index) {
-                  final worker = _allWorkers[index];
-                final isSelected = _selectedWorkerIds.contains(worker.id);
+                  final worker = controller.allWorkers[index];
+                final isSelected = controller.selectedWorkerIds.contains(worker.id);
                 
                 return Container(
                   margin: EdgeInsets.only(bottom: 12),
@@ -277,13 +273,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                       // Selection checkbox
                       GestureDetector(
                         onTap: () {
-                          setState(() {
-                            if (isSelected) {
-                              _selectedWorkerIds.remove(worker.id);
-                            } else {
-                              _selectedWorkerIds.add(worker.id);
-                            }
-                          });
+                          controller.toggleWorkerSelection(worker.id);
                         },
                         child: Container(
                           width: 24,
@@ -344,7 +334,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                 ),
                 SizedBox(height: 24),
                 Text(
-                  'Are you sure you want to unhire\n${_selectedWorkerIds.length} worker${_selectedWorkerIds.length > 1 ? 's' : ''}?',
+                  'Are you sure you want to unhire\n${controller.selectedWorkerIds.length} worker${controller.selectedWorkerIds.length > 1 ? 's' : ''}?',
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
@@ -375,8 +365,8 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                 Wrap(
                   spacing: 12,
                   runSpacing: 12,
-                  children: _selectedWorkerIds.map((workerId) {
-                    final worker = _allWorkers.firstWhere((w) => w.id == workerId);
+                  children: controller.selectedWorkerIds.map((workerId) {
+                    final worker = controller.allWorkers.firstWhere((w) => w.id == workerId);
                     return Stack(
                       children: [
                         Container(
@@ -395,9 +385,7 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              setState(() {
-                                _selectedWorkerIds.remove(worker.id);
-                              });
+                              controller.toggleWorkerSelection(worker.id);
                             },
                             child: Container(
                               width: 24,
@@ -453,12 +441,10 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
         children: [
           TextButton(
             onPressed: () {
-              if (_currentStep > 0) {
-                setState(() {
-                  _currentStep--;
-                });
+              if (controller.currentStep.value > 0) {
+                controller.previousStep();
               } else {
-                Navigator.pop(context);
+                controller.handleBackNavigation();
               }
             },
             child: Text(
@@ -473,24 +459,21 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
           Spacer(),
           ElevatedButton(
             onPressed: _canProceed() ? () {
-              if (_currentStep < 1) {
-                setState(() {
-                  _currentStep++;
-                });
+              if (controller.currentStep.value < 1) {
+                controller.nextStep();
               } else {
-                // TODO: Execute unhire workers
-                Navigator.pop(context);
+                controller.completeUnhireWorkers();
               }
             } : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _currentStep == 1 ? Colors.red[600] : Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+              backgroundColor: controller.currentStep.value == 1 ? Colors.red[600] : Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
             child: Text(
-              _currentStep == 1 ? 'Unhire ${_selectedWorkerIds.length} worker${_selectedWorkerIds.length > 1 ? 's' : ''}' : 'Next',
+              controller.currentStep.value == 1 ? 'Unhire ${controller.selectedWorkerIds.length} worker${controller.selectedWorkerIds.length > 1 ? 's' : ''}' : 'Next',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -504,11 +487,11 @@ class _UnhireWorkersStepperState extends State<UnhireWorkersStepper> {
   }
 
   bool _canProceed() {
-    switch (_currentStep) {
+    switch (controller.currentStep.value) {
       case 0:
-        return _selectedWorkerIds.isNotEmpty;
+        return controller.selectedWorkerIds.isNotEmpty;
       case 1:
-        return _selectedWorkerIds.isNotEmpty;
+        return controller.selectedWorkerIds.isNotEmpty;
       default:
         return false;
     }

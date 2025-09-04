@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../logic/controllers/job_site_controller.dart';
 import '../widgets/job_site_card.dart';
 import '../../logic/controllers/job_sites_screen_controller.dart';
 

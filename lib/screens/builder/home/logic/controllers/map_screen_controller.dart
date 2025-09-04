@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../presentation/pages/builder_home_screen.dart';
+import '../../presentation/pages/worker_list_screen.dart';
+import '../../presentation/pages/messages_screen.dart' as builder_messages;
+import '../../presentation/pages/profile_screen.dart' as builder_profile;
 
 class MapScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -53,25 +57,19 @@ class MapScreenController extends GetxController {
   }
 
   void navigateToList() {
-    Get.toNamed('/builder/worker-list', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(WorkerListScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToHome() {
-    Get.offAllNamed('/builder/home', arguments: {'flavor': currentFlavor.value});
+    Get.offAllNamed(BuilderHomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToMessages() {
-    Get.toNamed('/builder/messages', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(builder_messages.MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToProfile() {
-    // TODO: Navigate to Profile screen
-    Get.snackbar(
-      'Info',
-      'Profile screen navigation not implemented yet',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
+    Get.toNamed(builder_profile.ProfileScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void getCurrentLocation() {

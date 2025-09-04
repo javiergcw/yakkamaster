@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
-import '../../../../app/routes/app_pages.dart';
+import '../../../labour/create_profile_labour/presentation/pages/industry_selection_screen.dart';
+import '../../../builder/create_profile_builder/presentation/pages/create_profile_builder_screen.dart';
 
 class StepperSelectionController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -17,12 +18,12 @@ class StepperSelectionController extends GetxController {
 
   void handleWorkSelection() {
     // Navegar al siguiente paso del stepper para WORK
-    Get.toNamed('/industry-selection', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(IndustrySelectionScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleHireSelection() {
     // Navegar al flujo de crear perfil para BUILDERS (empleadores)
-    Get.toNamed('/create-profile-builder', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(CreateProfileBuilderScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleGetHelp() {

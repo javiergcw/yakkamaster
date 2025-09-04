@@ -4,57 +4,27 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import '../../logic/controllers/post_job_controller.dart';
-import 'post_job_review_screen.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
-class PostJobStepperStep8Screen extends StatefulWidget {
+class PostJobStepperStep8Screen extends StatelessWidget {
+  static const String id = '/builder/post-job-step8';
+  
   final AppFlavor? flavor;
 
-  const PostJobStepperStep8Screen({
+  PostJobStepperStep8Screen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<PostJobStepperStep8Screen> createState() => _PostJobStepperStep8ScreenState();
-}
-
-class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
-  
-  String? _selectedOption;
-  final TextEditingController _supervisorNameController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.find<PostJobController>();
-    // Asegurar que el controlador esté en el paso correcto
-    _controller.goToStep(8);
-    
-    // Inicializar datos si ya existen en el controlador
-    if (_controller.postJobData.requiresSupervisorSignature != null) {
-      _selectedOption = _controller.postJobData.requiresSupervisorSignature! ? "yes" : "no";
-    }
-    if (_controller.postJobData.supervisorName != null) {
-      _supervisorNameController.text = _controller.postJobData.supervisorName!;
-    }
-    
-    // Agregar listener para actualizar el controlador cuando cambie el texto
-    _supervisorNameController.addListener(() {
-      _controller.updateSupervisorName(_supervisorNameController.text);
-    });
-  }
-
-  @override
-  void dispose() {
-    _supervisorNameController.dispose();
-    super.dispose();
-  }
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -65,6 +35,8 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
     final questionFontSize = screenWidth * 0.075;
     final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
+    
+    final currentFlavor = controller.currentFlavor.value;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -91,8 +63,7 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
                   // Back Button
                   GestureDetector(
                     onTap: () {
-                      _controller.handleBackNavigation();
-                      Navigator.of(context).pop();
+                      controller.handleBackNavigation();
                     },
                     child: Icon(
                       Icons.arrow_back,
@@ -131,7 +102,7 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
                   Expanded(
                     flex: 8,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
                     ),
                   ),
                   // Remaining (grey)
@@ -167,18 +138,16 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
                     SizedBox(height: verticalSpacing),
                     
                     // Yes/No buttons
-                    Row(
+                    Obx(() => Row(
                       children: [
                         // Yes button
                         Expanded(
                           child: _buildSelectionButton(
+                            context,
                             "Yes",
-                            isSelected: _selectedOption == "yes",
+                            isSelected: controller.selectedOption.value == "yes",
                             onTap: () {
-                              setState(() {
-                                _selectedOption = "yes";
-                              });
-                              _controller.updateRequiresSupervisorSignature(true);
+                              controller.selectOption("yes");
                             },
                           ),
                         ),
@@ -188,82 +157,88 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
                         // No button
                         Expanded(
                           child: _buildSelectionButton(
+                            context,
                             "No",
-                            isSelected: _selectedOption == "no",
+                            isSelected: controller.selectedOption.value == "no",
                             onTap: () {
-                              setState(() {
-                                _selectedOption = "no";
-                              });
-                              _controller.updateRequiresSupervisorSignature(false);
+                              controller.selectOption("no");
                             },
                           ),
                         ),
                       ],
-                    ),
+                    )),
                     
                     // Conditional content based on selection
-                    if (_selectedOption == "yes") ...[
-                      SizedBox(height: verticalSpacing),
-                      
-                      // Supervisor name section
-                      Text(
-                        "Add supervisor's name",
-                        style: GoogleFonts.poppins(
-                          fontSize: subtitleFontSize,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                      
-                      SizedBox(height: verticalSpacing * 0.5),
-                      
-                      // Supervisor name input
-                      CustomTextField(
-                        controller: _supervisorNameController,
-                        hintText: "Supervisor name",
-                        flavor: _currentFlavor,
-                      ),
-                      
-                      SizedBox(height: verticalSpacing),
-                      
-                      // Information box
-                      Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.all(horizontalPadding),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey[300]!,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    Obx(() {
+                      if (controller.selectedOption.value == "yes") {
+                        return Column(
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Colors.blue[600],
-                                  size: screenWidth * 0.05,
+                            SizedBox(height: verticalSpacing),
+                            
+                            // Supervisor name section
+                            Text(
+                              "Add supervisor's name",
+                              style: GoogleFonts.poppins(
+                                fontSize: subtitleFontSize,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            
+                            SizedBox(height: verticalSpacing * 0.5),
+                            
+                            // Supervisor name input
+                            CustomTextField(
+                              controller: controller.supervisorNameController,
+                              hintText: "Supervisor name",
+                              flavor: currentFlavor,
+                            ),
+                            
+                            SizedBox(height: verticalSpacing),
+                            
+                            // Information box
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(horizontalPadding),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.grey[300]!,
+                                  width: 1,
                                 ),
-                                SizedBox(width: horizontalPadding * 0.5),
-                                Expanded(
-                                  child: Text(
-                                    "The supervisor must sign before the labourer submit the timesheet.\nIf the labourer completes the timesheet incorrectly, you can always report it and edit it",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.032,
-                                      color: Colors.black87,
-                                    ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        color: Colors.blue[600],
+                                        size: screenWidth * 0.05,
+                                      ),
+                                      SizedBox(width: horizontalPadding * 0.5),
+                                      Expanded(
+                                        child: Text(
+                                          "The supervisor must sign before the labourer submit the timesheet.\nIf the labourer completes the timesheet incorrectly, you can always report it and edit it",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: screenWidth * 0.032,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
-                        ),
-                      ),
-                    ],
+                        );
+                      } else {
+                        return SizedBox.shrink();
+                      }
+                    }),
                   ],
                 ),
               ),
@@ -272,12 +247,12 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
             // Continue Button
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
-              child: CustomButton(
+              child: Obx(() => CustomButton(
                 text: "Continue",
-                onPressed: _canProceed() ? _handleContinue : null,
+                onPressed: controller.canProceedToNextStep() ? controller.handleContinue : null,
                 type: ButtonType.secondary,
-                flavor: _currentFlavor,
-              ),
+                flavor: currentFlavor,
+              )),
             ),
           ],
         ),
@@ -285,13 +260,14 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
     );
   }
 
-  Widget _buildSelectionButton(String text, {required bool isSelected, required VoidCallback onTap}) {
+  Widget _buildSelectionButton(BuildContext context, String text, {required bool isSelected, required VoidCallback onTap}) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
+    final currentFlavor = controller.currentFlavor.value;
 
     return GestureDetector(
       onTap: onTap,
@@ -306,7 +282,7 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected 
-                ? Color(AppFlavorConfig.getPrimaryColor(_currentFlavor))
+                ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                 : Colors.black,
             width: isSelected ? 1 : 2,
           ),
@@ -324,22 +300,4 @@ class _PostJobStepperStep8ScreenState extends State<PostJobStepperStep8Screen> {
     );
   }
 
-  bool _canProceed() {
-    if (_selectedOption == null) return false;
-    if (_selectedOption == "yes") {
-      return _supervisorNameController.text.trim().isNotEmpty;
-    }
-    return true;
-  }
-
-  void _handleContinue() {
-    if (_canProceed()) {
-      _controller.nextStep();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PostJobReviewScreen(flavor: _currentFlavor),
-        ),
-      );
-    }
-  }
 }

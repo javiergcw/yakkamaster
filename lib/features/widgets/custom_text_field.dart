@@ -18,6 +18,7 @@ class CustomTextField extends StatelessWidget {
   final int? maxLength;
   final bool enabled;
   final VoidCallback? onTap;
+  final void Function(String)? onChanged;
   final AppFlavor? flavor;
   final bool showBorder;
   final double? borderRadius;
@@ -37,6 +38,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLength,
     this.enabled = true,
     this.onTap,
+    this.onChanged,
     this.flavor,
     this.showBorder = true,
     this.borderRadius,
@@ -66,6 +68,7 @@ class CustomTextField extends StatelessWidget {
       maxLength: maxLength,
       enabled: enabled,
       onTap: onTap,
+      onChanged: onChanged,
       style: GoogleFonts.poppins(
         fontSize: fontSize,
         color: Colors.black87,

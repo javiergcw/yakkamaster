@@ -5,55 +5,19 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
-import '../../logic/controllers/builder_profile_controller.dart';
+import '../../logic/controllers/company_details_controller.dart';
 
-class CompanyDetailsScreen extends StatefulWidget {
+class CompanyDetailsScreen extends StatelessWidget {
+  static const String id = '/builder/company-details';
+  
   final AppFlavor? flavor;
 
-  const CompanyDetailsScreen({
+  CompanyDetailsScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<CompanyDetailsScreen> createState() => _CompanyDetailsScreenState();
-}
-
-class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  
-  // GetX Controller
-  final BuilderProfileController _controller = Get.find<BuilderProfileController>();
-  
-  // Controllers para los campos de texto
-  final TextEditingController _companyAddressController = TextEditingController();
-  final TextEditingController _companyPhoneController = TextEditingController();
-  final TextEditingController _websiteController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
-  
-  // Lista de industrias disponibles
-  final List<String> _industries = [
-    'Construction',
-    'Renovation',
-    'Plumbing',
-    'Electrical',
-    'HVAC',
-    'Landscaping',
-    'Roofing',
-    'Painting',
-    'Carpentry',
-    'General Contracting',
-    'Other'
-  ];
-  
-  // Lista de tamaños de empresa
-  final List<String> _companySizes = [
-    '1-10 employees',
-    '11-50 employees',
-    '51-200 employees',
-    '201-500 employees',
-    '500+ employees'
-  ];
+  final CompanyDetailsController controller = Get.put(CompanyDetailsController());
 
   // Sombras tipo tarjeta
   final List<BoxShadow> strongCardShadows = const [
@@ -70,42 +34,6 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
       spreadRadius: 0,
     ),
   ];
-
-  @override
-  void dispose() {
-    _companyAddressController.dispose();
-    _companyPhoneController.dispose();
-    _websiteController.dispose();
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  void _handleNext() async {
-    // Actualizar el controlador con los valores de los campos
-    _controller.updateCompanyAddress(_companyAddressController.text);
-    _controller.updateCompanyPhone(_companyPhoneController.text);
-    _controller.updateWebsite(_websiteController.text);
-    _controller.updateDescription(_descriptionController.text);
-    
-    // Validar campos requeridos usando el controlador
-    if (!_controller.isProfileValid) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_controller.validationErrors.join(', ')),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    // Guardar el perfil usando el controlador
-    final success = await _controller.saveProfile();
-    
-    if (success) {
-      // Navegar de vuelta a la pantalla principal o al dashboard del builder
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
 
   Widget _buildDropdownField({
     required String label,
@@ -161,6 +89,11 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -191,7 +124,7 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: controller.handleBackNavigation,
                           icon: Icon(
                             Icons.arrow_back,
                             color: Colors.black,
@@ -219,11 +152,11 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
                     // Dropdown de industria
                     Obx(() => _buildDropdownField(
                       label: 'Industry',
-                      value: _controller.profile.industry,
-                      options: _industries,
+                      value: controller.builderProfileController.profile.industry,
+                      options: controller.industries,
                       onChanged: (value) {
                         if (value != null) {
-                          _controller.updateIndustry(value);
+                          controller.builderProfileController.updateIndustry(value);
                         }
                       },
                     )),
@@ -233,11 +166,11 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
                     // Dropdown de tamaño de empresa
                     Obx(() => _buildDropdownField(
                       label: 'Company Size',
-                      value: _controller.profile.companySize,
-                      options: _companySizes,
+                      value: controller.builderProfileController.profile.companySize,
+                      options: controller.companySizes,
                       onChanged: (value) {
                         if (value != null) {
-                          _controller.updateCompanySize(value);
+                          controller.builderProfileController.updateCompanySize(value);
                         }
                       },
                     )),
@@ -246,7 +179,7 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
 
                     // Campo de dirección de la empresa
                     CustomTextField(
-                      controller: _companyAddressController,
+                      controller: controller.companyAddressController,
                       hintText: "Company Address",
                       showBorder: true,
                     ),
@@ -255,7 +188,7 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
 
                     // Campo de teléfono de la empresa
                     CustomTextField(
-                      controller: _companyPhoneController,
+                      controller: controller.companyPhoneController,
                       hintText: "Company Phone (Optional)",
                       showBorder: true,
                     ),
@@ -264,7 +197,7 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
 
                     // Campo de sitio web
                     CustomTextField(
-                      controller: _websiteController,
+                      controller: controller.websiteController,
                       hintText: "Website (Optional)",
                       showBorder: true,
                     ),
@@ -290,7 +223,7 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: TextField(
-                            controller: _descriptionController,
+                            controller: controller.descriptionController,
                             maxLines: 4,
                             decoration: InputDecoration(
                               hintText: "Tell us about your company...",
@@ -317,8 +250,8 @@ class _CompanyDetailsScreenState extends State<CompanyDetailsScreen> {
                       ),
                       child: CustomButton(
                         text: "Create Profile",
-                        onPressed: _controller.isSaving ? null : _handleNext,
-                        isLoading: _controller.isSaving,
+                        onPressed: controller.builderProfileController.isSaving ? null : controller.handleNext,
+                        isLoading: controller.builderProfileController.isSaving,
                       ),
                     )),
 

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../presentation/pages/chat_screen.dart';
+import '../../presentation/pages/builder_home_screen.dart';
+import '../../presentation/pages/messages_screen.dart';
 
 class WorkerListController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -198,11 +201,11 @@ class WorkerListController extends GetxController {
   }
 
   void navigateToHome() {
-    Get.offAllNamed('/builder/home', arguments: {'flavor': currentFlavor.value});
+    Get.offAllNamed(BuilderHomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToMessages() {
-    Get.toNamed('/builder/messages', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToProfile() {
@@ -215,13 +218,17 @@ class WorkerListController extends GetxController {
     );
   }
 
-  void openChat() {
-    // TODO: Open chat
-    Get.snackbar(
-      'Info',
-      'Chat feature not implemented yet',
-      backgroundColor: Colors.blue,
-      colorText: Colors.white,
-    );
+  void openChat(Map<String, dynamic> worker) {
+    // Obtener la inicial del nombre del trabajador
+    final String initial = worker['name'].isNotEmpty 
+        ? worker['name'][0].toUpperCase() 
+        : 'W';
+    
+    // Navegar al chat usando Get.to con los parámetros necesarios
+    Get.toNamed(ChatScreen.id, arguments: {
+      'flavor': currentFlavor.value,
+      'recipientName': worker['name'],
+      'recipientAvatar': initial,
+    });
   }
 }

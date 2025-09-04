@@ -1,37 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
+import '../../logic/controllers/profile_created_controller.dart';
 
-class ProfileCreatedScreen extends StatefulWidget {
+class ProfileCreatedScreen extends StatelessWidget {
+  static const String id = '/builder/profile-created';
+  
   final AppFlavor? flavor;
 
-  const ProfileCreatedScreen({
+  ProfileCreatedScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<ProfileCreatedScreen> createState() => _ProfileCreatedScreenState();
-}
-
-class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _handleNext() {
-    // Navegar al BuilderHomeScreen
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => BuilderHomeScreen(
-          flavor: _currentFlavor,
-        ),
-      ),
-      (route) => false, // Esto elimina todas las rutas anteriores del stack
-    );
-  }
+  final ProfileCreatedController controller = Get.put(ProfileCreatedController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -44,7 +34,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
     final horizontalPadding = screenWidth * 0.06;
 
     return Scaffold(
-      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
@@ -52,8 +42,8 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)).withOpacity(0.9),
-                Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.9),
+                Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
               ],
             ),
           ),
@@ -112,7 +102,7 @@ class _ProfileCreatedScreenState extends State<ProfileCreatedScreen> {
                   width: double.infinity,
                   margin: EdgeInsets.only(bottom: screenHeight * 0.05),
                   child: ElevatedButton(
-                    onPressed: _handleNext,
+                    onPressed: controller.handleNext,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,

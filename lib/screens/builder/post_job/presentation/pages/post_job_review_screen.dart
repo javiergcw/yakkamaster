@@ -3,22 +3,16 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/post_job_controller.dart';
-import '../../logic/controllers/post_job_review_screen_controller.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
 class PostJobReviewScreen extends StatelessWidget {
   static const String id = '/builder/post-job-review';
-  
+
   final AppFlavor? flavor;
 
-  PostJobReviewScreen({
-    super.key,
-    this.flavor,
-  });
+  PostJobReviewScreen({super.key, this.flavor});
 
-  final PostJobReviewScreenController controller = Get.put(PostJobReviewScreenController());
-
-
+  final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +24,7 @@ class PostJobReviewScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
@@ -52,10 +46,7 @@ class PostJobReviewScreen extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 border: Border(
-                  bottom: BorderSide(
-                    color: Colors.grey[300]!,
-                    width: 1,
-                  ),
+                  bottom: BorderSide(color: Colors.grey[300]!, width: 1),
                 ),
               ),
               child: Row(
@@ -71,9 +62,9 @@ class PostJobReviewScreen extends StatelessWidget {
                       size: iconSize,
                     ),
                   ),
-                  
+
                   SizedBox(width: horizontalPadding),
-                  
+
                   // Title
                   Expanded(
                     child: Text(
@@ -86,12 +77,12 @@ class PostJobReviewScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  
+
                   SizedBox(width: horizontalPadding + iconSize),
                 ],
               ),
             ),
-            
+
             // Progress Indicator - Completado
             Container(
               width: double.infinity,
@@ -102,20 +93,19 @@ class PostJobReviewScreen extends StatelessWidget {
                   Expanded(
                     flex: 9,
                     child: Container(
-                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                      color: Color(
+                        AppFlavorConfig.getPrimaryColor(
+                          controller.currentFlavor.value,
+                        ),
+                      ),
                     ),
                   ),
                   // Remaining (grey) - 0 remaining
-                  Expanded(
-                    flex: 0,
-                    child: Container(
-                      color: Colors.grey[300],
-                    ),
-                  ),
+                  Expanded(flex: 0, child: Container(color: Colors.grey[300])),
                 ],
               ),
             ),
-            
+
             // Main Content
             Expanded(
               child: SingleChildScrollView(
@@ -124,7 +114,7 @@ class PostJobReviewScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: verticalSpacing * 0.2),
-                    
+
                     // Main Question
                     Text(
                       "Ready to post your job?",
@@ -134,63 +124,60 @@ class PostJobReviewScreen extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing),
-                    
-                                         // Public/Private Toggle Section
-                     Row(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         Expanded(
-                           child: Column(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                               Text(
-                                 "Public",
-                                 style: GoogleFonts.poppins(
-                                   fontSize: subtitleFontSize,
-                                   fontWeight: FontWeight.w600,
-                                   color: Colors.black,
-                                 ),
-                               ),
-                               SizedBox(height: verticalSpacing * 0.2),
-                               Text(
-                                 "Turn off job visibility to hide this job temporarily. Only you'll see it.",
-                                 style: GoogleFonts.poppins(
-                                   fontSize: screenWidth * 0.032,
-                                   color: Colors.black87,
-                                 ),
-                                 softWrap: true,
-                               ),
-                             ],
-                           ),
-                         ),
-                         Switch(
-                           value: controller.isPublic.value,
-                           onChanged: (value) {
-                             controller.updateIsPublic(value);
-                           },
-                           activeColor: Colors.black,
-                           activeTrackColor: Colors.grey[400],
-                           inactiveThumbColor: Colors.white,
-                           inactiveTrackColor: Colors.grey[300],
-                         ),
-                       ],
-                     ),
-                    
-                                         SizedBox(height: verticalSpacing),
-                     
-                     // Job Summary Card
+
+                    // Public/Private Toggle Section
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Public",
+                                style: GoogleFonts.poppins(
+                                  fontSize: subtitleFontSize,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: verticalSpacing * 0.2),
+                              Text(
+                                "Turn off job visibility to hide this job temporarily. Only you'll see it.",
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.032,
+                                  color: Colors.black87,
+                                ),
+                                softWrap: true,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: controller.isPublic.value,
+                          onChanged: (value) {
+                            controller.updateIsPublic(value);
+                          },
+                          activeColor: Colors.black,
+                          activeTrackColor: Colors.grey[400],
+                          inactiveThumbColor: Colors.white,
+                          inactiveTrackColor: Colors.grey[300],
+                        ),
+                      ],
+                    ),
+
+                    SizedBox(height: verticalSpacing),
+
+                    // Job Summary Card
                     Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(horizontalPadding),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.grey[300]!,
-                          width: 1,
-                        ),
+                        border: Border.all(color: Colors.grey[300]!, width: 1),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +187,10 @@ class PostJobReviewScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  controller.postJobController.postJobData.selectedSkill ?? "Truck Driver",
+                                  controller
+                                          .postJobData
+                                          .selectedSkill ??
+                                      "Truck Driver",
                                   style: GoogleFonts.poppins(
                                     fontSize: subtitleFontSize,
                                     fontWeight: FontWeight.bold,
@@ -209,7 +199,7 @@ class PostJobReviewScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                "\$${(controller.postJobController.postJobData.hourlyRate ?? 28.0).toStringAsFixed(1)}/hr",
+                                "\$${(controller.postJobData.hourlyRate ?? 28.0).toStringAsFixed(1)}/hr",
                                 style: GoogleFonts.poppins(
                                   fontSize: subtitleFontSize,
                                   fontWeight: FontWeight.bold,
@@ -218,9 +208,9 @@ class PostJobReviewScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          
+
                           SizedBox(height: verticalSpacing),
-                          
+
                           // Job Details
                           _buildJobDetail(
                             Icons.location_on,
@@ -228,74 +218,74 @@ class PostJobReviewScreen extends StatelessWidget {
                             "Suburb: Sydney",
                             "City: Sydney, New South Wales",
                           ),
-                          
+
                           SizedBox(height: verticalSpacing * 0.8),
-                          
+
                           _buildJobDetail(
                             Icons.calendar_today,
                             "Dates: ${controller.formatDateRange()}",
                           ),
-                          
+
                           SizedBox(height: verticalSpacing * 0.8),
-                          
+
                           _buildJobDetail(
                             Icons.access_time,
                             "Time: ${controller.formatTimeRange()}",
                           ),
-                          
+
                           SizedBox(height: verticalSpacing * 0.8),
-                          
+
                           _buildJobDetail(
                             Icons.description,
                             "Payment is expected: ${controller.formatPaymentFrequency()}",
                           ),
-                          
+
                           SizedBox(height: verticalSpacing * 0.8),
-                          
+
                           _buildJobDetail(
                             Icons.list,
-                            "Description: ${controller.postJobController.postJobData.jobDescription ?? "asd"}",
+                            "Description: ${controller.postJobData.jobDescription ?? "asd"}",
                           ),
                         ],
                       ),
                     ),
-                    
-                                         SizedBox(height: verticalSpacing),
+
+                    SizedBox(height: verticalSpacing),
                   ],
                 ),
               ),
             ),
-            
+
             // Action Buttons
             Padding(
               padding: EdgeInsets.all(horizontalPadding),
               child: Column(
                 children: [
-                                     // Edit Button
-                   SizedBox(
-                     width: double.infinity,
-                     child: CustomButton(
-                       text: "Edit",
-                       onPressed: controller.handleEdit,
-                       type: ButtonType.secondary,
-                       flavor: controller.currentFlavor.value,
-                       showShadow: false,
-                     ),
-                   ),
-                  
+                  // Edit Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      text: "Edit",
+                      onPressed: controller.handleEdit,
+                      type: ButtonType.secondary,
+                      flavor: controller.currentFlavor.value,
+                      showShadow: false,
+                    ),
+                  ),
+
                   SizedBox(height: verticalSpacing),
-                  
+
                   // Confirm Button
-                   SizedBox(
-                     width: double.infinity,
-                     child: CustomButton(
-                       text: "Confirm",
-                       onPressed: controller.handleConfirm,
-                       type: ButtonType.primary,
-                       flavor: controller.currentFlavor.value,
-                       showShadow: false,
-                     ),
-                   ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: CustomButton(
+                      text: "Confirm",
+                      onPressed: controller.handleConfirm,
+                      type: ButtonType.primary,
+                      flavor: controller.currentFlavor.value,
+                      showShadow: false,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -305,19 +295,20 @@ class PostJobReviewScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildJobDetail(IconData icon, String mainText, [String? subtitle1, String? subtitle2]) {
+  Widget _buildJobDetail(
+    IconData icon,
+    String mainText, [
+    String? subtitle1,
+    String? subtitle2,
+  ]) {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final verticalSpacing = mediaQuery.size.height * 0.025;
-    
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: Colors.grey[600],
-          size: screenWidth * 0.04,
-        ),
+        Icon(icon, color: Colors.grey[600], size: screenWidth * 0.04),
         SizedBox(width: screenWidth * 0.03),
         Expanded(
           child: Column(

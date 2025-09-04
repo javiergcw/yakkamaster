@@ -1,7 +1,15 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
+import '../../presentation/pages/map_screen.dart';
+import '../../presentation/pages/messages_screen.dart';
+import '../../presentation/pages/profile_screen.dart';
+import '../../../post_job/presentation/pages/job_sites_screen.dart';
+import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
+import '../../presentation/pages/worker_list_screen.dart';
+import '../../presentation/pages/job_sites_list_screen.dart';
+import '../../presentation/pages/notifications_screen.dart';
+import '../../../invoices/presentation/pages/invoices_screen.dart';
 
 class BuilderHomeController extends GetxController {
   final RxInt selectedIndex = 0.obs; // Home tab selected
@@ -30,39 +38,39 @@ class BuilderHomeController extends GetxController {
     
     // Navigate to different screens based on index
     if (index == 1) { // Map
-      Get.toNamed('/builder/map', arguments: {'flavor': currentFlavor.value});
+      Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 2) { // Messages
-      Get.toNamed('/builder/messages', arguments: {'flavor': currentFlavor.value});
+      Get.toNamed(MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 3) { // Profile
-      Get.toNamed('/builder/profile', arguments: {'flavor': currentFlavor.value});
+      Get.toNamed(ProfileScreen.id, arguments: {'flavor': currentFlavor.value});
     }
   }
 
   void navigateToJobSites() {
-    Get.toNamed('/builder/job-sites-select', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(JobSitesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToMyJobs() {
-    Get.toNamed('/builder/my-jobs', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(MyJobsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToApplicants() {
-    Get.toNamed('/builder/applicants', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(WorkerListScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToStaff() {
-    Get.toNamed('/builder/staff', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(WorkerListScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToJobSitesList() {
-    Get.toNamed('/builder/job-sites', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(JobSitesListScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToInvoices() {
-    Get.toNamed('/builder/invoices', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(InvoicesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToNotifications() {
-    Get.toNamed('/builder/notifications', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(NotificationsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

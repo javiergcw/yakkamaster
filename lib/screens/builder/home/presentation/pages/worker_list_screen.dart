@@ -363,7 +363,7 @@ class WorkerListScreen extends StatelessWidget {
                  margin: EdgeInsets.only(bottom: 8),
                  child: ElevatedButton(
                    onPressed: () {
-                     controller.openChat();
+                     controller.openChat(worker);
                    },
                    style: ElevatedButton.styleFrom(
                                              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),

@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
 import '../../presentation/widgets/company_selection_dialog.dart';
 import '../../presentation/pages/register_new_company_screen.dart';
 import '../../presentation/pages/employee_selection_screen.dart';

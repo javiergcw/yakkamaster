@@ -8,29 +8,25 @@ import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 import '../../../../job_listings/presentation/pages/job_details_screen.dart';
 import '../../../../job_listings/data/dto/job_details_dto.dart';
 
-class MyJobsScreen extends StatefulWidget {
+class MyJobsScreen extends StatelessWidget {
+  static const String id = '/builder/my-jobs';
+  
   final AppFlavor? flavor;
 
-  const MyJobsScreen({
+  MyJobsScreen({
     super.key,
     this.flavor,
   });
 
-  @override
-  State<MyJobsScreen> createState() => _MyJobsScreenState();
-}
-
-class _MyJobsScreenState extends State<MyJobsScreen> {
-  late MyJobsController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.put(MyJobsController());
-  }
+  final MyJobsController controller = Get.put(MyJobsController());
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
+    }
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -49,13 +45,13 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
             // Content
             Expanded(
               child: Obx(() {
-                if (_controller.isLoading) {
+                if (controller.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
 
-                if (_controller.errorMessage.isNotEmpty) {
+                if (controller.errorMessage.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -70,7 +66,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                         ),
                         SizedBox(height: screenHeight * 0.02),
                         Text(
-                          _controller.errorMessage,
+                          controller.errorMessage,
                           style: GoogleFonts.poppins(
                             fontSize: screenWidth * 0.04,
                             color: Colors.grey[600],
@@ -79,7 +75,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                         ),
                         SizedBox(height: screenHeight * 0.03),
                         ElevatedButton(
-                          onPressed: () => _controller.loadJobs(),
+                          onPressed: () => controller.loadJobs(),
                           child: Text('Retry'),
                         ),
                       ],
@@ -87,14 +83,14 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
                   );
                 }
 
-                if (_controller.jobs.isEmpty) {
+                if (controller.jobs.isEmpty) {
                   return EmptyStateWidget(
-                    flavor: widget.flavor,
+                    flavor: flavor,
                     onPostJob: _handlePostJob,
                   );
                 }
 
-                return _buildJobsList();
+                return _buildJobsList(context);
               }),
             ),
           ],
@@ -114,7 +110,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
         children: [
           // Botón de regreso
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => controller.handleBackNavigation(),
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
@@ -148,8 +144,8 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
           Expanded(
             child: Obx(() => _buildTab(
               text: "Active",
-              isSelected: _controller.isActiveTab,
-              onTap: () => _controller.switchTab(true),
+              isSelected: controller.isActiveTab,
+              onTap: () => controller.switchTab(true),
               screenWidth: screenWidth,
             )),
           ),
@@ -158,8 +154,8 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
           Expanded(
             child: Obx(() => _buildTab(
               text: "Archived",
-              isSelected: !_controller.isActiveTab,
-              onTap: () => _controller.switchTab(false),
+              isSelected: !controller.isActiveTab,
+              onTap: () => controller.switchTab(false),
               screenWidth: screenWidth,
             )),
           ),
@@ -182,7 +178,7 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
           border: Border(
             bottom: BorderSide(
               color: isSelected 
-                ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                 : Colors.transparent,
               width: 2,
             ),
@@ -201,18 +197,18 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
     );
   }
 
-  Widget _buildJobsList() {
+  Widget _buildJobsList(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = screenHeight * 0.02;
     
     return ListView.builder(
       padding: EdgeInsets.only(top: topPadding),
-      itemCount: _controller.jobs.length,
+      itemCount: controller.jobs.length,
       itemBuilder: (context, index) {
-        final job = _controller.jobs[index];
+        final job = controller.jobs[index];
         return JobCard(
           job: job,
-          flavor: widget.flavor,
+          flavor: flavor,
           onShare: () => _handleShareJob(job.id),
           onDelete: () => _handleDeleteJob(job.id),
           onShowMore: () => _handleShowMore(job.id),
@@ -223,60 +219,52 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
   }
 
   void _handlePostJob() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PostJobStepperScreen(
-          flavor: widget.flavor,
-        ),
-      ),
-    );
+    Get.toNamed(PostJobStepperScreen.id, arguments: {
+      'flavor': flavor,
+    });
   }
 
   void _handleShareJob(String jobId) {
-    _controller.shareJob(jobId);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Sharing job...'),
-        duration: const Duration(seconds: 2),
-      ),
+    controller.shareJob(jobId);
+    Get.snackbar(
+      'Info',
+      'Sharing job...',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
     );
   }
 
   void _handleDeleteJob(String jobId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete Job'),
-          content: Text('Are you sure you want to delete this job?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _controller.deleteJob(jobId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Job deleted successfully'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
+    Get.dialog(
+      AlertDialog(
+        title: Text('Delete Job'),
+        content: Text('Are you sure you want to delete this job?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.deleteJob(jobId);
+              Get.snackbar(
+                'Success',
+                'Job deleted successfully',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: Duration(seconds: 2),
+              );
+            },
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 
   void _handleShowMore(String jobId) {
     // Buscar el trabajo en la lista para obtener los detalles
-    final job = _controller.jobs.firstWhere((job) => job.id == jobId);
+    final job = controller.jobs.firstWhere((job) => job.id == jobId);
     
     // Crear JobDetailsDto con los datos del trabajo
     final jobDetails = JobDetailsDto(
@@ -306,16 +294,11 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
       longitude: 151.2093,
     );
     
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => JobDetailsScreen(
-          jobDetails: jobDetails,
-          flavor: widget.flavor,
-          isFromAppliedJobs: false,
-        ),
-      ),
-    );
+    Get.toNamed(JobDetailsScreen.id, arguments: {
+      'jobDetails': jobDetails,
+      'flavor': flavor,
+      'isFromAppliedJobs': false,
+    });
   }
 
   String _formatDate(DateTime date) {
@@ -327,12 +310,12 @@ class _MyJobsScreenState extends State<MyJobsScreen> {
   }
 
   void _handleVisibilityChanged(String jobId, bool isVisible) {
-    _controller.updateJobVisibility(jobId, isVisible);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Job visibility updated'),
-        duration: const Duration(seconds: 2),
-      ),
+    controller.updateJobVisibility(jobId, isVisible);
+    Get.snackbar(
+      'Success',
+      'Job visibility updated',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: Duration(seconds: 2),
     );
   }
 }
