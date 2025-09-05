@@ -10,6 +10,7 @@ import '../../presentation/pages/worker_list_screen.dart';
 import '../../presentation/pages/job_sites_list_screen.dart';
 import '../../presentation/pages/notifications_screen.dart';
 import '../../../invoices/presentation/pages/invoices_screen.dart';
+import '../../../expenses/presentation/pages/expenses_screen.dart';
 
 class BuilderHomeController extends GetxController {
   final RxInt selectedIndex = 0.obs; // Home tab selected
@@ -19,8 +20,12 @@ class BuilderHomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    // Inicializar el controlador de applicants para el punto rojo
-    Get.put(ApplicantController());
+    // Inicializar el controlador de applicants para el punto rojo de manera segura
+    try {
+      Get.find<ApplicantController>();
+    } catch (e) {
+      Get.put(ApplicantController());
+    }
     // Asegurar que Home esté seleccionado cuando se navega desde Map
     selectedIndex.value = 0;
   }
@@ -72,5 +77,9 @@ class BuilderHomeController extends GetxController {
 
   void navigateToNotifications() {
     Get.toNamed(NotificationsScreen.id, arguments: {'flavor': currentFlavor.value});
+  }
+
+  void navigateToExpenses() {
+    Get.toNamed(ExpensesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

@@ -13,10 +13,19 @@ class BuilderHomeScreen extends StatelessWidget {
 
   BuilderHomeScreen({super.key, this.flavor});
 
-  final BuilderHomeController controller = Get.put(BuilderHomeController());
+  BuilderHomeController get controller => Get.find<BuilderHomeController>();
 
   @override
   Widget build(BuildContext context) {
+    // Establecer el flavor en el controlador si viene en los argumentos
+    try {
+      if (flavor != null) {
+        controller.currentFlavor.value = flavor!;
+      }
+    } catch (e) {
+      print('⚠️ Error setting flavor: $e');
+    }
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -185,9 +194,6 @@ class BuilderHomeScreen extends StatelessWidget {
     controller.toggleSidebar();
   }
 
-  void _closeSidebar() {
-    controller.closeSidebar();
-  }
 
   Widget _buildPostJobButton() {
     final mediaQuery = MediaQuery.of(Get.context!);
@@ -388,9 +394,7 @@ class BuilderHomeScreen extends StatelessWidget {
         _buildInsightsItem(
           icon: Icons.account_balance_wallet,
           title: "Expenses",
-          onTap: () {
-            // TODO: Navegar a expenses
-          },
+          onTap: () => controller.navigateToExpenses(),
         ),
       ],
     );
@@ -443,17 +447,22 @@ class BuilderHomeScreen extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: Obx(() {
-                  final controller = Get.find<ApplicantController>();
-                  return controller.hasNewApplicants
-                      ? Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                      : const SizedBox.shrink();
+                  try {
+                    final applicantController = Get.find<ApplicantController>();
+                    return applicantController.hasNewApplicants
+                        ? Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                          )
+                        : const SizedBox.shrink();
+                  } catch (e) {
+                    print('⚠️ Error finding ApplicantController: $e');
+                    return const SizedBox.shrink();
+                  }
                 }),
               ),
           ],

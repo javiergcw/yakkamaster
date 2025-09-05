@@ -34,8 +34,8 @@ class CreateEditJobSiteScreenController extends GetxController {
 
   void _populateFields() {
     if (editingJobSite.value != null) {
-      addressController.text = editingJobSite.value!.name;
-      suburbController.text = editingJobSite.value!.location;
+      addressController.text = editingJobSite.value!.address;
+      suburbController.text = editingJobSite.value!.city;
       descriptionController.text = editingJobSite.value!.description;
     }
   }
@@ -63,6 +63,9 @@ class CreateEditJobSiteScreenController extends GetxController {
       final jobSite = JobSiteDto(
         id: editingJobSite.value?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
         name: addressController.text.trim(),
+        city: suburbController.text.trim(),
+        address: addressController.text.trim(),
+        code: DateTime.now().millisecondsSinceEpoch.toString().substring(8),
         location: suburbController.text.trim(),
         description: descriptionController.text.trim(),
       );

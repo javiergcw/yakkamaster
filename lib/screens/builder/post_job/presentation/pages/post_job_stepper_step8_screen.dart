@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../../../../features/widgets/custom_text_field.dart';
 import '../../logic/controllers/unified_post_job_controller.dart';
 
 class PostJobStepperStep8Screen extends StatelessWidget {
@@ -188,10 +187,50 @@ class PostJobStepperStep8Screen extends StatelessWidget {
                             SizedBox(height: verticalSpacing * 0.5),
                             
                             // Supervisor name input
-                            CustomTextField(
+                            TextFormField(
                               controller: controller.supervisorNameController,
-                              hintText: "Supervisor name",
-                              flavor: currentFlavor,
+                              decoration: InputDecoration(
+                                hintText: "Supervisor name",
+                                hintStyle: GoogleFonts.poppins(
+                                  color: Colors.grey[400],
+                                  fontSize: screenWidth * 0.04,
+                                ),
+                                filled: true,
+                                fillColor: Colors.grey[50],
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey[300]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey[300]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: BorderSide(
+                                    color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                                    width: 2,
+                                  ),
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding * 0.8,
+                                  vertical: verticalSpacing * 0.6,
+                                ),
+                              ),
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.04,
+                                color: Colors.black,
+                              ),
+                              onChanged: (value) {
+                                print('🔍 TextFormField onChanged called with: "$value"');
+                                controller.updateSupervisorName(value);
+                              },
                             ),
                             
                             SizedBox(height: verticalSpacing),

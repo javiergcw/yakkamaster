@@ -2,10 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/dto/post_job_dto.dart';
+import '../../presentation/pages/post_job_stepper_screen.dart';
+import '../../presentation/pages/post_job_stepper_step2_screen.dart';
+import '../../presentation/pages/post_job_stepper_step3_screen.dart';
+import '../../presentation/pages/post_job_stepper_step4_screen.dart';
+import '../../presentation/pages/post_job_stepper_step5_screen.dart';
+import '../../presentation/pages/post_job_stepper_step6_screen.dart';
+import '../../presentation/pages/post_job_stepper_step7_screen.dart';
+import '../../presentation/pages/post_job_stepper_step8_screen.dart';
+import '../../presentation/pages/post_job_review_screen.dart';
 
 class UnifiedPostJobController extends GetxController {
   // ===== CORE DATA =====
-  final _postJobData = PostJobDto().obs;
+  final _postJobData = PostJobDto(
+    requiresSupervisorSignature: false,
+    supervisorName: null,
+  ).obs;
   final _currentStep = 1.obs;
   final _isLoading = false.obs;
   final _errorMessage = ''.obs;
@@ -177,10 +189,11 @@ class UnifiedPostJobController extends GetxController {
     // Listener para búsqueda de habilidades
     searchController.addListener(performSearch);
     
-    // Listener para nombre del supervisor
-    supervisorNameController.addListener(() {
-      updateSupervisorName(supervisorNameController.text);
-    });
+    // Listener para nombre del supervisor - Removido para evitar conflicto con onChanged
+    // supervisorNameController.addListener(() {
+    //   print('🔍 supervisorNameController listener triggered with: "${supervisorNameController.text}"');
+    //   updateSupervisorName(supervisorNameController.text);
+    // });
   }
 
   // ===== STEP MANAGEMENT =====
@@ -205,8 +218,40 @@ class UnifiedPostJobController extends GetxController {
   void handleBackNavigation() {
     if (_currentStep.value > 1) {
       _currentStep.value--;
+      _navigateToPreviousStep();
     } else {
       Get.back();
+    }
+  }
+
+  void _navigateToPreviousStep() {
+    switch (_currentStep.value) {
+      case 1:
+        Get.toNamed(PostJobStepperScreen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 2:
+        Get.toNamed(PostJobStepperStep2Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 3:
+        Get.toNamed(PostJobStepperStep3Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 4:
+        Get.toNamed(PostJobStepperStep4Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 5:
+        Get.toNamed(PostJobStepperStep5Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 6:
+        Get.toNamed(PostJobStepperStep6Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 7:
+        Get.toNamed(PostJobStepperStep7Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 8:
+        Get.toNamed(PostJobStepperStep8Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      default:
+        print('No navigation defined for step ${_currentStep.value}');
     }
   }
 
@@ -229,7 +274,9 @@ class UnifiedPostJobController extends GetxController {
 
   // ===== STEP 2 - WORKERS COUNT =====
   void updateWorkersNeeded(int workers) {
+    print('🔍 updateWorkersNeeded called with: $workers');
     _postJobData.value = _postJobData.value.copyWith(workersNeeded: workers);
+    print('🔍 PostJobDto workersNeeded: ${_postJobData.value.workersNeeded}');
   }
 
   // ===== STEP 3 - COSTS =====
@@ -390,17 +437,67 @@ class UnifiedPostJobController extends GetxController {
 
   // ===== STEP 8 - SUPERVISOR SIGNATURE =====
   void selectOption(String option) {
+    print('🔍 selectOption called with: "$option"');
     selectedOption.value = option;
     if (option == "yes") {
       _postJobData.value = _postJobData.value.copyWith(requiresSupervisorSignature: true);
     } else {
       _postJobData.value = _postJobData.value.copyWith(requiresSupervisorSignature: false);
     }
+    print('🔍 PostJobDto requiresSupervisorSignature: ${_postJobData.value.requiresSupervisorSignature}');
+    print('🔍 isStep8Valid: ${isStep8Valid()}');
   }
 
   void updateSupervisorName(String name) {
+    print('🔍 updateSupervisorName called with: "$name"');
     supervisorName.value = name;
-    _postJobData.value = _postJobData.value.copyWith(supervisorName: name);
+    
+    // Usar copyWith con un valor no-null para forzar la actualización
+    final trimmedName = name.trim();
+    print('🔍 Trimmed name: "$trimmedName"');
+    
+    _postJobData.value = _postJobData.value.copyWith(supervisorName: trimmedName);
+    print('🔍 PostJobDto supervisorName after copyWith: "${_postJobData.value.supervisorName}"');
+    
+    // Verificar si el valor se guardó correctamente
+    if (_postJobData.value.supervisorName != trimmedName) {
+      print('🔍 ERROR: supervisorName not updated correctly!');
+      // Intentar una segunda vez con un enfoque diferente
+      final currentDto = _postJobData.value;
+      _postJobData.value = PostJobDto(
+        selectedSkill: currentDto.selectedSkill,
+        jobTitle: currentDto.jobTitle,
+        jobDescription: currentDto.jobDescription,
+        jobLocation: currentDto.jobLocation,
+        jobSiteId: currentDto.jobSiteId,
+        workersNeeded: currentDto.workersNeeded,
+        hourlyRate: currentDto.hourlyRate,
+        siteAllowance: currentDto.siteAllowance,
+        leadingHandAllowance: currentDto.leadingHandAllowance,
+        productivityAllowance: currentDto.productivityAllowance,
+        overtimeRate: currentDto.overtimeRate,
+        travelAllowance: currentDto.travelAllowance,
+        startDate: currentDto.startDate,
+        endDate: currentDto.endDate,
+        startTime: currentDto.startTime,
+        endTime: currentDto.endTime,
+        jobType: currentDto.jobType,
+        isOngoingWork: currentDto.isOngoingWork,
+        workOnSaturdays: currentDto.workOnSaturdays,
+        workOnSundays: currentDto.workOnSundays,
+        requirements: currentDto.requirements,
+        payDay: currentDto.payDay,
+        paymentFrequency: currentDto.paymentFrequency,
+        requiresSupervisorSignature: currentDto.requiresSupervisorSignature,
+        supervisorName: trimmedName,
+        isPublic: currentDto.isPublic,
+      );
+      print('🔍 PostJobDto supervisorName after manual creation: "${_postJobData.value.supervisorName}"');
+    }
+    
+    print('🔍 selectedOption.value: "${selectedOption.value}"');
+    print('🔍 isStep8Valid: ${isStep8Valid()}');
+    print('🔍 canProceedToNextStep: ${canProceedToNextStep()}');
   }
 
   // ===== REVIEW SCREEN =====
@@ -450,37 +547,68 @@ class UnifiedPostJobController extends GetxController {
   }
 
   bool isStep8Valid() {
-    if (_postJobData.value.requiresSupervisorSignature == null) {
+    print('🔍 isStep8Valid - requiresSupervisorSignature: ${_postJobData.value.requiresSupervisorSignature}');
+    print('🔍 isStep8Valid - supervisorName: "${_postJobData.value.supervisorName}"');
+    print('🔍 isStep8Valid - selectedOption: "${selectedOption.value}"');
+    
+    // Si no se ha seleccionado ninguna opción, no es válido
+    if (selectedOption.value.isEmpty) {
+      print('🔍 isStep8Valid - returning false (no option selected)');
       return false;
     }
-    if (_postJobData.value.requiresSupervisorSignature == true) {
-      return _postJobData.value.supervisorName != null && 
-             _postJobData.value.supervisorName!.trim().isNotEmpty;
+    
+    // Si se seleccionó "yes" (requiere supervisor), verificar que el nombre no esté vacío
+    if (selectedOption.value == "yes") {
+      // Verificar tanto en el DTO como en la variable local
+      final dtoName = _postJobData.value.supervisorName;
+      final localName = supervisorName.value;
+      
+      final isValid = (dtoName != null && dtoName.trim().isNotEmpty) || 
+                     (localName.trim().isNotEmpty);
+      
+      print('🔍 isStep8Valid - dtoName: "$dtoName", localName: "$localName"');
+      print('🔍 isStep8Valid - returning $isValid (supervisor required)');
+      return isValid;
     }
+    
+    // Si se seleccionó "no", es válido
+    print('🔍 isStep8Valid - returning true (supervisor not required)');
     return true;
   }
 
   bool canProceedToNextStep() {
+    print('🔍 canProceedToNextStep called for step: ${_currentStep.value}');
+    bool result = false;
     switch (_currentStep.value) {
       case 1:
-        return isStep1Valid();
+        result = isStep1Valid();
+        break;
       case 2:
-        return isStep2Valid();
+        result = isStep2Valid();
+        break;
       case 3:
-        return isStep3Valid();
+        result = isStep3Valid();
+        break;
       case 4:
-        return isStep4Valid();
+        result = isStep4Valid();
+        break;
       case 5:
-        return isStep5Valid();
+        result = isStep5Valid();
+        break;
       case 6:
-        return isStep6Valid();
+        result = isStep6Valid();
+        break;
       case 7:
-        return isStep7Valid();
+        result = isStep7Valid();
+        break;
       case 8:
-        return isStep8Valid();
+        result = isStep8Valid();
+        break;
       default:
-        return false;
+        result = false;
     }
+    print('🔍 canProceedToNextStep result: $result');
+    return result;
   }
 
   // ===== FORMATTING METHODS =====
@@ -558,14 +686,46 @@ class UnifiedPostJobController extends GetxController {
   void handleContinue() {
     if (canProceedToNextStep()) {
       nextStep();
-      // La navegación se manejará en cada screen específico
+      // Navegar al siguiente paso
+      _navigateToNextStep();
+    }
+  }
+
+  void _navigateToNextStep() {
+    switch (_currentStep.value) {
+      case 2:
+        Get.toNamed(PostJobStepperStep2Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 3:
+        Get.toNamed(PostJobStepperStep3Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 4:
+        Get.toNamed(PostJobStepperStep4Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 5:
+        Get.toNamed(PostJobStepperStep5Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 6:
+        Get.toNamed(PostJobStepperStep6Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 7:
+        Get.toNamed(PostJobStepperStep7Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 8:
+        Get.toNamed(PostJobStepperStep8Screen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      case 9:
+        Get.toNamed(PostJobReviewScreen.id, arguments: {'flavor': currentFlavor.value});
+        break;
+      default:
+        print('No navigation defined for step ${_currentStep.value}');
     }
   }
 
   void handleEdit() {
     // Navegar al paso 1 para editar
     goToStep(1);
-    Get.offNamed('/builder/post-job', arguments: {'flavor': currentFlavor.value});
+    Get.offNamed(PostJobStepperScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleConfirm() async {
@@ -584,14 +744,17 @@ class UnifiedPostJobController extends GetxController {
     // Resetear todos los estados de las variables de las vistas
     await reset();
     
-    // Navegar de vuelta a la pantalla principal
-    Get.offAllNamed('/');
+    // Navegar al home del builder
+    Get.offAllNamed('/builder/home');
   }
 
   // ===== UTILITY METHODS =====
   Future<void> reset() async {
     print('🧹 UnifiedPostJobController reset - Instance: ${this.hashCode}');
-    _postJobData.value = PostJobDto();
+    _postJobData.value = PostJobDto(
+      requiresSupervisorSignature: false,
+      supervisorName: null,
+    );
     _currentStep.value = 1;
     _errorMessage.value = '';
     

@@ -109,9 +109,9 @@ class PostJobDto {
       requirements: requirements ?? this.requirements,
       payDay: payDay ?? this.payDay,
       paymentFrequency: paymentFrequency ?? this.paymentFrequency,
-              requiresSupervisorSignature: requiresSupervisorSignature ?? this.requiresSupervisorSignature,
-        supervisorName: supervisorName ?? this.supervisorName,
-        isPublic: isPublic ?? this.isPublic,
+      requiresSupervisorSignature: requiresSupervisorSignature ?? this.requiresSupervisorSignature,
+      supervisorName: supervisorName ?? this.supervisorName,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 
@@ -140,9 +140,9 @@ class PostJobDto {
       'requirements': requirements,
       'payDay': payDay?.toIso8601String(),
       'paymentFrequency': paymentFrequency,
-             'requiresSupervisorSignature': requiresSupervisorSignature,
-       'supervisorName': supervisorName,
-       'isPublic': isPublic,
+      'requiresSupervisorSignature': requiresSupervisorSignature,
+      'supervisorName': supervisorName,
+      'isPublic': isPublic,
     };
   }
 
@@ -171,9 +171,9 @@ class PostJobDto {
       requirements: map['requirements'] != null ? List<String>.from(map['requirements']) : null,
       payDay: map['payDay'] != null ? DateTime.parse(map['payDay']) : null,
       paymentFrequency: map['paymentFrequency'],
-             requiresSupervisorSignature: map['requiresSupervisorSignature'],
-       supervisorName: map['supervisorName'],
-       isPublic: map['isPublic'],
+      requiresSupervisorSignature: map['requiresSupervisorSignature'],
+      supervisorName: map['supervisorName'],
+      isPublic: map['isPublic'],
     );
   }
 

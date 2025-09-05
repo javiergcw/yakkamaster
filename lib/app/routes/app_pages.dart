@@ -48,6 +48,7 @@ import '../../screens/builder/post_job/presentation/pages/post_job_stepper_scree
 import '../../screens/builder/post_job/presentation/pages/job_sites_screen.dart';
 import '../../screens/builder/post_job/presentation/pages/create_edit_job_site_screen.dart';
 import '../../screens/builder/post_job/presentation/pages/post_job_review_screen.dart';
+import '../../screens/builder/post_job/presentation/pages/project_overview_screen.dart';
 
 // Importar pantallas de my jobs
 import '../../screens/builder/my_jobs/presentation/pages/my_jobs_screen.dart';
@@ -61,6 +62,14 @@ import '../../screens/builder/post_job/presentation/pages/post_job_stepper_step8
 
 // Importar pantallas de invoices
 import '../../screens/builder/invoices/presentation/pages/invoices_screen.dart';
+
+// Importar pantallas de expenses
+import '../../screens/builder/expenses/presentation/pages/expenses_screen.dart';
+import '../../screens/builder/expenses/logic/bindings/expenses_binding.dart';
+import '../../screens/builder/expenses/presentation/pages/filter_jobsites_screen.dart';
+import '../../screens/builder/expenses/logic/bindings/filter_jobsites_binding.dart';
+import '../../screens/builder/expenses/presentation/pages/custom_date_range_screen.dart';
+import '../../screens/builder/expenses/logic/bindings/custom_date_range_binding.dart';
 
 // Importar pantallas de staff
 import '../../screens/builder/staff/presentation/pages/staff_screen.dart';
@@ -461,12 +470,55 @@ abstract class AppPages {
       transitionDuration: duration,
       transition: Transition.rightToLeft,
     ),
+    GetPage(
+      name: ProjectOverviewScreen.id,
+      page: () => ProjectOverviewScreen(
+        flavor: Get.arguments?['flavor'],
+        jobSite: Get.arguments?['jobSite'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
 
     // Rutas de Builder - Invoices
     GetPage(
       name: InvoicesScreen.id,
       page: () => InvoicesScreen(),
       binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
+    // Rutas de Builder - Expenses
+    GetPage(
+      name: ExpensesScreen.id,
+      page: () => ExpensesScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: ExpensesBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
+    // Rutas de Builder - Filter JobSites
+    GetPage(
+      name: FilterJobSitesScreen.id,
+      page: () => FilterJobSitesScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: FilterJobSitesBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
+    // Rutas de Builder - Custom Date Range
+    GetPage(
+      name: CustomDateRangeScreen.id,
+      page: () => CustomDateRangeScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: CustomDateRangeBinding(),
       transitionDuration: duration,
       transition: Transition.rightToLeft,
     ),

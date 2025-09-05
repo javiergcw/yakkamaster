@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 enum AssetType {
   logo,
@@ -8,6 +7,8 @@ enum AssetType {
   respect,
   logoMiddle,
   employees,
+  finishedIcon,
+  inProgressIcon,
 }
 
 enum AppFlavor {
@@ -26,6 +27,8 @@ class AssetsConfig {
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
       AssetType.employees: 'assets/employees.png',
+      AssetType.finishedIcon: 'assets/icons/finished.svg',
+      AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
     },
     AppFlavor.sport: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -35,6 +38,8 @@ class AssetsConfig {
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
       AssetType.employees: 'assets/employees.png',
+      AssetType.finishedIcon: 'assets/icons/finished.svg',
+      AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
     },
     AppFlavor.hospitality: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -44,6 +49,8 @@ class AssetsConfig {
       AssetType.respect: 'assets/respect.png',
       AssetType.logoMiddle: 'assets/yakka_sport_logo_middle.svg',
       AssetType.employees: 'assets/employees.png',
+      AssetType.finishedIcon: 'assets/icons/finished.svg',
+      AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
     },
   };
 
@@ -77,5 +84,13 @@ class AssetsConfig {
 
   static String getEmployees(AppFlavor flavor) {
     return getAsset(flavor, AssetType.employees);
+  }
+
+  static String getFinishedIcon(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.finishedIcon);
+  }
+
+  static String getInProgressIcon(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.inProgressIcon);
   }
 }

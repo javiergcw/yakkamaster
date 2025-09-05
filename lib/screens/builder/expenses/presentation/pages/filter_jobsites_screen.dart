@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
-import '../widgets/job_site_card.dart';
-import '../../logic/controllers/job_sites_screen_controller.dart';
+import '../../../post_job/presentation/widgets/job_site_card.dart';
+import '../../logic/controllers/filter_jobsites_controller.dart';
 
-class JobSitesScreen extends StatelessWidget {
-  static const String id = '/builder/job-sites-select';
+class FilterJobSitesScreen extends StatelessWidget {
+  static const String id = '/builder/expenses/filter-jobsites';
 
   final AppFlavor? flavor;
 
-  JobSitesScreen({super.key, this.flavor});
+  FilterJobSitesScreen({super.key, this.flavor});
 
-  final JobSitesScreenController controller = Get.put(
-    JobSitesScreenController(),
+  final FilterJobSitesController controller = Get.put(
+    FilterJobSitesController(),
   );
 
   @override
@@ -83,11 +83,11 @@ class JobSitesScreen extends StatelessWidget {
             // Main Content
             Expanded(
               child: Obx(() {
-                if (controller.jobSiteController.isLoading) {
+                if (controller.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (controller.jobSiteController.errorMessage.isNotEmpty) {
+                if (controller.errorMessage.value.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -99,7 +99,7 @@ class JobSitesScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         Text(
-                          controller.jobSiteController.errorMessage,
+                          controller.errorMessage.value,
                           style: GoogleFonts.poppins(
                             fontSize: descriptionFontSize,
                             color: Colors.grey[600],
@@ -108,8 +108,7 @@ class JobSitesScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         ElevatedButton(
-                          onPressed: () =>
-                              controller.jobSiteController.loadJobSites(),
+                          onPressed: () => controller.loadJobSites(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -117,7 +116,7 @@ class JobSitesScreen extends StatelessWidget {
                   );
                 }
 
-                if (controller.jobSiteController.jobSites.isEmpty) {
+                if (controller.jobSites.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -155,56 +154,19 @@ class JobSitesScreen extends StatelessWidget {
                     horizontal: horizontalPadding,
                     vertical: verticalSpacing * 0.5,
                   ),
-                  itemCount:
-                      controller.jobSiteController.jobSites.length +
-                      1, // +1 para el botón de crear
+                  itemCount: controller.jobSites.length,
                   itemBuilder: (context, index) {
-                    if (index == controller.jobSiteController.jobSites.length) {
-                      // Botón para crear job site al final
-                      return Container(
-                        margin: EdgeInsets.only(top: verticalSpacing),
-                        child: ElevatedButton.icon(
-                          onPressed: controller.handleCreateJobSite,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[100],
-                            foregroundColor: Colors.grey[700],
-                            padding: EdgeInsets.symmetric(
-                              horizontal: horizontalPadding,
-                              vertical: verticalSpacing * 0.8,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              side: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 1,
-                              ),
-                            ),
-                            elevation: 0,
-                          ),
-                          icon: Icon(Icons.add, size: iconSize * 0.8),
-                          label: Text(
-                            "Create new job site",
-                            style: GoogleFonts.poppins(
-                              fontSize: buttonFontSize * 0.8,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      );
-                    }
-
-                    final jobSite =
-                        controller.jobSiteController.jobSites[index];
+                    final jobSite = controller.jobSites[index];
                     return JobSiteCard(
                       jobSite: jobSite,
                       isSelected: jobSite.isSelected,
                       onTap: () {
-                        controller.jobSiteController.toggleJobSiteSelection(
+                        controller.toggleJobSiteSelection(
                           jobSite.id,
                         );
                       },
                       onEdit: () {
-                        controller.handleEditJobSite(jobSite);
+                        // No edit functionality for filter screen
                       },
                     );
                   },
@@ -212,7 +174,7 @@ class JobSitesScreen extends StatelessWidget {
               }),
             ),
 
-            // Request Workers Button
+            // Apply Filter Button
             Obx(
               () => Container(
                 width: double.infinity,
@@ -221,13 +183,11 @@ class JobSitesScreen extends StatelessWidget {
                   vertical: verticalSpacing * 0.5,
                 ),
                 child: ElevatedButton(
-                  onPressed:
-                      controller.jobSiteController.selectedJobSites.isNotEmpty
-                      ? controller.handleRequestWorkers
+                  onPressed: controller.selectedJobSites.isNotEmpty
+                      ? controller.handleApplyFilter
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        controller.jobSiteController.selectedJobSites.isNotEmpty
+                    backgroundColor: controller.selectedJobSites.isNotEmpty
                         ? Color(
                             AppFlavorConfig.getPrimaryColor(
                               controller.currentFlavor.value,
@@ -244,7 +204,7 @@ class JobSitesScreen extends StatelessWidget {
                     elevation: 1,
                   ),
                   child: Text(
-                    "Request workers",
+                    "Apply Filter",
                     style: GoogleFonts.poppins(
                       fontSize: buttonFontSize * 0.9,
                       fontWeight: FontWeight.w600,

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/post_job_controller.dart';
+import '../../logic/controllers/unified_post_job_controller.dart';
 
 class WorkersCountModal extends StatefulWidget {
   final AppFlavor? flavor;
@@ -20,13 +20,13 @@ class WorkersCountModal extends StatefulWidget {
 
 class _WorkersCountModalState extends State<WorkersCountModal> {
   AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late PostJobController _controller;
+  late UnifiedPostJobController _controller;
   late TextEditingController _textController;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<PostJobController>();
+    _controller = Get.find<UnifiedPostJobController>();
     _textController = TextEditingController();
   }
 
@@ -164,12 +164,19 @@ class _WorkersCountModalState extends State<WorkersCountModal> {
 
   void _handleSave() {
     final text = _textController.text.trim();
+    print('🔍 WorkersCountModal - _handleSave called with text: "$text"');
+    
     if (text.isNotEmpty) {
       final number = int.tryParse(text);
+      print('🔍 WorkersCountModal - parsed number: $number');
+      
       if (number != null && number > 5) {
+        print('🔍 WorkersCountModal - calling updateWorkersNeeded with: $number');
         _controller.updateWorkersNeeded(number);
+        print('🔍 WorkersCountModal - workersNeeded after update: ${_controller.postJobData.workersNeeded}');
         Navigator.of(context).pop();
       } else {
+        print('🔍 WorkersCountModal - number validation failed: $number');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Please enter a number greater than 5'),
@@ -178,6 +185,7 @@ class _WorkersCountModalState extends State<WorkersCountModal> {
         );
       }
     } else {
+      print('🔍 WorkersCountModal - text is empty');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please enter a number'),
