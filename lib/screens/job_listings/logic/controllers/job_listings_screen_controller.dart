@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../logic/job_listings_controller.dart';
+import '../../../../screens/labour/home/presentation/pages/home_screen.dart';
 
 class JobListingsScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -35,7 +36,7 @@ class JobListingsScreenController extends GetxController {
   }
 
   void handleBackNavigation() {
-    Get.offAllNamed('/labour/home');
+    Get.offAllNamed(HomeScreen.id);
   }
 
   void updateSearchQuery(String query) {

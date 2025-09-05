@@ -6,14 +6,14 @@ import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../../../../features/widgets/phone_input.dart';
-import '../../logic/controllers/previous_employer_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class PreviousEmployerScreen extends StatelessWidget {
   static const String id = '/previous-employer';
   
   PreviousEmployerScreen({super.key});
 
-  final PreviousEmployerController controller = Get.put(PreviousEmployerController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -355,7 +355,7 @@ class PreviousEmployerScreen extends StatelessWidget {
                   // Botón Continue
                   CustomButton(
                     text: "Continue",
-                    onPressed: controller.handleContinue,
+                    onPressed: controller.handlePreviousEmployerContinue,
                     isLoading: false,
                     showShadow: false,
                   ),

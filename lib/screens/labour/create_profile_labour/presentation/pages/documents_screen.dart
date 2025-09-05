@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/documents_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class DocumentsScreen extends StatelessWidget {
   static const String id = '/documents';
   
   DocumentsScreen({super.key});
 
-  final DocumentsController controller = Get.put(DocumentsController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
 
 
@@ -57,7 +56,7 @@ class DocumentsScreen extends StatelessWidget {
                       Expanded(
                         child: Center(
                           child: Text(
-                            "Documents",
+                            "Add documents",
                             style: GoogleFonts.poppins(
                               fontSize: titleFontSize,
                               fontWeight: FontWeight.bold,
@@ -148,7 +147,7 @@ class DocumentsScreen extends StatelessWidget {
                        Expanded(
                          flex: 1,
                          child: GestureDetector(
-                           onTap: controller.addLicense,
+                           onTap: controller.addCredential,
                            child: Container(
                              padding: EdgeInsets.symmetric(
                                horizontal: horizontalPadding * 0.3,
@@ -313,28 +312,11 @@ class DocumentsScreen extends StatelessWidget {
                   // Botón Continue
                   CustomButton(
                     text: "Continue",
-                    onPressed: controller.handleContinue,
+                    onPressed: controller.handleDocumentsContinue,
                     isLoading: false,
                     showShadow: false,
                   ),
                   
-                  SizedBox(height: verticalSpacing),
-                  
-                  // Botón Skip
-                  Center(
-                    child: GestureDetector(
-                      onTap: controller.handleSkip,
-                      child: Text(
-                        "Skip",
-                        style: GoogleFonts.poppins(
-                          fontSize: buttonFontSize,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                  ),
                   
                   SizedBox(height: verticalSpacing * 2),
                 ],

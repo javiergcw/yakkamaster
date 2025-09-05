@@ -4,14 +4,14 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/respect_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class RespectScreen extends StatelessWidget {
   static const String id = '/respect';
   
   RespectScreen({super.key});
 
-  final RespectController controller = Get.put(RespectController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +118,7 @@ class RespectScreen extends StatelessWidget {
                 height: 60,
                 child: CustomButton(
                   text: "I commit to being respectful",
-                  onPressed: controller.handleCommit,
+                                      onPressed: controller.handleRespectCommit,
                   isLoading: false,
                   showShadow: false,
                 ),

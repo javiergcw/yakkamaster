@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../data/dto/job_dto.dart';
 import '../data/dto/job_details_dto.dart';
@@ -23,7 +23,6 @@ class JobListingsController {
   Function()? onCountdownChanged;
   
   // Navigation context
-  BuildContext? _context;
   AppFlavor? _flavor;
 
   void initialize() {
@@ -31,8 +30,7 @@ class JobListingsController {
     startCountdown();
   }
   
-  void setNavigationContext(BuildContext context, AppFlavor flavor) {
-    _context = context;
+  void setNavigationContext(AppFlavor flavor) {
     _flavor = flavor;
   }
 
@@ -145,11 +143,6 @@ class JobListingsController {
   }
 
   void showMoreDetails(JobDto job) {
-    if (_context == null) {
-      print('Context not set for navigation');
-      return;
-    }
-    
     // Convertir JobDto a JobDetailsDto para la navegación
     final jobDetails = JobDetailsDto(
       id: job.id,
@@ -177,15 +170,11 @@ class JobListingsController {
       longitude: 151.2093,
     );
     
-    Navigator.of(_context!).push(
-      MaterialPageRoute(
-        builder: (context) => JobDetailsScreen(
-          jobDetails: jobDetails,
-          flavor: _flavor,
-          isFromAppliedJobs: false,
-        ),
-      ),
-    );
+    Get.toNamed(JobDetailsScreen.id, arguments: {
+      'jobDetails': jobDetails,
+      'flavor': _flavor,
+      'isFromAppliedJobs': false,
+    });
   }
 
   List<JobDto> get filteredJobs {

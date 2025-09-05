@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
 import '../../../home/presentation/pages/home_screen.dart';
-import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
+import '../../../../../screens/labour/create_profile_labour/presentation/pages/documents_screen.dart';
 
 class ProfileCreatedController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -16,13 +14,13 @@ class ProfileCreatedController extends GetxController {
     }
   }
 
-  void handleExploreYakka() {
+  void handleStartUsingYakka() {
     // Navegar a la pantalla home de YAKKA usando GetX
     Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
-  void handleApplyForJob() {
-    // Navegar a la pantalla de job listings
-    Get.toNamed(JobListingsScreen.id, arguments: {'flavor': currentFlavor.value});
+  void handleUploadResume() {
+    // Navegar a la pantalla de documentos
+    Get.toNamed(DocumentsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

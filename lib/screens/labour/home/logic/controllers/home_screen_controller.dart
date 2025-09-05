@@ -1,7 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
+import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/notifications_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/invoice_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/applied_jobs_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/digital_id_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/messages_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/profile_screen.dart';
 
 class Shift {
   final String companyName;
@@ -103,7 +109,7 @@ class HomeScreenController extends GetxController {
 
   void handleApplyForJob() {
     // Navegar a la pantalla de job listings
-    Get.toNamed('/labour/job-listings', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(JobListingsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleBottomNavTap(int index) {
@@ -129,30 +135,30 @@ class HomeScreenController extends GetxController {
   }
 
   void navigateToNotifications() {
-    Get.toNamed('/labour/notifications', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(NotificationsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToInvoice() {
-    Get.toNamed('/labour/invoice', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(InvoiceScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToAppliedJobs() {
-    Get.toNamed('/labour/applied-jobs', arguments: {
+    Get.toNamed(AppliedJobsScreen.id, arguments: {
       'flavor': currentFlavor.value,
       'appliedJobs': appliedJobs,
     });
   }
 
   void navigateToDigitalId() {
-    Get.toNamed('/labour/digital-id', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(DigitalIdScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToMessages() {
-    Get.toNamed('/labour/messages', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToProfile() {
-    Get.toNamed('/labour/profile', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(ProfileScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void selectDate(DateTime date) {

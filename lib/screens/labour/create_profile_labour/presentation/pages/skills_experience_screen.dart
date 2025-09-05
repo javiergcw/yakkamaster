@@ -5,14 +5,14 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../widgets/progress_indicator.dart';
-import '../../logic/controllers/skills_experience_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class SkillsExperienceScreen extends StatelessWidget {
   static const String id = '/skills-experience';
   
   SkillsExperienceScreen({super.key});
 
-  final SkillsExperienceController controller = Get.put(SkillsExperienceController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +155,7 @@ class SkillsExperienceScreen extends StatelessWidget {
               // Botón Continue - sin espacios
               CustomButton(
                 text: "Continue",
-                onPressed: controller.handleContinue,
+                                    onPressed: controller.handleSkillsContinue,
                 isLoading: false,
                 showShadow: false,
               ),

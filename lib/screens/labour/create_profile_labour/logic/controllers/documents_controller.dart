@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../presentation/pages/license_screen.dart';
+import '../../../home/presentation/pages/home_screen.dart';
 
 class DocumentsController extends GetxController {
   // Variables reactivas
@@ -139,12 +139,7 @@ class DocumentsController extends GetxController {
   }
 
   void handleContinue() {
-    // Navegar a la pantalla de License
-    Get.toNamed(LicenseScreen.id, arguments: {'flavor': currentFlavor.value});
-  }
-
-  void handleSkip() {
-    // Navegar a la pantalla de License
-    Get.toNamed(LicenseScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar al home screen
+    Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

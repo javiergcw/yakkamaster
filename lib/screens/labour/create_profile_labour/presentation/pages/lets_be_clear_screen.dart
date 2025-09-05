@@ -5,14 +5,14 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/lets_be_clear_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class LetsBeClearScreen extends StatelessWidget {
   static const String id = '/lets-be-clear';
   
   LetsBeClearScreen({super.key});
 
-  final LetsBeClearController controller = Get.put(LetsBeClearController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +169,7 @@ class LetsBeClearScreen extends StatelessWidget {
                        height: 60,
                        child: CustomButton(
                          text: "I understand and accept",
-                         onPressed: controller.handleAccept,
+                         onPressed: controller.handleLetsBeClearAccept,
                          isLoading: false,
                          showShadow: false,
                        ),

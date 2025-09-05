@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +5,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/constants.dart';
+import '../../../../../screens/labour/home/presentation/pages/edit_personal_details_screen.dart' as labour_edit_personal;
+import '../../../../../screens/labour/home/presentation/pages/edit_documents_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/edit_bank_details_screen.dart';
 
 class ProfileScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -55,17 +57,17 @@ class ProfileScreenController extends GetxController {
 
   void handleEditPersonalDetails() {
     // Navegar a la pantalla de edición de detalles personales
-    Get.toNamed('/labour/edit-personal-details', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(labour_edit_personal.EditPersonalDetailsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleEditDocuments() {
     // Navegar a la pantalla de edición de documentos
-    Get.toNamed('/labour/edit-documents', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(EditDocumentsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleEditBankDetails() {
     // Navegar a la pantalla de edición de detalles bancarios
-    Get.toNamed('/labour/edit-bank-details', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(EditBankDetailsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleTermsAndConditions() async {

@@ -62,22 +62,25 @@ class ProfileScreen extends StatelessWidget {
                             color: const Color(0xFF4A6741), // Verde oscuro
                             shape: BoxShape.circle,
                           ),
-                          child: Obx(() => controller.selectedImage.value != null
-                              ? ClipOval(
-                                  child: Image.file(
-                                    File(controller.selectedImage.value!.path),
-                                    width: profileImageSize,
-                                    height: profileImageSize,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )
+                          child: Obx(() {
+                            final selectedImage = controller.selectedImage.value;
+                            return selectedImage != null
+                                ? ClipOval(
+                                    child: Image.file(
+                                      File(selectedImage.path),
+                                      width: profileImageSize,
+                                      height: profileImageSize,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  )
                               : Center(
                                   child: Icon(
                                     Icons.person,
                                     size: profileImageSize * 0.6,
                                     color: const Color(0xFF8BC34A), // Verde claro
                                   ),
-                                )),
+                                );
+                          }),
                         ),
                         
                         // Botón de edición de imagen

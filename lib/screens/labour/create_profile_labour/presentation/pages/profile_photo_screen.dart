@@ -4,14 +4,14 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
-import '../../logic/controllers/profile_photo_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class ProfilePhotoScreen extends StatelessWidget {
   static const String id = '/profile-photo';
   
   ProfilePhotoScreen({super.key});
 
-  final ProfilePhotoController controller = Get.put(ProfilePhotoController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +85,7 @@ class ProfilePhotoScreen extends StatelessWidget {
                     // Círculo para foto de perfil
                     Center(
                       child: Obx(() => GestureDetector(
-                        onTap: controller.showPhotoOptions,
+                                                    onTap: () => controller.showPhotoOptions(),
                         child: Container(
                           width: screenWidth * 0.4,
                           height: screenWidth * 0.4,
@@ -226,7 +226,7 @@ class ProfilePhotoScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               child: CustomButton(
                 text: "Continue",
-                onPressed: controller.handleContinue,
+                                    onPressed: controller.handleProfilePhotoContinue,
                 showShadow: false,
               ),
             ),

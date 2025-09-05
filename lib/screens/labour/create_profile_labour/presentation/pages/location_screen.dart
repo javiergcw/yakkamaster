@@ -4,14 +4,14 @@ import 'package:get/get.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../widgets/progress_indicator.dart';
-import '../../logic/controllers/location_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class LocationScreen extends StatelessWidget {
   static const String id = '/location';
   
   LocationScreen({super.key});
 
-  final LocationController controller = Get.put(LocationController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +100,7 @@ class LocationScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
               child: CustomButton(
                 text: "Continue",
-                onPressed: controller.handleContinue,
+                                    onPressed: controller.handleLocationContinue,
                 showShadow: false,
               ),
             ),

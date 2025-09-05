@@ -4,14 +4,14 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
-import '../../logic/controllers/license_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class LicenseScreen extends StatelessWidget {
   static const String id = '/license';
   
   LicenseScreen({super.key});
 
-  final LicenseController controller = Get.put(LicenseController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
 
 
@@ -120,10 +120,10 @@ class LicenseScreen extends StatelessWidget {
                                children: [
                                  Expanded(
                                    child: Obx(() => Text(
-                                     controller.selectedCredential.value ?? "Select credential",
+                                     controller.selectedCredential?.value ?? "Select credential",
                                      style: GoogleFonts.poppins(
                                        fontSize: buttonFontSize,
-                                       color: controller.selectedCredential.value != null ? Colors.black : Colors.grey[600],
+                                       color: controller.selectedCredential?.value != null ? Colors.black : Colors.grey[600],
                                      ),
                                    )),
                                  ),
@@ -178,10 +178,10 @@ class LicenseScreen extends StatelessWidget {
                   
                   SizedBox(height: verticalSpacing * 1.5),
                   
-                  // Documentos opcionales
+                  // Licencias agregadas
                   Obx(() => Column(
-                    children: List.generate(controller.documents.length, (index) {
-                      final document = controller.documents[index];
+                    children: List.generate(controller.licenses.length, (index) {
+                      final license = controller.licenses[index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -190,7 +190,7 @@ class LicenseScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  document['type'],
+                                  license['type'],
                                   style: GoogleFonts.poppins(
                                     fontSize: buttonFontSize,
                                     fontWeight: FontWeight.w600,
@@ -220,7 +220,7 @@ class LicenseScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () async => await controller.uploadDocument(index),
+                                  onTap: () async => await controller.uploadLicense(index),
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: horizontalPadding * 0.8,
@@ -241,7 +241,7 @@ class LicenseScreen extends StatelessWidget {
                                         SizedBox(width: horizontalPadding * 0.5),
                                         Expanded(
                                           child: Text(
-                                            "Upload ${document['type'].toString().toLowerCase()}",
+                                            "Upload ${license['type'].toString().toLowerCase()}",
                                             style: GoogleFonts.poppins(
                                               fontSize: buttonFontSize,
                                               fontWeight: FontWeight.w500,
@@ -275,7 +275,7 @@ class LicenseScreen extends StatelessWidget {
                               ),
                             ),
                           ),
-                          if (document['uploaded'] == true) ...[
+                          if (license['uploaded'] == true) ...[
                             SizedBox(height: verticalSpacing * 0.5),
                             Padding(
                               padding: EdgeInsets.only(left: horizontalPadding * 0.8),
@@ -292,7 +292,7 @@ class LicenseScreen extends StatelessWidget {
                                       SizedBox(width: horizontalPadding * 0.3),
                                       Expanded(
                                         child: Text(
-                                          document['file'],
+                                          license['file'],
                                           style: GoogleFonts.poppins(
                                             fontSize: buttonFontSize * 0.8,
                                             color: Colors.green[700],
@@ -302,10 +302,10 @@ class LicenseScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
-                                  if (document['size'] != null) ...[
+                                  if (license['size'] != null) ...[
                                     SizedBox(height: verticalSpacing * 0.3),
                                     Text(
-                                      'Tamaño: ${controller.formatFileSize(document['size'])}',
+                                      'Tamaño: ${controller.formatFileSize(license['size'])}',
                                       style: GoogleFonts.poppins(
                                         fontSize: buttonFontSize * 0.7,
                                         color: Colors.grey[600],
@@ -324,7 +324,7 @@ class LicenseScreen extends StatelessWidget {
                   
                   // Mensaje informativo (solo se muestra si no hay licencias añadidas)
                   Obx(() {
-                    if (controller.documents.isEmpty) {
+                    if (controller.licenses.isEmpty) {
                       return Center(
                         child: Text(
                           "*To avoid scammers we require minimum 1 licence to verify your Identity",
@@ -347,7 +347,7 @@ class LicenseScreen extends StatelessWidget {
                   // Botón Continue
                   CustomButton(
                     text: "Continue",
-                    onPressed: controller.handleContinue,
+                    onPressed: controller.handleLicenseContinue,
                     isLoading: false,
                     showShadow: false,
                   ),

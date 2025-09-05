@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/assets_config.dart';
-import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/profile_created_controller.dart';
+import '../../logic/controllers/create_profile_controller.dart';
 
 class ProfileCreatedScreen extends StatelessWidget {
   static const String id = '/profile-created';
   
   ProfileCreatedScreen({super.key});
 
-  final ProfileCreatedController controller = Get.put(ProfileCreatedController());
+  final CreateProfileController controller = Get.put(CreateProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +71,7 @@ class ProfileCreatedScreen extends StatelessWidget {
               
               // Subtítulo/Descripción
               Text(
-                "Now you can start applying for construction jobs",
+                "You're ready to get started. Complete your profile now or explore Yakka right away.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: subtitleFontSize,
@@ -87,44 +85,7 @@ class ProfileCreatedScreen extends StatelessWidget {
               // Botones de acción
               Column(
                 children: [
-                  // Botón "Explore YAKKA" (fondo amarillo con borde negro)
-                  Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.black,
-                        width: 2,
-                      ),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: controller.handleExploreYakka,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: horizontalPadding,
-                            vertical: verticalSpacing * 1.5,
-                          ),
-                          child: Text(
-                            "Explore YAKKA",
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: buttonFontSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height: verticalSpacing * 1.5),
-                  
-                  // Botón "Apply for a job" (fondo negro con texto blanco)
+                  // Botón "Start using Yakka" (fondo negro con texto blanco)
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -134,7 +95,7 @@ class ProfileCreatedScreen extends StatelessWidget {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: controller.handleApplyForJob,
+                        onTap: controller.handleStartUsingYakka,
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: EdgeInsets.symmetric(
@@ -142,7 +103,7 @@ class ProfileCreatedScreen extends StatelessWidget {
                             vertical: verticalSpacing * 1.5,
                           ),
                           child: Text(
-                            "Apply for a job",
+                            "Start using Yakka",
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: buttonFontSize,
@@ -150,6 +111,25 @@ class ProfileCreatedScreen extends StatelessWidget {
                               color: Colors.white,
                             ),
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  SizedBox(height: verticalSpacing * 1.5),
+                  
+                  // Enlace "Upload resume or more licences"
+                  Center(
+                    child: GestureDetector(
+                      onTap: controller.handleUploadResume,
+                      child: Text(
+                        "Upload resume or more licences",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: buttonFontSize,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black,
+                          decoration: TextDecoration.underline,
                         ),
                       ),
                     ),
