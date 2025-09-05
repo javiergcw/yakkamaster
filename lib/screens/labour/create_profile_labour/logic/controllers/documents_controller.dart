@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
-import '../../presentation/pages/respect_screen.dart';
+import '../../presentation/pages/license_screen.dart';
 
 class DocumentsController extends GetxController {
   // Variables reactivas
@@ -140,12 +139,12 @@ class DocumentsController extends GetxController {
   }
 
   void handleContinue() {
-    // Navegar a la pantalla de Respect
-    Get.offAllNamed(RespectScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar a la pantalla de License
+    Get.toNamed(LicenseScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void handleSkip() {
-    // Navegar a la pantalla de Respect
-    Get.offAllNamed(RespectScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar a la pantalla de License
+    Get.toNamed(LicenseScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

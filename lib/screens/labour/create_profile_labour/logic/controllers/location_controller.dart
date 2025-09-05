@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
-import '../../presentation/pages/previous_employer_screen.dart';
+import '../../presentation/pages/profile_photo_screen.dart';
 
 class LocationController extends GetxController {
   // Controllers para los campos de texto
@@ -32,7 +31,7 @@ class LocationController extends GetxController {
   }
 
   void handleContinue() {
-    // Navegar al siguiente paso del stepper
-    Get.toNamed(PreviousEmployerScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar a la pantalla de foto de perfil
+    Get.toNamed(ProfilePhotoScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

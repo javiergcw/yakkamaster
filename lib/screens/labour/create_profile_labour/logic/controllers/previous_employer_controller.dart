@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
 import '../../presentation/pages/documents_screen.dart';
 
 class PreviousEmployerController extends GetxController {
@@ -40,6 +40,10 @@ class PreviousEmployerController extends GetxController {
     final nameController = TextEditingController(text: supervisor!['name']);
     final companyController = TextEditingController(text: supervisor['company']);
     final phoneController = TextEditingController(text: supervisor['phone']);
+    
+    // Variables para intl_phone_field
+    String initialCountryCode = 'US';
+    String initialPhoneNumber = supervisor['phone'] ?? '';
 
     Get.bottomSheet(
       Container(
@@ -153,21 +157,38 @@ class PreviousEmployerController extends GetxController {
                       ),
                     ),
                     SizedBox(height: verticalSpacing * 0.5),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: TextField(
-                        controller: phoneController,
-                        decoration: InputDecoration(
-                          hintText: "Enter Phone Number",
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    IntlPhoneField(
+                      controller: phoneController,
+                      initialCountryCode: initialCountryCode,
+                      decoration: InputDecoration(
+                        hintText: "Enter Phone Number",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
-                        keyboardType: TextInputType.phone,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
+                      style: TextStyle(
+                        fontSize: labelFontSize,
+                        color: Colors.black,
+                      ),
+                      dropdownTextStyle: TextStyle(
+                        fontSize: labelFontSize,
+                        color: Colors.black,
+                      ),
+                      onChanged: (phone) {
+                        // El número completo se actualiza automáticamente
+                      },
                     ),
                     
                     const Spacer(),
@@ -288,6 +309,9 @@ class PreviousEmployerController extends GetxController {
     final nameController = TextEditingController();
     final companyController = TextEditingController();
     final phoneController = TextEditingController();
+    
+    // Variables para intl_phone_field
+    String initialCountryCode = 'US';
 
     Get.bottomSheet(
       Container(
@@ -401,21 +425,38 @@ class PreviousEmployerController extends GetxController {
                       ),
                     ),
                     SizedBox(height: verticalSpacing * 0.5),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
-                      ),
-                      child: TextField(
-                        controller: phoneController,
-                        decoration: InputDecoration(
-                          hintText: "Enter Phone Number",
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    IntlPhoneField(
+                      controller: phoneController,
+                      initialCountryCode: initialCountryCode,
+                      decoration: InputDecoration(
+                        hintText: "Enter Phone Number",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
                         ),
-                        keyboardType: TextInputType.phone,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       ),
+                      style: TextStyle(
+                        fontSize: labelFontSize,
+                        color: Colors.black,
+                      ),
+                      dropdownTextStyle: TextStyle(
+                        fontSize: labelFontSize,
+                        color: Colors.black,
+                      ),
+                      onChanged: (phone) {
+                        // El número completo se actualiza automáticamente
+                      },
                     ),
                     
                     const Spacer(),

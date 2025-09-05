@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
+import '../widgets/progress_indicator.dart';
 import '../../logic/controllers/skills_experience_controller.dart';
 
 class SkillsExperienceScreen extends StatelessWidget {
@@ -24,8 +24,6 @@ class SkillsExperienceScreen extends StatelessWidget {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
-    final progressBarHeight = screenHeight * 0.008;
-    final skillTagHeight = screenHeight * 0.045;
     final skillTagFontSize = screenWidth * 0.035;
 
     return Scaffold(
@@ -38,26 +36,27 @@ class SkillsExperienceScreen extends StatelessWidget {
             children: [
               SizedBox(height: verticalSpacing * 0.5),
               
-              // Header con botón de retroceso y título
+              // Header con botón de retroceso y barra de progreso centrada
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Get.back(),
-                    icon: Icon(
-                      Icons.arrow_back,
-                      color: Colors.black,
-                      size: screenWidth * 0.065,
+                  // Botón de retroceso con padding negativo para moverlo más a la izquierda
+                  Transform.translate(
+                    offset: Offset(-screenWidth * 0.02, 0), // Mover 2% del ancho hacia la izquierda
+                    child: IconButton(
+                      onPressed: () => Get.back(),
+                      icon: Icon(
+                        Icons.arrow_back,
+                        color: Colors.black,
+                        size: screenWidth * 0.065,
+                      ),
                     ),
                   ),
                   Expanded(
                     child: Center(
-                      child: Text(
-                        "Skills and Experience",
-                        style: GoogleFonts.poppins(
-                          fontSize: titleFontSize,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      child: ProgressIndicatorWidget(
+                        currentStep: 3,
+                        totalSteps: 5,
+                        flavor: controller.currentFlavor.value,
                       ),
                     ),
                   ),
@@ -65,71 +64,53 @@ class SkillsExperienceScreen extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: verticalSpacing * 1.5),
-
-              // Barra de progreso
-              Container(
-                width: double.infinity,
-                height: progressBarHeight,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(progressBarHeight / 2),
-                ),
-                child: FractionallySizedBox(
-                  alignment: Alignment.centerLeft,
-                  widthFactor: 0.25, // 25% de progreso
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                      borderRadius: BorderRadius.circular(progressBarHeight / 2),
-                    ),
-                  ),
-                ),
-              ),
-
               SizedBox(height: verticalSpacing * 1.2),
 
-              // Campo de búsqueda y botón reset
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Botón Reset arriba del input
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: controller.resetSelections,
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding * 0.5,
-                          vertical: verticalSpacing * 0.4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          "Reset selections",
-                          style: GoogleFonts.poppins(
-                            fontSize: screenWidth * 0.03,
-                            color: Colors.black87,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
+              // Título principal centrado
+              Center(
+                child: Obx(() => Text(
+                  controller.selectedSkills.isEmpty 
+                      ? "Choose at least one skill"
+                      : "Your skills and experience?",
+                  style: GoogleFonts.poppins(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  textAlign: TextAlign.center,
+                )),
+              ),
+
+              SizedBox(height: verticalSpacing * 0.5),
+
+              // Reset selection alineado a la derecha
+              Align(
+                alignment: Alignment.centerRight,
+                child: Obx(() => GestureDetector(
+                  onTap: controller.resetSelections,
+                  child: Text(
+                    controller.selectedSkills.isEmpty 
+                        ? "Reset selection"
+                        : "Reset selection (${controller.selectedSkills.length})",
+                    style: GoogleFonts.poppins(
+                      fontSize: screenWidth * 0.04,
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.normal,
                     ),
                   ),
-                  
-                  SizedBox(height: verticalSpacing * 0.5),
-                  
-                  // Campo de búsqueda con ancho completo
-                  CustomTextField(
-                    controller: controller.searchController,
-                    hintText: "Select your skills",
-                    showBorder: true,
-                    borderRadius: 16.0,
-                    suffixIcon: Icon(Icons.search),
-                  ),
-                ],
+                )),
+              ),
+
+              SizedBox(height: verticalSpacing * 1.5),
+
+              // Campo de búsqueda
+              CustomTextField(
+                controller: controller.searchController,
+                hintText: "Select your skills",
+                showBorder: true,
+                borderRadius: 16.0,
+                suffixIcon: Icon(Icons.search),
               ),
 
               SizedBox(height: verticalSpacing * 0.8),

@@ -11,8 +11,11 @@ import '../../screens/login/presentation/pages/stepper_selection_screen.dart';
 // Importar pantallas de perfil
 import '../../screens/labour/create_profile_labour/presentation/pages/industry_selection_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/create_profile_screen.dart';
+import '../../screens/labour/create_profile_labour/presentation/pages/create_profile_step2_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/skills_experience_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/location_screen.dart';
+import '../../screens/labour/create_profile_labour/presentation/pages/profile_photo_screen.dart';
+import '../../screens/labour/create_profile_labour/presentation/pages/license_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/previous_employer_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/documents_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/respect_screen.dart';
@@ -144,6 +147,13 @@ abstract class AppPages {
       transition: Transition.rightToLeft,
     ),
     GetPage(
+      name: CreateProfileStep2Screen.id,
+      page: () => CreateProfileStep2Screen(),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
       name: SkillsExperienceScreen.id,
       page: () => SkillsExperienceScreen(),
       binding: LabourBinding(),
@@ -153,6 +163,20 @@ abstract class AppPages {
     GetPage(
       name: LocationScreen.id,
       page: () => LocationScreen(),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: ProfilePhotoScreen.id,
+      page: () => ProfilePhotoScreen(),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: LicenseScreen.id,
+      page: () => LicenseScreen(),
       binding: LabourBinding(),
       transitionDuration: duration,
       transition: Transition.rightToLeft,

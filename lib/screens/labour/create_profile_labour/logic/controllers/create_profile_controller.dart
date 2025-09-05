@@ -4,8 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../app/routes/app_pages.dart';
-import '../../presentation/pages/skills_experience_screen.dart';
+import '../../presentation/pages/create_profile_step2_screen.dart';
 
 class CreateProfileController extends GetxController {
   // Controllers para los campos de texto
@@ -243,7 +242,48 @@ class CreateProfileController extends GetxController {
       return;
     }
     
-    // Navegar a la pantalla de habilidades
-    Get.toNamed(SkillsExperienceScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar a la siguiente pantalla (step 2)
+    Get.toNamed(CreateProfileStep2Screen.id, arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleNextStep2() {
+    // Validar campo de email
+    if (emailController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter your email',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+    
+    // Validar formato de email
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
+      Get.snackbar(
+        'Error',
+        'Please enter a valid email address',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+    
+    // Validar campo de teléfono
+    if (phoneController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter your phone number',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+    
+    // Navegar a la pantalla de habilidades (step 3)
+    Get.toNamed('/skills-experience', arguments: {'flavor': currentFlavor.value});
   }
 }

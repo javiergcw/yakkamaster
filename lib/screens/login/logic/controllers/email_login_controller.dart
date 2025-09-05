@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
-import '../../../../app/routes/app_pages.dart';
+import '../../presentation/widgets/account_created_modal.dart';
 
 class EmailLoginController extends GetxController {
   final TextEditingController emailController = TextEditingController();
@@ -68,14 +68,41 @@ class EmailLoginController extends GetxController {
 
   void handleRegister() {
     if (formKey.currentState!.validate()) {
+      // Validar que el usuario haya aceptado los términos y condiciones
+      if (!agreeToTerms.value) {
+        Get.snackbar(
+          'Error',
+          'Please agree to Terms of Services & Privacy Policy',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
       isLoading.value = true;
 
       // Simular proceso de registro
       Future.delayed(const Duration(seconds: 2), () {
         isLoading.value = false;
-        Get.offAllNamed('/stepper-selection', arguments: {'flavor': currentFlavor.value});
+        _showAccountCreatedModal();
       });
     }
+  }
+
+  void _showAccountCreatedModal() {
+    AccountCreatedModal.show(
+      context: Get.context!,
+      flavor: currentFlavor.value,
+      onStartPressed: () {
+        Get.back(); // Cerrar el modal
+        Get.offAllNamed('/stepper-selection', arguments: {'flavor': currentFlavor.value});
+      },
+      onClosePressed: () {
+        Get.back(); // Solo cerrar el modal, no navegar
+      },
+    );
   }
 
   void togglePasswordVisibility() {

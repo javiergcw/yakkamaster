@@ -4,15 +4,15 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../widgets/progress_indicator.dart';
+import '../widgets/country_selector.dart';
 import '../../logic/controllers/create_profile_controller.dart';
 
-class CreateProfileScreen extends StatelessWidget {
-  static const String id = '/create-profile-labour';
+class CreateProfileStep2Screen extends StatelessWidget {
+  static const String id = '/create-profile-step2-labour';
   
-  CreateProfileScreen({super.key});
+  CreateProfileStep2Screen({super.key});
 
-  final CreateProfileController controller = Get.put(CreateProfileController());
-
+  final CreateProfileController controller = Get.find<CreateProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class CreateProfileScreen extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: ProgressIndicatorWidget(
-                        currentStep: 1,
+                        currentStep: 2,
                         totalSteps: 5,
                         flavor: controller.currentFlavor.value,
                       ),
@@ -68,7 +68,7 @@ class CreateProfileScreen extends StatelessWidget {
               // Título principal
               Center(
                 child: Text(
-                  "What's your name?",
+                  "Complete your details",
                   style: GoogleFonts.poppins(
                     fontSize: titleFontSize,
                     fontWeight: FontWeight.bold,
@@ -80,22 +80,72 @@ class CreateProfileScreen extends StatelessWidget {
 
               SizedBox(height: verticalSpacing * 2),
 
-              // Campo First Name
+              // Campo Email
               CustomTextField(
-                controller: controller.firstNameController,
-                hintText: "First name (Required)",
+                controller: controller.emailController,
+                hintText: "Email (Required)",
                 showBorder: true,
                 flavor: controller.currentFlavor.value,
+                keyboardType: TextInputType.emailAddress,
               ),
 
               SizedBox(height: verticalSpacing * 0.8),
 
-              // Campo Last Name
-              CustomTextField(
-                controller: controller.lastNameController,
-                hintText: "Last name (Required)",
-                showBorder: true,
-                flavor: controller.currentFlavor.value,
+              // Campos de Country y Phone Number separados
+              Row(
+                children: [
+                  // Selector de país
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Country',
+                          style: GoogleFonts.poppins(
+                            fontSize: screenWidth * 0.035,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: verticalSpacing * 0.3),
+                        CountrySelector(
+                          initialCountryCode: 'AU',
+                          onCountryChanged: (country) {
+                            // Manejar cambio de país si es necesario
+                          },
+                          flavor: controller.currentFlavor.value,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  SizedBox(width: screenWidth * 0.03),
+                  
+                  // Campo de número de teléfono
+                  Expanded(
+                    flex: 3,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Phone number',
+                          style: GoogleFonts.poppins(
+                            fontSize: screenWidth * 0.035,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        SizedBox(height: verticalSpacing * 0.3),
+                        CustomTextField(
+                          controller: controller.phoneController,
+                          hintText: "6123456789",
+                          showBorder: true,
+                          flavor: controller.currentFlavor.value,
+                          keyboardType: TextInputType.phone,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
 
               const Spacer(),
@@ -105,7 +155,7 @@ class CreateProfileScreen extends StatelessWidget {
                 width: double.infinity,
                 height: screenHeight * 0.065,
                 child: ElevatedButton(
-                  onPressed: controller.handleNext,
+                  onPressed: controller.handleNextStep2,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                     foregroundColor: Colors.black,
