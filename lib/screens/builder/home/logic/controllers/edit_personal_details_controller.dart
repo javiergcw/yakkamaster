@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
+import '../../presentation/pages/builder_home_screen.dart';
 
 class EditPersonalDetailsController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -14,6 +15,9 @@ class EditPersonalDetailsController extends GetxController {
   final TextEditingController companyNameController = TextEditingController(text: 'Test company by Yakka');
   final TextEditingController phoneController = TextEditingController(text: '2222222');
   final TextEditingController emailController = TextEditingController(text: 'testingbuilder@gmail.com');
+  
+  // Variable reactiva para el nombre de empresa
+  final RxString selectedCompanyName = 'Test company by Yakka'.obs;
   
   // Variables para la imagen de perfil
   final Rx<File?> profileImage = Rx<File?>(null);
@@ -231,35 +235,65 @@ class EditPersonalDetailsController extends GetxController {
   }
 
   void handleSave() {
+    print('=== handleSave called ===');
+    print('First name: "${firstNameController.text}"');
+    print('Last name: "${lastNameController.text}"');
+    print('Company name: "${selectedCompanyName.value}"');
+    print('Email: "${emailController.text}"');
+    
     // Validar campos requeridos
     if (firstNameController.text.isEmpty || 
         lastNameController.text.isEmpty ||
-        companyNameController.text.isEmpty ||
+        selectedCompanyName.value.isEmpty ||
         emailController.text.isEmpty) {
+      print('Validation failed - missing required fields');
       Get.snackbar(
         'Error',
         'Please fill in all required fields',
         backgroundColor: Colors.red,
         colorText: Colors.white,
+        duration: const Duration(seconds: 3),
       );
       return;
     }
     
+    print('Validation passed - saving changes');
+    
     // TODO: Aquí se guardarían los cambios en el backend
-    // Por ahora solo mostramos un mensaje de éxito y regresamos
+    // Por ahora solo mostramos un mensaje de éxito y navegamos al home
     Get.snackbar(
-      'Éxito',
+      'Success',
       'Personal details updated successfully',
       backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
       colorText: Colors.white,
       duration: const Duration(seconds: 2),
     );
     
-    // Regresar a la pantalla anterior
-    Get.back();
+    // Navegar al BuilderHomeScreen
+    print('Navigating to BuilderHomeScreen');
+    Get.offAllNamed(BuilderHomeScreen.id);
   }
 
   void navigateBack() {
     Get.back();
+  }
+
+  void addUserCompany(String company) {
+    print('Adding user company to EditPersonalDetailsController: $company');
+    if (!userCreatedCompanies.contains(company)) {
+      userCreatedCompanies.add(company);
+      print('Company added to list. Total companies: ${userCreatedCompanies.length}');
+    } else {
+      print('Company already exists in list');
+    }
+    
+    // Actualizar tanto el controller como la variable reactiva
+    try {
+      companyNameController.text = company;
+      selectedCompanyName.value = company;
+      print('Updated companyNameController and selectedCompanyName with: $company');
+    } catch (e) {
+      print('Warning: Could not update companyNameController, it may be disposed: $e');
+    }
   }
 }

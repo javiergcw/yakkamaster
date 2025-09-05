@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../logic/controllers/profile_created_controller.dart';
+import '../../logic/controllers/create_profile_builder_controller.dart';
 
 class ProfileCreatedScreen extends StatelessWidget {
   static const String id = '/builder/profile-created';
@@ -14,7 +14,7 @@ class ProfileCreatedScreen extends StatelessWidget {
     this.flavor,
   });
 
-  final ProfileCreatedController controller = Get.put(ProfileCreatedController());
+  final CreateProfileBuilderController controller = Get.put(CreateProfileBuilderController(), tag: 'builder_profile');
 
   @override
   Widget build(BuildContext context) {
@@ -86,10 +86,10 @@ class ProfileCreatedScreen extends StatelessWidget {
                 
                 // Subtítulo
                 Text(
-                  "Welcome to YAKKA community.",
+                  "You're ready to get started. Post a job or link you account to a company",
                   style: GoogleFonts.poppins(
                     fontSize: subtitleFontSize,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
                     color: Colors.black87,
                   ),
                   textAlign: TextAlign.center,
@@ -97,32 +97,48 @@ class ProfileCreatedScreen extends StatelessWidget {
                 
                 const Spacer(),
                 
-                // Botón Next
+                // Botón principal
                 Container(
                   width: double.infinity,
-                  margin: EdgeInsets.only(bottom: screenHeight * 0.05),
+                  margin: EdgeInsets.only(bottom: screenHeight * 0.02),
                   child: ElevatedButton(
-                    onPressed: controller.handleNext,
+                    onPressed: controller.handleStartUsingYakka,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
                       padding: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 4,
-                      shadowColor: Colors.black.withOpacity(0.2),
+                      elevation: 2,
+                      shadowColor: Colors.black.withOpacity(0.1),
                     ),
                     child: Text(
-                      'Next',
+                      'Start using Yakka',
                       style: GoogleFonts.poppins(
                         fontSize: buttonFontSize,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
+                
+                // Enlace secundario
+                TextButton(
+                  onPressed: controller.handleLinkCompany,
+                  child: Text(
+                    'Link a company',
+                    style: GoogleFonts.poppins(
+                      fontSize: subtitleFontSize,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.black,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+                
+                SizedBox(height: screenHeight * 0.05),
               ],
             ),
           ),

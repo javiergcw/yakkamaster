@@ -22,6 +22,10 @@ import '../../screens/labour/create_profile_labour/presentation/pages/respect_sc
 import '../../screens/labour/create_profile_labour/presentation/pages/lets_be_clear_screen.dart';
 import '../../screens/labour/create_profile_labour/presentation/pages/profile_created_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/create_profile_builder_screen.dart';
+import '../../screens/builder/create_profile_builder/presentation/pages/create_profile_step2_builder_screen.dart';
+import '../../screens/builder/create_profile_builder/presentation/pages/location_builder_screen.dart';
+import '../../screens/builder/create_profile_builder/presentation/pages/profile_photo_builder_screen.dart';
+import '../../screens/builder/create_profile_builder/presentation/pages/license_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/employee_selection_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/register_new_company_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/respect_screen.dart' as builder_respect;
@@ -219,6 +223,34 @@ abstract class AppPages {
     GetPage(
       name: CreateProfileBuilderScreen.id,
       page: () => CreateProfileBuilderScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: CreateProfileStep2BuilderScreen.id,
+      page: () => CreateProfileStep2BuilderScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: LocationBuilderScreen.id,
+      page: () => LocationBuilderScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: ProfilePhotoBuilderScreen.id,
+      page: () => ProfilePhotoBuilderScreen(),
+      binding: CreateProfileBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: LicenseBuilderScreen.id,
+      page: () => LicenseBuilderScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
       transition: Transition.rightToLeft,

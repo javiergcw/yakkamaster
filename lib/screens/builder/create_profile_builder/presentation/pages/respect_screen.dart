@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/respect_controller.dart';
+import '../../logic/controllers/create_profile_builder_controller.dart';
 
 class RespectScreen extends StatelessWidget {
   static const String id = '/builder/respect';
@@ -16,7 +16,7 @@ class RespectScreen extends StatelessWidget {
     this.flavor,
   });
 
-  final RespectController controller = Get.put(RespectController());
+  final CreateProfileBuilderController controller = Get.put(CreateProfileBuilderController(), tag: 'builder_profile');
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +50,7 @@ class RespectScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: controller.handleBackNavigation,
+                    onPressed: controller.handleRespectBackNavigation,
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -127,7 +127,7 @@ class RespectScreen extends StatelessWidget {
               padding: EdgeInsets.all(horizontalPadding),
               child: CustomButton(
                 text: "I commit to being respectful",
-                onPressed: controller.handleCommit,
+                onPressed: controller.handleRespectCommit,
                 isLoading: false,
               ),
             ),

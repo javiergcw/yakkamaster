@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../logic/controllers/create_profile_builder_controller.dart';
 
 class CompanySelectionDialog extends StatefulWidget {
   final AppFlavor? flavor;
@@ -22,23 +24,55 @@ class CompanySelectionDialog extends StatefulWidget {
 
 class _CompanySelectionDialogState extends State<CompanySelectionDialog> {
   final TextEditingController _searchController = TextEditingController();
-  final List<String> _availableCompanies = [
+  final List<String> _baseCompanies = [
     'Test company by Yakka',
     'Yakka Labour LTD',
     'Construction Corp',
     'Build Masters Inc',
     'Urban Development Co',
   ];
+  List<String> _availableCompanies = [];
   List<String> _filteredCompanies = [];
+  late CreateProfileBuilderController _controller;
 
   @override
   void initState() {
     super.initState();
+    _initializeCompanies();
+    _setupControllerListener();
+  }
+
+  void _initializeCompanies() {
+    _availableCompanies = List.from(_baseCompanies);
     // Agregar empresas adicionales si se proporcionan
     if (widget.additionalCompanies != null) {
       _availableCompanies.addAll(widget.additionalCompanies!);
     }
     _filteredCompanies = List.from(_availableCompanies);
+  }
+
+  void _setupControllerListener() {
+    try {
+      _controller = Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
+      _controller.userCreatedCompanies.listen((companies) {
+        if (mounted) {
+          setState(() {
+            _availableCompanies = List.from(_baseCompanies);
+            _availableCompanies.addAll(companies);
+            _filterCompanies(_searchController.text);
+          });
+          
+          // Si se agregó una nueva empresa, simplemente actualizar la lista
+          if (companies.isNotEmpty) {
+            final lastAddedCompany = companies.last;
+            print('New company added to list: $lastAddedCompany');
+            // No cerrar el diálogo automáticamente, solo actualizar la lista
+          }
+        }
+      });
+    } catch (e) {
+      print('Could not find CreateProfileBuilderController: $e');
+    }
   }
 
   @override
@@ -59,14 +93,15 @@ class _CompanySelectionDialogState extends State<CompanySelectionDialog> {
     });
   }
 
-  void addNewCompany(String companyName) {
-    setState(() {
-      if (!_availableCompanies.contains(companyName)) {
-        _availableCompanies.add(companyName);
-        _filteredCompanies = List.from(_availableCompanies);
-      }
-    });
-  }
+  // Este método ya no es necesario ya que el diálogo escucha automáticamente los cambios
+  // void addNewCompany(String companyName) {
+  //   setState(() {
+  //     if (!_availableCompanies.contains(companyName)) {
+  //       _availableCompanies.add(companyName);
+  //       _filteredCompanies = List.from(_availableCompanies);
+  //     }
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {

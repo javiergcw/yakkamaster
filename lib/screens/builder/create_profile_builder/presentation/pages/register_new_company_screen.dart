@@ -4,17 +4,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/register_new_company_controller.dart';
+import '../../logic/controllers/register_company_controller.dart';
 
 class RegisterNewCompanyScreen extends StatelessWidget {
   static const String id = '/register-new-company';
   
   RegisterNewCompanyScreen({super.key});
 
-  final RegisterNewCompanyController controller = Get.put(RegisterNewCompanyController());
+  final RegisterCompanyController controller = Get.put(RegisterCompanyController());
 
   @override
   Widget build(BuildContext context) {
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -175,7 +176,10 @@ class RegisterNewCompanyScreen extends StatelessWidget {
                   width: double.infinity,
                   child: CustomButton(
                     text: "Submit",
-                    onPressed: controller.handleSubmit,
+                    onPressed: () {
+                      print('Submit button pressed');
+                      controller.handleSubmit();
+                    },
                     type: ButtonType.primary,
                     flavor: controller.currentFlavor.value,
                   ),

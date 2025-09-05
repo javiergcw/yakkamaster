@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
 import '../../presentation/widgets/company_selection_dialog.dart';
 import '../../presentation/pages/register_new_company_screen.dart';
-import '../../presentation/pages/employee_selection_screen.dart';
+import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
 
 class CreateProfileBuilderController extends GetxController {
   // Controllers para los campos de texto
@@ -15,6 +16,7 @@ class CreateProfileBuilderController extends GetxController {
   final TextEditingController companyNameController = TextEditingController(text: 'Test company by Yakka');
   final TextEditingController phoneController = TextEditingController(text: '2222222');
   final TextEditingController emailController = TextEditingController(text: 'testingbuilder@gmail.com');
+  final TextEditingController addressController = TextEditingController();
   
   // Variables para la imagen de perfil
   final Rx<File?> profileImage = Rx<File?>(null);
@@ -22,6 +24,11 @@ class CreateProfileBuilderController extends GetxController {
   
   // Lista de empresas creadas por el usuario
   final RxList<String> userCreatedCompanies = <String>[].obs;
+  
+  // Variables para licencias
+  final RxList<Map<String, dynamic>> licenses = <Map<String, dynamic>>[].obs;
+  final RxString? selectedCredential = RxString('');
+  
   
   // Flavor actual
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -41,6 +48,7 @@ class CreateProfileBuilderController extends GetxController {
     companyNameController.dispose();
     phoneController.dispose();
     emailController.dispose();
+    addressController.dispose();
     super.onClose();
   }
 
@@ -273,9 +281,7 @@ class CreateProfileBuilderController extends GetxController {
   void handleNext() {
     // Validar campos requeridos
     if (firstNameController.text.isEmpty || 
-        lastNameController.text.isEmpty ||
-        companyNameController.text.isEmpty ||
-        emailController.text.isEmpty) {
+        lastNameController.text.isEmpty) {
       Get.snackbar(
         'Error',
         'Please fill in all required fields',
@@ -285,14 +291,238 @@ class CreateProfileBuilderController extends GetxController {
       return;
     }
     
-    // Navegar a la pantalla de selección de empleados
-    Get.toNamed(EmployeeSelectionScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Navegar al paso 2
+    Get.toNamed('/create-profile-step2-builder', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleNextStep2() {
+    // Validar campos requeridos
+    if (emailController.text.isEmpty || 
+        phoneController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please fill in all required fields',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    
+    // Navegar a la pantalla de ubicación
+    Get.toNamed('/location-builder', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleLocationContinue() {
+    // Validar campo de dirección
+    if (addressController.text.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please fill in your address',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    
+    // Navegar a la pantalla de foto de perfil
+    Get.toNamed('/profile-photo-builder', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleProfilePhotoContinue() {
+    // Navegar a la pantalla de licencias
+    Get.toNamed('/license-builder', arguments: {'flavor': currentFlavor.value});
+  }
+
+  void handleLicenseContinue() {
+    // Navegar a la pantalla de respeto
+    Get.toNamed('/builder/respect', arguments: {'flavor': currentFlavor.value});
+  }
+
+  // Métodos para la pantalla de respeto
+  void handleRespectBackNavigation() {
+    Get.back();
+  }
+
+  void handleRespectCommit() {
+    // Navegar a la pantalla "Let's Be Clear"
+    Get.toNamed('/builder/lets-be-clear', arguments: {'flavor': currentFlavor.value});
+  }
+
+  // Métodos para la pantalla de perfil creado
+  void handleStartUsingYakka() {
+    // Navegar al BuilderHomeScreen usando GetX
+    Get.offAllNamed(BuilderHomeScreen.id);
+  }
+
+  void handleLinkCompany() {
+    // Mostrar el diálogo de selección de empresa
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: CompanySelectionDialog(
+          flavor: currentFlavor.value,
+          onCompanySelected: (String company) {
+            // Actualizar el campo de nombre de empresa
+            companyNameController.text = company;
+            
+            // Mostrar mensaje de éxito
+            Get.snackbar(
+              'Empresa seleccionada',
+              'Has seleccionado: $company',
+              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+              colorText: Colors.black,
+            );
+            
+            // Navegar al home después de seleccionar
+            Get.offAllNamed(BuilderHomeScreen.id);
+          },
+          onRegisterNewCompany: () {
+            // Navegar a la pantalla de registro de nueva empresa
+            Get.toNamed('/register-new-company', arguments: {'flavor': currentFlavor.value});
+          },
+        ),
+      ),
+    );
   }
 
   void addUserCompany(String company) {
+    print('Adding user company: $company');
     if (!userCreatedCompanies.contains(company)) {
       userCreatedCompanies.add(company);
+      print('Company added to list. Total companies: ${userCreatedCompanies.length}');
+    } else {
+      print('Company already exists in list');
     }
-    companyNameController.text = company;
+    
+    // Solo actualizar el controller si no está disposed
+    try {
+      companyNameController.text = company;
+      print('Updated companyNameController with: $company');
+    } catch (e) {
+      print('Warning: Could not update companyNameController, it may be disposed: $e');
+      // No es crítico si no se puede actualizar el controller
+    }
+  }
+
+
+  // Métodos para manejar licencias
+  void addLicense() {
+    if (selectedCredential?.value != null && selectedCredential!.value.isNotEmpty) {
+      licenses.add({
+        'type': selectedCredential!.value,
+        'uploaded': false,
+        'file': '',
+        'path': '',
+        'size': null,
+      });
+      selectedCredential?.value = '';
+    }
+  }
+
+  void removeLicense(int index) {
+    if (index >= 0 && index < licenses.length) {
+      licenses.removeAt(index);
+    }
+  }
+
+  Future<void> uploadLicense(int index) async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'doc', 'docx'],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        PlatformFile file = result.files.first;
+        licenses[index]['uploaded'] = true;
+        licenses[index]['file'] = file.name;
+        licenses[index]['path'] = file.path;
+        licenses[index]['size'] = file.size;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error al subir archivo: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void showCredentialDropdown() {
+    final List<String> credentials = [
+      'Driver License',
+      'Passport',
+      'Birth Certificate',
+      'Work Visa',
+      'Trade Certificate',
+      'White Card',
+      'First Aid Certificate',
+      'Forklift License',
+      'Crane License',
+      'Excavator License',
+      'Other',
+    ];
+
+    Get.bottomSheet(
+      Container(
+        height: MediaQuery.of(Get.context!).size.height * 0.6, // Limitar altura al 60% de la pantalla
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'Select Credential',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: credentials.length,
+                itemBuilder: (context, index) {
+                  final credential = credentials[index];
+                  return ListTile(
+                    title: Text(credential),
+                    onTap: () {
+                      selectedCredential?.value = credential;
+                      Get.back();
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  String formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }

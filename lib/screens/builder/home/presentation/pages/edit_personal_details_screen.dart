@@ -54,10 +54,14 @@ class EditPersonalDetailsScreen extends StatelessWidget {
             onCompanySelected: (String company) {
               print('Company selected: $company');
               controller.companyNameController.text = company;
+              controller.selectedCompanyName.value = company;
             },
             onRegisterNewCompany: () {
               print('Register new company tapped');
-              Get.toNamed(RegisterNewCompanyScreen.id, arguments: {'flavor': controller.currentFlavor.value});
+              Get.toNamed(RegisterNewCompanyScreen.id, arguments: {
+                'flavor': controller.currentFlavor.value,
+                'source': 'edit_personal_details'
+              });
             },
             additionalCompanies: controller.userCreatedCompanies,
           ),
@@ -76,6 +80,7 @@ class EditPersonalDetailsScreen extends StatelessWidget {
   }
 
   void _handleSave() {
+    print('Save Changes button pressed');
     controller.handleSave();
   }
 
@@ -184,7 +189,7 @@ class EditPersonalDetailsScreen extends StatelessWidget {
                     SizedBox(height: verticalSpacing * 1.5),
 
                     // Campo de empresa con dropdown
-                    GestureDetector(
+                    Obx(() => GestureDetector(
                       onTap: () {
                         print('Company field tapped!');
                         _showCompanySelectionDialog();
@@ -199,12 +204,12 @@ class EditPersonalDetailsScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                controller.companyNameController.text.isEmpty 
+                                controller.selectedCompanyName.value.isEmpty 
                                     ? "Company Name" 
-                                    : controller.companyNameController.text,
+                                    : controller.selectedCompanyName.value,
                                 style: GoogleFonts.poppins(
                                   fontSize: 16,
-                                  color: controller.companyNameController.text.isEmpty 
+                                  color: controller.selectedCompanyName.value.isEmpty 
                                       ? Colors.grey[600] 
                                       : Colors.black,
                                 ),
@@ -218,7 +223,7 @@ class EditPersonalDetailsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                    ),
+                    )),
 
                     SizedBox(height: MediaQuery.of(context).viewInsets.bottom + verticalSpacing * 3),
 
