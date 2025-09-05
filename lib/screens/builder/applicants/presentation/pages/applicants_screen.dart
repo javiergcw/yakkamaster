@@ -5,9 +5,10 @@ import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/applicant_controller.dart';
 import '../../data/data.dart';
 import '../widgets/widgets.dart';
-import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
 
-class ApplicantsScreen extends StatefulWidget {
+class ApplicantsScreen extends StatelessWidget {
+  static const String id = '/applicants';
+  
   final AppFlavor? flavor;
 
   const ApplicantsScreen({
@@ -16,20 +17,8 @@ class ApplicantsScreen extends StatefulWidget {
   });
 
   @override
-  State<ApplicantsScreen> createState() => _ApplicantsScreenState();
-}
-
-class _ApplicantsScreenState extends State<ApplicantsScreen> {
-  late ApplicantController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = Get.put(ApplicantController());
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final ApplicantController controller = Get.find<ApplicantController>();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -40,18 +29,18 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         child: Column(
           children: [
             // Header
-            _buildHeader(screenWidth),
+            _buildHeader(context, screenWidth),
             
             // Content
             Expanded(
               child: Obx(() {
-                if (_controller.isLoading) {
+                if (controller.isLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
 
-                if (_controller.errorMessage.isNotEmpty) {
+                if (controller.errorMessage.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -66,7 +55,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                         ),
                         SizedBox(height: screenHeight * 0.02),
                         Text(
-                          _controller.errorMessage,
+                          controller.errorMessage,
                           style: GoogleFonts.poppins(
                             fontSize: screenWidth * 0.04,
                             color: Colors.grey[600],
@@ -75,7 +64,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                         ),
                         SizedBox(height: screenHeight * 0.03),
                         ElevatedButton(
-                          onPressed: () => _controller.loadJobsiteApplicants(),
+                          onPressed: () => controller.loadJobsiteApplicants(),
                           child: Text('Retry'),
                         ),
                       ],
@@ -83,14 +72,14 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                   );
                 }
 
-                if (_controller.jobsiteApplicants.isEmpty) {
+                if (controller.jobsiteApplicants.isEmpty) {
                   return EmptyStateWidget(
-                    flavor: widget.flavor,
+                    flavor: flavor,
                     onPostJob: _handlePostJob,
                   );
                 }
 
-                return _buildJobsiteApplicantsList();
+                return _buildJobsiteApplicantsList(context, controller);
               }),
             ),
           ],
@@ -99,7 +88,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     );
   }
 
-  Widget _buildHeader(double screenWidth) {
+  Widget _buildHeader(BuildContext context, double screenWidth) {
     return Container(
       color: Colors.grey[800],
       padding: EdgeInsets.symmetric(
@@ -110,7 +99,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         children: [
           // Botón de regreso
           GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
+            onTap: () => Get.back(),
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
@@ -136,18 +125,18 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
 
 
 
-  Widget _buildJobsiteApplicantsList() {
+  Widget _buildJobsiteApplicantsList(BuildContext context, ApplicantController controller) {
     return ListView.builder(
       padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.02),
-      itemCount: _controller.jobsiteApplicants.length,
+      itemCount: controller.jobsiteApplicants.length,
       itemBuilder: (context, index) {
-        final jobsiteApplicants = _controller.jobsiteApplicants[index];
-        return _buildJobsiteSection(jobsiteApplicants);
+        final jobsiteApplicants = controller.jobsiteApplicants[index];
+        return _buildJobsiteSection(context, jobsiteApplicants);
       },
     );
   }
 
-  Widget _buildJobsiteSection(JobsiteApplicantsDto jobsiteApplicants) {
+  Widget _buildJobsiteSection(BuildContext context, JobsiteApplicantsDto jobsiteApplicants) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -189,7 +178,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: subtitleFontSize,
                     fontWeight: FontWeight.w500,
-                    color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                   ),
                 ),
               ],
@@ -199,13 +188,13 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
           SizedBox(height: screenHeight * 0.02),
           
           // Lista horizontal de applicants
-          _buildApplicantsList(jobsiteApplicants.applicants),
+          _buildApplicantsList(context, jobsiteApplicants.applicants),
         ],
       ),
     );
   }
 
-  Widget _buildApplicantsList(List<ApplicantDto> applicants) {
+  Widget _buildApplicantsList(BuildContext context, List<ApplicantDto> applicants) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -250,10 +239,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             margin: EdgeInsets.only(right: screenWidth * 0.04),
             child: ApplicantCard(
               applicant: applicant,
-              flavor: widget.flavor,
-              onChat: () => _handleChat(applicant.id),
-              onDecline: () => _handleDecline(applicant.id),
-              onHire: () => _handleHire(applicant.id),
+              flavor: flavor,
+              onChat: () => _handleChat(context, applicant.id),
+              onDecline: () => _handleDecline(context, applicant.id),
+              onHire: () => _handleHire(context, applicant.id),
             ),
           );
         },
@@ -262,85 +251,81 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   }
 
   void _handlePostJob() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PostJobStepperScreen(
-          flavor: widget.flavor,
-        ),
+    // TODO: Agregar la ruta de PostJobStepperScreen a app_pages.dart
+    // Get.toNamed(PostJobStepperScreen.id, arguments: {'flavor': flavor});
+    Get.snackbar(
+      'Info',
+      'Post Job functionality - route needs to be added to app_pages.dart',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  }
+
+  void _handleChat(BuildContext context, String applicantId) {
+    final ApplicantController controller = Get.find<ApplicantController>();
+    controller.chatWithApplicant(applicantId);
+    Get.snackbar(
+      'Chat',
+      'Opening chat...',
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  void _handleDecline(BuildContext context, String applicantId) {
+    final ApplicantController controller = Get.find<ApplicantController>();
+    Get.dialog(
+      AlertDialog(
+        title: Text('Decline Applicant'),
+        content: Text('Are you sure you want to decline this applicant?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.declineApplicant(applicantId);
+              Get.snackbar(
+                'Success',
+                'Applicant declined',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Text('Decline', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
 
-  void _handleChat(String applicantId) {
-    _controller.chatWithApplicant(applicantId);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening chat...'),
-        duration: const Duration(seconds: 2),
+  void _handleHire(BuildContext context, String applicantId) {
+    final ApplicantController controller = Get.find<ApplicantController>();
+    Get.dialog(
+      AlertDialog(
+        title: Text('Hire Applicant'),
+        content: Text('Are you sure you want to hire this applicant?'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.hireApplicant(applicantId);
+              Get.snackbar(
+                'Success',
+                'Applicant hired successfully',
+                snackPosition: SnackPosition.BOTTOM,
+                duration: const Duration(seconds: 2),
+              );
+            },
+            child: Text('Hire', style: TextStyle(color: Colors.green)),
+          ),
+        ],
       ),
-    );
-  }
-
-  void _handleDecline(String applicantId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Decline Applicant'),
-          content: Text('Are you sure you want to decline this applicant?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _controller.declineApplicant(applicantId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Applicant declined'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Decline', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _handleHire(String applicantId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Hire Applicant'),
-          content: Text('Are you sure you want to hire this applicant?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _controller.hireApplicant(applicantId);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Applicant hired successfully'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              child: Text('Hire', style: TextStyle(color: Colors.green)),
-            ),
-          ],
-        );
-      },
     );
   }
 }

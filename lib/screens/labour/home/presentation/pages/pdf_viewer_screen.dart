@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/invoice_dto.dart';
+import '../../logic/controllers/pdf_viewer_controller.dart';
 
-class PdfViewerScreen extends StatefulWidget {
+class PdfViewerScreen extends StatelessWidget {
+  static const String id = '/pdf-viewer';
+  
   final InvoiceDto invoice;
   final AppFlavor? flavor;
 
@@ -14,29 +17,11 @@ class PdfViewerScreen extends StatefulWidget {
     this.flavor,
   });
 
-  @override
-  State<PdfViewerScreen> createState() => _PdfViewerScreenState();
-}
-
-class _PdfViewerScreenState extends State<PdfViewerScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Simular carga del PDF
-    Future.delayed(Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
-  }
+  AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
 
   @override
   Widget build(BuildContext context) {
+    final PdfViewerController controller = Get.find<PdfViewerController>();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -52,7 +37,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => Get.back(),
         ),
         title: Text(
           'Factura PDF',
@@ -65,11 +50,11 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.download, color: Colors.black),
-            onPressed: () => _downloadPdf(),
+            onPressed: controller.downloadPdf,
           ),
           IconButton(
             icon: Icon(Icons.share, color: Colors.black),
-            onPressed: () => _sharePdf(),
+            onPressed: controller.sharePdf,
           ),
         ],
       ),
@@ -91,7 +76,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Factura: ${widget.invoice.dateRange}',
+                    'Factura: ${controller.invoice.dateRange}',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -100,17 +85,17 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Destinatario: ${widget.invoice.recipientName}',
+                    'Destinatario: ${controller.invoice.recipientName}',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey[700],
                     ),
                   ),
                   Text(
-                    'Estado: ${widget.invoice.status == 'paid' ? 'Pagada' : 'Pendiente'}',
+                    'Estado: ${controller.invoice.status == 'paid' ? 'Pagada' : 'Pendiente'}',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: widget.invoice.status == 'paid' ? Colors.green[600] : Colors.orange[600],
+                      color: controller.invoice.status == 'paid' ? Colors.green[600] : Colors.orange[600],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -129,7 +114,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey[300]!),
                 ),
-                child: _isLoading
+                child: Obx(() => controller.isLoading.value
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -172,7 +157,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'factura_${widget.invoice.dateRange.replaceAll(' ', '_')}.pdf',
+                                    'factura_${controller.invoice.dateRange.replaceAll(' ', '_')}.pdf',
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -222,7 +207,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                                   ),
                                   SizedBox(height: 24),
                                   ElevatedButton.icon(
-                                    onPressed: () => _openPdfInBrowser(),
+                                    onPressed: controller.openPdfInBrowser,
                                     icon: Icon(Icons.open_in_browser),
                                     label: Text('Abrir en navegador'),
                                     style: ElevatedButton.styleFrom(
@@ -236,7 +221,7 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
                             ),
                           ),
                         ],
-                      ),
+                      )),
               ),
             ),
           ],
@@ -245,38 +230,4 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
     );
   }
 
-  void _downloadPdf() {
-    // Aquí implementarías la descarga del PDF
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Descargando PDF...'),
-        backgroundColor: Colors.blue[600],
-      ),
-    );
-  }
-
-  void _sharePdf() {
-    // Aquí implementarías el compartir del PDF
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Compartiendo PDF...'),
-        backgroundColor: Colors.green[600],
-      ),
-    );
-  }
-
-  void _openPdfInBrowser() async {
-    // URL de ejemplo - aquí usarías la URL real del PDF
-    final url = Uri.parse('https://example.com/invoice.pdf');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No se pudo abrir el PDF'),
-          backgroundColor: Colors.red[600],
-        ),
-      );
-    }
-  }
 }

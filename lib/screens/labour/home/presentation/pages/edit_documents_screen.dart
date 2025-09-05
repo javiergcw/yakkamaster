@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import 'package:file_picker/file_picker.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/upload_progress_widget.dart';
-import '../../home_module.dart';
+import '../../logic/controllers/edit_documents_controller.dart';
 
-class EditDocumentsScreen extends StatefulWidget {
+class EditDocumentsScreen extends StatelessWidget {
+  static const String id = '/edit-documents';
+  
   final AppFlavor? flavor;
 
   const EditDocumentsScreen({
@@ -16,104 +17,11 @@ class EditDocumentsScreen extends StatefulWidget {
     this.flavor,
   });
 
-  @override
-  State<EditDocumentsScreen> createState() => _EditDocumentsScreenState();
-}
-
-class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
-  final DocumentController _documentController = Get.put(DocumentController());
-  
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-
-  void _showCredentialDropdown() {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final titleFontSize = screenWidth * 0.045;
-    final itemFontSize = screenWidth * 0.035;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: Text(
-                'Select Credential',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: titleFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: _documentController.credentials.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      _documentController.credentials[index],
-                      style: GoogleFonts.poppins(
-                        fontSize: itemFontSize,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    onTap: () {
-                      _documentController.setSelectedCredential(_documentController.credentials[index]);
-                      Navigator.pop(context);
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _addLicense() {
-    _documentController.addCredential();
-  }
-
-  Future<void> _uploadDocument(int index) async {
-    await _documentController.uploadDocument(index);
-  }
-
-  void _deleteDocument(int index) {
-    _documentController.deleteDocument(index);
-  }
-
-  String _formatFileSize(int bytes) {
-    return _documentController.formatFileSize(bytes);
-  }
-
-  void _handleSave() {
-    _documentController.saveDocuments();
-  }
+  AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
 
   @override
   Widget build(BuildContext context) {
+    final EditDocumentsController controller = Get.find<EditDocumentsController>();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -142,14 +50,14 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   // Header con botón de regreso y título
                   Row(
                     children: [
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: Colors.black,
-                          size: screenWidth * 0.065,
+                                              IconButton(
+                          onPressed: () => Get.back(),
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: Colors.black,
+                            size: screenWidth * 0.065,
+                          ),
                         ),
-                      ),
                       Expanded(
                         child: Center(
                           child: Text(
@@ -170,13 +78,13 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   
                   // Widget de progreso de subida
                   Obx(() {
-                    if (_documentController.isUploading.value) {
+                    if (controller.isUploading.value) {
                       return UploadProgressWidget(
-                        progress: _documentController.uploadProgress.value,
-                        fileName: _documentController.uploadingFileName.value,
+                        progress: controller.uploadProgress.value,
+                        fileName: controller.uploadingFileName.value,
                         onCancel: () {
                           // Aquí podrías implementar la cancelación de la subida
-                          _documentController.isUploading.value = false;
+                          controller.isUploading.value = false;
                         },
                       );
                     }
@@ -208,7 +116,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${_documentController.uploadedDocumentsCount} subidos',
+                          '${controller.uploadedDocumentsCount} subidos',
                           style: GoogleFonts.poppins(
                             fontSize: buttonFontSize * 0.8,
                             color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
@@ -227,7 +135,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                       Expanded(
                         flex: 3,
                         child: GestureDetector(
-                          onTap: _showCredentialDropdown,
+                          onTap: controller.showCredentialDropdown,
                           child: Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: horizontalPadding * 0.8,
@@ -242,12 +150,12 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                               children: [
                                 Expanded(
                                   child: Obx(() => Text(
-                                    _documentController.selectedCredential.value.isNotEmpty 
-                                        ? _documentController.selectedCredential.value 
+                                    controller.selectedCredential.value.isNotEmpty 
+                                        ? controller.selectedCredential.value 
                                         : "Select credential",
                                     style: GoogleFonts.poppins(
                                       fontSize: buttonFontSize,
-                                      color: _documentController.selectedCredential.value.isNotEmpty 
+                                      color: controller.selectedCredential.value.isNotEmpty 
                                           ? Colors.black 
                                           : Colors.grey[600],
                                     ),
@@ -267,7 +175,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                       Expanded(
                         flex: 1,
                         child: GestureDetector(
-                          onTap: _addLicense,
+                          onTap: controller.addCredential,
                           child: Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: horizontalPadding * 0.3,
@@ -306,8 +214,8 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   
                   // Documentos opcionales
                   Obx(() => Column(
-                    children: List.generate(_documentController.documents.length, (index) {
-                      final document = _documentController.documents[index];
+                    children: List.generate(controller.documents.length, (index) {
+                      final document = controller.documents[index];
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -325,7 +233,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () async => await _uploadDocument(index),
+                                  onTap: () async => await controller.uploadDocument(index),
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
                                       horizontal: horizontalPadding * 0.8,
@@ -380,7 +288,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                               ),
                             ),
                           ),
-                          if (_documentController.isDocumentReallyUploaded(document)) ...[
+                          if (controller.isDocumentReallyUploaded(document)) ...[
                             SizedBox(height: verticalSpacing * 0.5),
                             Padding(
                               padding: EdgeInsets.only(left: horizontalPadding * 0.8),
@@ -406,7 +314,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                                         ),
                                       ),
                                       GestureDetector(
-                                        onTap: () => _deleteDocument(index),
+                                        onTap: () => controller.deleteDocument(index),
                                         child: Icon(
                                           Icons.delete,
                                           color: Colors.red,
@@ -418,7 +326,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                                   if (document.fileSize != null) ...[
                                     SizedBox(height: verticalSpacing * 0.3),
                                     Text(
-                                      'Tamaño: ${_formatFileSize(document.fileSize!)}',
+                                      'Tamaño: ${controller.formatFileSize(document.fileSize!)}',
                                       style: GoogleFonts.poppins(
                                         fontSize: buttonFontSize * 0.7,
                                         color: Colors.grey[600],
@@ -440,7 +348,7 @@ class _EditDocumentsScreenState extends State<EditDocumentsScreen> {
                   // Botón Save
                   CustomButton(
                     text: "Save",
-                    onPressed: _handleSave,
+                    onPressed: controller.saveDocuments,
                     isLoading: false,
                     showShadow: false,
                     customBorder: Border(

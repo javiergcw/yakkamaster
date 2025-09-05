@@ -16,6 +16,12 @@ import '../../screens/labour/home/logic/controllers/applied_jobs_screen_controll
 import '../../screens/labour/home/logic/controllers/wallet_screen_controller.dart';
 import '../../screens/labour/home/logic/controllers/invoice_screen_controller.dart';
 import '../../screens/labour/home/logic/controllers/chat_screen_controller.dart';
+import '../../screens/labour/home/logic/controllers/edit_bank_details_controller.dart';
+import '../../screens/labour/home/logic/controllers/edit_bank_details_no_payid_controller.dart';
+import '../../screens/labour/home/logic/controllers/edit_documents_controller.dart';
+import '../../screens/labour/home/logic/controllers/edit_personal_details_controller.dart';
+import '../../screens/labour/home/logic/controllers/pdf_viewer_controller.dart';
+import '../../screens/labour/home/logic/digital_id_controller.dart';
 
 class LabourBinding extends Bindings {
   @override
@@ -38,5 +44,11 @@ class LabourBinding extends Bindings {
     Get.lazyPut<WalletScreenController>(() => WalletScreenController());
     Get.lazyPut<InvoiceScreenController>(() => InvoiceScreenController());
     Get.lazyPut<ChatScreenController>(() => ChatScreenController());
+    Get.lazyPut<EditBankDetailsController>(() => EditBankDetailsController());
+    Get.lazyPut<EditBankDetailsNoPayIdController>(() => EditBankDetailsNoPayIdController());
+    Get.lazyPut<EditDocumentsController>(() => EditDocumentsController());
+    Get.lazyPut<EditPersonalDetailsController>(() => EditPersonalDetailsController());
+    Get.lazyPut<PdfViewerController>(() => PdfViewerController());
+    Get.lazyPut<DigitalIdController>(() => DigitalIdController());
   }
 }

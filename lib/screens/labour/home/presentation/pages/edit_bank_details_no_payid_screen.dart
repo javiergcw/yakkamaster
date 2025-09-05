@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
+import '../../logic/controllers/edit_bank_details_no_payid_controller.dart';
 
-class EditBankDetailsNoPayIdScreen extends StatefulWidget {
+class EditBankDetailsNoPayIdScreen extends StatelessWidget {
+  static const String id = '/edit-bank-details-no-payid';
+  
   final AppFlavor? flavor;
 
   const EditBankDetailsNoPayIdScreen({
@@ -12,121 +16,11 @@ class EditBankDetailsNoPayIdScreen extends StatefulWidget {
     this.flavor,
   });
 
-  @override
-  State<EditBankDetailsNoPayIdScreen> createState() => _EditBankDetailsNoPayIdScreenState();
-}
-
-class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  
-  // Controllers para los campos de texto
-  final TextEditingController _accountNameController = TextEditingController();
-  final TextEditingController _bsbController = TextEditingController();
-  final TextEditingController _accountNumberController = TextEditingController();
-  final TextEditingController _abnController = TextEditingController();
-  
-  // Variables para el estado
-  bool _isLoading = false;
-
-  void _handleSave() {
-    // Validar campos requeridos
-    if (_accountNameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your account name'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    if (_bsbController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your BSB'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    if (_accountNumberController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your account number'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    if (_abnController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter your ABN'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    // Validar formato BSB (6 dígitos)
-    if (_bsbController.text.length != 6 || !RegExp(r'^\d{6}$').hasMatch(_bsbController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('BSB must be 6 digits'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    // Validar formato número de cuenta (mínimo 6 dígitos)
-    if (_accountNumberController.text.length < 6 || !RegExp(r'^\d+$').hasMatch(_accountNumberController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account number must be at least 6 digits'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-    
-    setState(() {
-      _isLoading = true;
-    });
-    
-    // Simular guardado
-    Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _isLoading = false;
-      });
-      
-      // Mostrar mensaje de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Bank details updated successfully'),
-          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-      
-      // Navegar de vuelta
-      Navigator.of(context).pop();
-    });
-  }
-
-  @override
-  void dispose() {
-    _accountNameController.dispose();
-    _bsbController.dispose();
-    _accountNumberController.dispose();
-    _abnController.dispose();
-    super.dispose();
-  }
+  AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
 
   @override
   Widget build(BuildContext context) {
+    final EditBankDetailsNoPayIdController controller = Get.find<EditBankDetailsNoPayIdController>();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -159,7 +53,7 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     Row(
                       children: [
                         IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () => Get.back(),
                           icon: Icon(
                             Icons.arrow_back,
                             color: Colors.black,
@@ -231,7 +125,7 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     SizedBox(height: verticalSpacing),
                     
                     CustomTextField(
-                      controller: _accountNameController,
+                      controller: controller.accountNameController,
                       hintText: "Enter account holder name",
                       showBorder: true,
                     ),
@@ -251,7 +145,7 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     SizedBox(height: verticalSpacing),
                     
                     CustomTextField(
-                      controller: _bsbController,
+                      controller: controller.bsbController,
                       hintText: "Enter BSB (6 digits)",
                       showBorder: true,
                       keyboardType: TextInputType.number,
@@ -273,7 +167,7 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     SizedBox(height: verticalSpacing),
                     
                     CustomTextField(
-                      controller: _accountNumberController,
+                      controller: controller.accountNumberController,
                       hintText: "Enter account number",
                       showBorder: true,
                       keyboardType: TextInputType.number,
@@ -294,7 +188,7 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     SizedBox(height: verticalSpacing),
                     
                     CustomTextField(
-                      controller: _abnController,
+                      controller: controller.abnController,
                       hintText: "Enter ABN",
                       showBorder: true,
                       keyboardType: TextInputType.number,
@@ -334,12 +228,12 @@ class _EditBankDetailsNoPayIdScreenState extends State<EditBankDetailsNoPayIdScr
                     SizedBox(height: MediaQuery.of(context).viewInsets.bottom + verticalSpacing * 4),
 
                     // Botón Save
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: "Save Bank Details",
-                      onPressed: _handleSave,
-                      isLoading: _isLoading,
+                      onPressed: () => controller.handleSave(),
+                      isLoading: controller.isLoading.value,
                       flavor: _currentFlavor,
-                    ),
+                    )),
 
                     SizedBox(height: verticalSpacing * 2),
                   ],

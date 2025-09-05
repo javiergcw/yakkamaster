@@ -6,8 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:get/get.dart';
 import 'dart:io';
-import 'dart:typed_data';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../config/constants.dart';
@@ -15,7 +15,9 @@ import '../../logic/digital_id_controller.dart';
 import '../widgets/digital_id_avatar.dart';
 import '../widgets/qr_code_widget.dart';
 
-class DigitalIdScreen extends StatefulWidget {
+class DigitalIdScreen extends StatelessWidget {
+  static const String id = '/digital-id';
+  
   final AppFlavor? flavor;
 
   const DigitalIdScreen({
@@ -23,34 +25,12 @@ class DigitalIdScreen extends StatefulWidget {
     this.flavor,
   });
 
-  @override
-  State<DigitalIdScreen> createState() => _DigitalIdScreenState();
-}
+  AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
 
-class _DigitalIdScreenState extends State<DigitalIdScreen> {
-  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
-  late DigitalIdController _controller;
-  final GlobalKey _globalKey = GlobalKey();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = DigitalIdController();
-    _controller.onDataChanged = () => setState(() {});
-    _controller.onLoadingChanged = () => setState(() {});
-    _controller.initialize();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _shareScreen() async {
+  Future<void> _shareScreen(GlobalKey globalKey, DigitalIdController controller) async {
     try {
       // Capturar la pantalla
-      RenderRepaintBoundary boundary = _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      RenderRepaintBoundary boundary = globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
@@ -66,12 +46,14 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
     } catch (e) {
       print('Error sharing screen: $e');
       // Fallback: compartir solo texto
-      await Share.share('Mi Digital ID de Yakka: ${_controller.digitalIdData?.name}');
+      await Share.share('Mi Digital ID de Yakka: ${controller.digitalIdData?.name}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final DigitalIdController controller = Get.find<DigitalIdController>();
+    final GlobalKey globalKey = GlobalKey();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -86,7 +68,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: RepaintBoundary(
-        key: _globalKey,
+        key: globalKey,
         child: SafeArea(
         child: Stack(
           children: [
@@ -105,7 +87,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
                 children: [
                   // Back Button
                   IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => Get.back(),
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.white,
@@ -136,15 +118,16 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
             // Main Content
             Padding(
               padding: EdgeInsets.only(top: screenHeight * 0.12), // Ajustado al nuevo header
-              child: _controller.isLoading
+              child: Obx(() => controller.isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _controller.digitalIdData != null
+                  : controller.digitalIdData != null
                       ? _buildMainContent(
+                          controller,
                           horizontalPadding,
                           verticalSpacing,
                           bodyFontSize,
                         )
-                      : const Center(child: Text('No data available')),
+                      : const Center(child: Text('No data available'))),
             ),
           ],
         ),
@@ -153,7 +136,7 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
       
       // Floating Action Button (Yellow) - Usando flavor
       floatingActionButton: FloatingActionButton(
-        onPressed: _shareScreen,
+        onPressed: () => _shareScreen(globalKey, controller),
         backgroundColor: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
         child: Icon(
           Icons.share,
@@ -165,11 +148,12 @@ class _DigitalIdScreenState extends State<DigitalIdScreen> {
   }
 
   Widget _buildMainContent(
+    DigitalIdController controller,
     double horizontalPadding,
     double verticalSpacing,
     double bodyFontSize,
   ) {
-    final data = _controller.digitalIdData!;
+    final data = controller.digitalIdData!;
     
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),

@@ -62,6 +62,9 @@ import '../../screens/builder/staff/presentation/pages/extend_shifts_stepper.dar
 import '../../screens/builder/staff/presentation/pages/unhire_workers_stepper.dart';
 import '../../screens/builder/staff/presentation/pages/worker_profile_screen.dart';
 
+// Importar pantallas de applicants
+import '../../screens/builder/applicants/presentation/pages/pages.dart';
+
 // Importar pantallas de labour
 import '../../screens/labour/home/presentation/pages/home_screen.dart';
 import '../../screens/labour/home/presentation/pages/profile_screen.dart' as labour_profile;
@@ -71,6 +74,12 @@ import '../../screens/labour/home/presentation/pages/applied_jobs_screen.dart';
 import '../../screens/labour/home/presentation/pages/wallet_screen.dart';
 import '../../screens/labour/home/presentation/pages/invoice_screen.dart';
 import '../../screens/labour/home/presentation/pages/chat_screen.dart' as labour_chat;
+import '../../screens/labour/home/presentation/pages/digital_id_screen.dart';
+import '../../screens/labour/home/presentation/pages/edit_bank_details_screen.dart';
+import '../../screens/labour/home/presentation/pages/edit_bank_details_no_payid_screen.dart';
+import '../../screens/labour/home/presentation/pages/edit_documents_screen.dart';
+import '../../screens/labour/home/presentation/pages/edit_personal_details_screen.dart' as labour_edit_personal;
+import '../../screens/labour/home/presentation/pages/pdf_viewer_screen.dart';
 
 // Importar pantallas de job listings
 import '../../screens/job_listings/presentation/pages/job_listings_screen.dart';
@@ -455,6 +464,17 @@ abstract class AppPages {
       transition: Transition.rightToLeft,
     ),
 
+    // Rutas de Builder - Applicants
+    GetPage(
+      name: ApplicantsScreen.id,
+      page: () => ApplicantsScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+
     // Rutas de Labour
     GetPage(
       name: HomeScreen.id,
@@ -510,6 +530,61 @@ abstract class AppPages {
       page: () => labour_chat.ChatScreen(
         recipientName: 'Builder',
         recipientAvatar: 'assets/employees.png',
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: DigitalIdScreen.id,
+      page: () => DigitalIdScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: EditBankDetailsScreen.id,
+      page: () => EditBankDetailsScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: EditBankDetailsNoPayIdScreen.id,
+      page: () => EditBankDetailsNoPayIdScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: EditDocumentsScreen.id,
+      page: () => EditDocumentsScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: labour_edit_personal.EditPersonalDetailsScreen.id,
+      page: () => labour_edit_personal.EditPersonalDetailsScreen(
+        flavor: Get.arguments?['flavor'],
+      ),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: PdfViewerScreen.id,
+      page: () => PdfViewerScreen(
+        invoice: Get.arguments?['invoice'],
+        flavor: Get.arguments?['flavor'],
       ),
       binding: LabourBinding(),
       transitionDuration: duration,

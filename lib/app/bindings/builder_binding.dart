@@ -16,6 +16,8 @@ import '../../screens/builder/post_job/logic/controllers/create_edit_job_site_sc
 import '../../screens/builder/my_jobs/logic/controllers/my_jobs_controller.dart';
 import '../../screens/builder/invoices/logic/controllers/invoices_screen_controller.dart';
 import '../../screens/builder/staff/logic/controllers/staff_screen_controller.dart';
+import '../../screens/builder/staff/logic/controllers/move_workers_stepper_controller.dart';
+import '../../screens/builder/applicants/logic/controllers/applicant_controller.dart';
 
 class BuilderBinding extends Bindings {
   @override
@@ -38,5 +40,7 @@ class BuilderBinding extends Bindings {
     Get.lazyPut<MyJobsController>(() => MyJobsController());
     Get.lazyPut<InvoicesScreenController>(() => InvoicesScreenController());
     Get.lazyPut<StaffScreenController>(() => StaffScreenController());
+    Get.lazyPut<MoveWorkersStepperController>(() => MoveWorkersStepperController());
+    Get.lazyPut<ApplicantController>(() => ApplicantController());
   }
 }

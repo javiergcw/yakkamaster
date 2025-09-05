@@ -7,7 +7,7 @@ import '../../../../../config/assets_config.dart';
 import '../../data/data.dart';
 import '../../logic/controllers/move_workers_stepper_controller.dart';
 
-class MoveWorkersStepper extends StatefulWidget {
+class MoveWorkersStepper extends StatelessWidget {
   static const String id = '/move-workers-stepper';
   
   final AppFlavor? flavor;
@@ -20,36 +20,31 @@ class MoveWorkersStepper extends StatefulWidget {
   });
 
   @override
-  State<MoveWorkersStepper> createState() => _MoveWorkersStepperState();
-}
-
-class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
-  final MoveWorkersStepperController controller = Get.put(MoveWorkersStepperController());
-
-  @override
   Widget build(BuildContext context) {
+    final MoveWorkersStepperController controller = Get.find<MoveWorkersStepperController>();
+    
     // Establecer datos en el controlador
-    controller.workers = widget.workers;
-    if (widget.flavor != null) {
-      controller.currentFlavor.value = widget.flavor!;
+    controller.workers = workers;
+    if (flavor != null) {
+      controller.currentFlavor.value = flavor!;
     }
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
-        child: Column(
+        child: Obx(() => Column(
           children: [
-            _buildAppBar(),
+            _buildAppBar(controller),
             Expanded(
-              child: _buildCurrentStep(),
+              child: _buildCurrentStep(controller),
             ),
-            _buildBottomButtons(),
+            _buildBottomButtons(controller),
           ],
-        ),
+        )),
       ),
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(MoveWorkersStepperController controller) {
     return Container(
       color: Colors.white,
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -57,7 +52,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
         children: [
                      // Logo
                        SvgPicture.asset(
-              AssetsConfig.getLogoMiddle(widget.flavor ?? AppFlavorConfig.currentFlavor),
+              AssetsConfig.getLogoMiddle(flavor ?? AppFlavorConfig.currentFlavor),
               width: 48,
               height: 48,
               fit: BoxFit.cover,
@@ -85,20 +80,20 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
     );
   }
 
-  Widget _buildCurrentStep() {
+  Widget _buildCurrentStep(MoveWorkersStepperController controller) {
     switch (controller.currentStep.value) {
       case 0:
-        return _buildStep1();
+        return _buildStep1(controller);
       case 1:
-        return _buildStep2();
+        return _buildStep2(controller);
       case 2:
-        return _buildStep3();
+        return _buildStep3(controller);
       default:
-        return _buildStep1();
+        return _buildStep1(controller);
     }
   }
 
-  Widget _buildStep1() {
+  Widget _buildStep1(MoveWorkersStepperController controller) {
     return Padding(
       padding: EdgeInsets.all(16),
       child: Column(
@@ -126,7 +121,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
+                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
                       width: isSelected ? 2 : 1,
                     ),
                   ),
@@ -134,9 +129,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                     value: jobsite.jobsiteId,
                     groupValue: controller.selectedJobsite.value,
                     onChanged: (value) {
-                      setState(() {
-                        controller.selectedJobsite.value = value ?? '';
-                      });
+                      controller.selectedJobsite.value = value ?? '';
                     },
                     title: Text(
                       jobsite.jobsiteAddress.split(', ').take(2).join(', '),
@@ -153,7 +146,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                         color: Colors.grey[600],
                       ),
                     ),
-                    activeColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    activeColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                   ),
                 );
               },
@@ -187,7 +180,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
     );
   }
 
-     Widget _buildStep2() {
+     Widget _buildStep2(MoveWorkersStepperController controller) {
 
     return Padding(
       padding: EdgeInsets.all(16),
@@ -223,7 +216,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+                    color: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -250,13 +243,11 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
               Spacer(),
                              GestureDetector(
                  onTap: () {
-                   setState(() {
-                             if (controller.selectedWorkerIds.length == controller.allWorkers.length) {
-          controller.selectedWorkerIds.clear();
-        } else {
-          controller.selectAllWorkers();
-        }
-                   });
+                   if (controller.selectedWorkerIds.length == controller.allWorkers.length) {
+                     controller.selectedWorkerIds.clear();
+                   } else {
+                     controller.selectAllWorkers();
+                   }
                  },
                 child: Row(
                   children: [
@@ -276,7 +267,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                          border: Border.all(color: Colors.grey[400]!),
                          borderRadius: BorderRadius.circular(4),
                                                 color: controller.selectedWorkerIds.length == controller.allWorkers.length 
-                           ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                           ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                            : Colors.transparent,
                      ),
                      child: controller.selectedWorkerIds.length == controller.allWorkers.length
@@ -305,10 +296,10 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                   margin: EdgeInsets.only(bottom: 12),
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)).withValues(alpha: 0.1) : Colors.white,
+                    color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)).withValues(alpha: 0.1) : Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
+                      color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)) : Colors.grey[300]!,
                     ),
                   ),
                   child: Row(
@@ -352,9 +343,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                       // Selection checkbox
                                              GestureDetector(
                                                  onTap: () {
-                           setState(() {
-                             controller.toggleWorkerSelection(worker.id);
-                           });
+                           controller.toggleWorkerSelection(worker.id);
                          },
                         child: Container(
                           width: 24,
@@ -362,12 +351,12 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: isSelected 
-                                  ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                  ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                                   : Colors.grey[400]!,
                             ),
                             borderRadius: BorderRadius.circular(4),
                             color: isSelected 
-                                ? Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor))
+                                ? Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor))
                                 : Colors.transparent,
                           ),
                           child: isSelected
@@ -390,7 +379,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
     );
   }
 
-  Widget _buildStep3() {
+  Widget _buildStep3(MoveWorkersStepperController controller) {
     final selectedJobsite = controller.jobsiteWorkers.firstWhere(
       (jobsite) => jobsite.jobsiteId == controller.selectedJobsite.value,
       orElse: () => controller.jobsiteWorkers.first,
@@ -438,9 +427,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
                           right: 0,
                           child: GestureDetector(
                                                          onTap: () {
-                               setState(() {
-                                 controller.toggleWorkerSelection(worker.id);
-                               });
+                               controller.toggleWorkerSelection(worker.id);
                              },
                             child: Container(
                               width: 24,
@@ -483,7 +470,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
     );
   }
 
-  Widget _buildBottomButtons() {
+  Widget _buildBottomButtons(MoveWorkersStepperController controller) {
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -497,9 +484,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
           TextButton(
             onPressed: () {
               if (controller.currentStep.value > 0) {
-                setState(() {
-                  controller.currentStep.value--;
-                });
+                controller.currentStep.value--;
               } else {
                 controller.handleBackNavigation();
               }
@@ -515,18 +500,16 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
           ),
           Spacer(),
           ElevatedButton(
-            onPressed: _canProceed() ? () {
+            onPressed: _canProceed(controller) ? () {
               if (controller.currentStep.value < 2) {
-                setState(() {
-                  controller.currentStep.value++;
-                });
+                controller.currentStep.value++;
               } else {
                 // TODO: Execute move workers
                 controller.handleBackNavigation();
               }
             } : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(widget.flavor ?? AppFlavorConfig.currentFlavor)),
+              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(flavor ?? AppFlavorConfig.currentFlavor)),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -546,7 +529,7 @@ class _MoveWorkersStepperState extends State<MoveWorkersStepper> {
     );
   }
 
-     bool _canProceed() {
+     bool _canProceed(MoveWorkersStepperController controller) {
      switch (controller.currentStep.value) {
        case 0:
          return controller.selectedJobsite.value.isNotEmpty;
