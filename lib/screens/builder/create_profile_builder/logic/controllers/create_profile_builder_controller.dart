@@ -436,15 +436,27 @@ class CreateProfileBuilderController extends GetxController {
 
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
-        licenses[index]['uploaded'] = true;
-        licenses[index]['file'] = file.name;
-        licenses[index]['path'] = file.path;
-        licenses[index]['size'] = file.size;
+        licenses[index] = {
+          ...licenses[index],
+          'uploaded': true,
+          'file': file.name,
+          'path': file.path,
+          'size': file.size,
+        };
+        licenses.refresh(); // Forzar la actualización de la UI
+        
+        Get.snackbar(
+          'Success',
+          'File uploaded successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
       }
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Error al subir archivo: $e',
+        'Error uploading file: $e',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

@@ -76,16 +76,16 @@ class FilePreviewWidget extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Preview del archivo
-                Expanded(
-                  flex: 3,
+                // Preview del archivo - altura fija
+                SizedBox(
+                  height: previewHeight * 0.5,
                   child: _buildFilePreview(),
                 ),
                 const SizedBox(height: 4),
-                // Nombre del archivo
-                Expanded(
-                  flex: 2,
+                // Nombre del archivo - altura flexible
+                Flexible(
                   child: Text(
                     fileName,
                     style: GoogleFonts.poppins(
@@ -98,6 +98,7 @@ class FilePreviewWidget extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                const SizedBox(height: 2),
                 // Tamaño del archivo
                 if (fileSize != null)
                   Text(
@@ -160,6 +161,7 @@ class FilePreviewWidget extends StatelessWidget {
   Widget _buildIconPreview() {
     return Builder(
       builder: (context) {
+        final screenWidth = MediaQuery.of(context).size.width;
         return Container(
           width: double.infinity,
           height: double.infinity,
@@ -173,19 +175,25 @@ class FilePreviewWidget extends StatelessWidget {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 fileIcon,
                 color: fileColor,
-                size: MediaQuery.of(context).size.width * 0.08,
+                size: screenWidth * 0.06, // Reducido el tamaño del icono
               ),
-              const SizedBox(height: 4),
-              Text(
-                _getFileTypeText(),
-                style: GoogleFonts.poppins(
-                  fontSize: MediaQuery.of(context).size.width * 0.02,
-                  color: fileColor,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(height: 2),
+              Flexible(
+                child: Text(
+                  _getFileTypeText(),
+                  style: GoogleFonts.poppins(
+                    fontSize: screenWidth * 0.018, // Reducido el tamaño de la fuente
+                    color: fileColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

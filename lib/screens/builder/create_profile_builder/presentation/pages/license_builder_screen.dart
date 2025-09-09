@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
+import '../../../../../features/widgets/file_preview_widget.dart';
 import '../widgets/progress_indicator.dart';
 import '../../logic/controllers/create_profile_builder_controller.dart';
 
@@ -213,104 +214,78 @@ class LicenseBuilderScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          SizedBox(height: verticalSpacing * 0.5),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () async => await controller.uploadLicense(index),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: horizontalPadding * 0.8,
-                                      vertical: verticalSpacing * 0.8,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.3)),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.upload_file,
-                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                                          size: screenWidth * 0.05,
-                                        ),
-                                        SizedBox(width: horizontalPadding * 0.5),
-                                        Expanded(
-                                          child: Text(
-                                            "Upload ${license['type'].toString().toLowerCase()}",
-                                            style: GoogleFonts.poppins(
-                                              fontSize: buttonFontSize,
-                                              fontWeight: FontWeight.w500,
-                                              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: horizontalPadding * 0.5),
-                              Text(
-                                "(Optional)",
-                                style: GoogleFonts.poppins(
-                                  fontSize: buttonFontSize * 0.8,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: verticalSpacing * 0.5),
-                          Padding(
-                            padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                            child: Text(
-                              ".pdf .doc .docx",
-                              style: GoogleFonts.poppins(
-                                fontSize: buttonFontSize * 0.8,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ),
                           if (license['uploaded'] == true) ...[
                             SizedBox(height: verticalSpacing * 0.5),
                             Padding(
                               padding: EdgeInsets.only(left: horizontalPadding * 0.8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle,
-                                        color: Colors.green,
-                                        size: screenWidth * 0.04,
+                              child: FilePreviewWidget(
+                                fileName: license['file'] ?? 'Archivo',
+                                filePath: license['path'],
+                                fileSize: license['size'],
+                                width: screenWidth * 0.3,
+                                height: screenWidth * 0.25,
+                              ),
+                            ),
+                          ] else ...[
+                            // Solo mostrar el botón de upload si no hay archivo subido
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () async => await controller.uploadLicense(index),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: horizontalPadding * 0.8,
+                                        vertical: verticalSpacing * 0.8,
                                       ),
-                                      SizedBox(width: horizontalPadding * 0.3),
-                                      Expanded(
-                                        child: Text(
-                                          license['file'],
-                                          style: GoogleFonts.poppins(
-                                            fontSize: buttonFontSize * 0.8,
-                                            color: Colors.green[700],
-                                            fontWeight: FontWeight.w500,
+                                      decoration: BoxDecoration(
+                                        color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)).withOpacity(0.3)),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.upload_file,
+                                            color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                            size: screenWidth * 0.05,
                                           ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (license['size'] != null) ...[
-                                    SizedBox(height: verticalSpacing * 0.3),
-                                    Text(
-                                      'Tamaño: ${controller.formatFileSize(license['size'])}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: buttonFontSize * 0.7,
-                                        color: Colors.grey[600],
+                                          SizedBox(width: horizontalPadding * 0.5),
+                                          Expanded(
+                                            child: Text(
+                                              "Upload ${license['type'].toString().toLowerCase()}",
+                                              style: GoogleFonts.poppins(
+                                                fontSize: buttonFontSize,
+                                                fontWeight: FontWeight.w500,
+                                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ],
+                                  ),
+                                ),
+                                SizedBox(width: horizontalPadding * 0.5),
+                                Text(
+                                  "(Optional)",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: buttonFontSize * 0.8,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: verticalSpacing * 0.5),
+                            Padding(
+                              padding: EdgeInsets.only(left: horizontalPadding * 0.8),
+                              child: Text(
+                                ".pdf .doc .docx",
+                                style: GoogleFonts.poppins(
+                                  fontSize: buttonFontSize * 0.8,
+                                  color: Colors.grey[600],
+                                ),
                               ),
                             ),
                           ],
