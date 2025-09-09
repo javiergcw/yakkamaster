@@ -46,13 +46,13 @@ class DigitalIdScreen extends StatelessWidget {
     } catch (e) {
       print('Error sharing screen: $e');
       // Fallback: compartir solo texto
-      await Share.share('Mi Digital ID de Yakka: ${controller.digitalIdData?.name}');
+      await Share.share('Mi Digital ID de Yakka: ${controller.digitalIdData.value?.name}');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final DigitalIdController controller = Get.find<DigitalIdController>();
+    final DigitalIdController controller = Get.put(DigitalIdController());
     final GlobalKey globalKey = GlobalKey();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
@@ -118,16 +118,20 @@ class DigitalIdScreen extends StatelessWidget {
             // Main Content
             Padding(
               padding: EdgeInsets.only(top: screenHeight * 0.12), // Ajustado al nuevo header
-              child: Obx(() => controller.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : controller.digitalIdData != null
-                      ? _buildMainContent(
-                          controller,
-                          horizontalPadding,
-                          verticalSpacing,
-                          bodyFontSize,
-                        )
-                      : const Center(child: Text('No data available'))),
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (controller.digitalIdData.value != null) {
+                  return _buildMainContent(
+                    controller,
+                    horizontalPadding,
+                    verticalSpacing,
+                    bodyFontSize,
+                  );
+                } else {
+                  return const Center(child: Text('No data available'));
+                }
+              }),
             ),
           ],
         ),
@@ -153,7 +157,7 @@ class DigitalIdScreen extends StatelessWidget {
     double verticalSpacing,
     double bodyFontSize,
   ) {
-    final data = controller.digitalIdData!;
+    final data = controller.digitalIdData.value!;
     
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: horizontalPadding),

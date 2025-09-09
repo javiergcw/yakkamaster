@@ -1015,15 +1015,30 @@ class CreateProfileController extends GetxController {
       if (result != null) {
         PlatformFile file = result.files.first;
         
-        licenses[index]['uploaded'] = true;
-        licenses[index]['file'] = file.name;
-        licenses[index]['path'] = file.path;
-        licenses[index]['size'] = file.size;
+        // Actualizar la licencia en la lista reactiva
+        licenses[index] = {
+          ...licenses[index],
+          'uploaded': true,
+          'file': file.name,
+          'path': file.path,
+          'size': file.size,
+        };
+        
+        // Forzar la actualización de la UI
+        licenses.refresh();
+        
+        Get.snackbar(
+          'Success',
+          'File uploaded successfully',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
       }
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Error al subir archivo: $e',
+        'Error uploading file: $e',
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

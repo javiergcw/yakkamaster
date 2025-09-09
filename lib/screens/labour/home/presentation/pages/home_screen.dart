@@ -19,6 +19,8 @@ import '../widgets/applied_job_card.dart';
 import 'applied_jobs_screen.dart';
 import 'notifications_screen.dart';
 import '../../logic/controllers/home_screen_controller.dart';
+import 'edit_documents_screen.dart';
+import 'wallet_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const String id = '/labour/home';
@@ -346,6 +348,28 @@ class HomeScreen extends StatelessWidget {
                   subtitle: "Share your profile to get hired",
                   onTap: () {
                     controller.navigateToDigitalId();
+                  },
+                ),
+                
+                SizedBox(height: verticalSpacing),
+                
+                ProfileItem(
+                  icon: Icons.attach_money,
+                  title: "Earnings",
+                  subtitle: "View your payment history",
+                  onTap: () {
+                    Get.toNamed(WalletScreen.id, arguments: {'flavor': controller.currentFlavor.value});
+                  },
+                ),
+                
+                SizedBox(height: verticalSpacing),
+                
+                ProfileItem(
+                  icon: Icons.description,
+                  title: "Licenses",
+                  subtitle: "Manage your credentials",
+                  onTap: () {
+                    Get.toNamed(EditDocumentsScreen.id, arguments: {'flavor': controller.currentFlavor.value});
                   },
                 ),
                 

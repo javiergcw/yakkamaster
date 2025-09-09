@@ -1,50 +1,35 @@
+import 'package:get/get.dart';
 import '../data/digital_id_dto.dart';
-import 'dart:io';
-import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 
-class DigitalIdController {
-  DigitalIdDto? _digitalIdData;
-  bool _isLoading = false;
+class DigitalIdController extends GetxController {
+  final Rx<DigitalIdDto?> digitalIdData = Rx<DigitalIdDto?>(null);
+  final RxBool isLoading = false.obs;
 
-  // Callbacks para UI updates
-  Function()? onDataChanged;
-  Function()? onLoadingChanged;
-
-  DigitalIdDto? get digitalIdData => _digitalIdData;
-  bool get isLoading => _isLoading;
-
-  void initialize() {
+  @override
+  void onInit() {
+    super.onInit();
     loadDigitalIdData();
   }
 
   void loadDigitalIdData() {
-    _isLoading = true;
-    onLoadingChanged?.call();
+    isLoading.value = true;
     
     // Simular carga de datos
     Future.delayed(const Duration(milliseconds: 500), () {
-      _digitalIdData = DigitalIdDto(
+      digitalIdData.value = DigitalIdDto(
         id: '1',
         name: 'Testing Testing',
         avatarUrl: '', // Usaremos un avatar por defecto
         qrCodeData: 'https://yakka.com/profile/testing123',
         identificationNumber: 'ID123456789',
       );
-      _isLoading = false;
-      onDataChanged?.call();
-      onLoadingChanged?.call();
+      isLoading.value = false;
     });
   }
 
   void shareDigitalId() {
     // TODO: Implementar funcionalidad de compartir pantalla
-    print('Sharing Digital ID: ${_digitalIdData?.id}');
+    print('Sharing Digital ID: ${digitalIdData.value?.id}');
     // Esta funcionalidad se implementará en la pantalla para capturar la vista
-  }
-
-  void dispose() {
-    // Cleanup si es necesario
   }
 }
