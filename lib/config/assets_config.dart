@@ -9,6 +9,7 @@ enum AssetType {
   employees,
   finishedIcon,
   inProgressIcon,
+  cameraOverlay,
 }
 
 enum AppFlavor {
@@ -29,6 +30,7 @@ class AssetsConfig {
       AssetType.employees: 'assets/employees.png',
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
+      AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
     },
     AppFlavor.sport: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -40,6 +42,7 @@ class AssetsConfig {
       AssetType.employees: 'assets/employees.png',
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
+      AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
     },
     AppFlavor.hospitality: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
@@ -51,6 +54,7 @@ class AssetsConfig {
       AssetType.employees: 'assets/employees.png',
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
+      AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
     },
   };
 
@@ -92,5 +96,9 @@ class AssetsConfig {
 
   static String getInProgressIcon(AppFlavor flavor) {
     return getAsset(flavor, AssetType.inProgressIcon);
+  }
+
+  static String getCameraOverlay(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.cameraOverlay);
   }
 }

@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import 'dart:io';
+import '../../config/app_flavor.dart';
 
 // Importar pantallas principales
 import '../../screens/join_splash_screen.dart';
@@ -44,6 +46,7 @@ import '../../screens/builder/home/presentation/pages/messages_screen.dart'
 import '../../screens/builder/home/presentation/pages/notifications_screen.dart'
     as builder_notifications;
 import '../../screens/builder/home/presentation/pages/edit_personal_details_screen.dart';
+import '../../screens/builder/home/presentation/pages/camera_with_overlay_screen.dart';
 import '../../screens/builder/home/presentation/pages/job_sites_list_screen.dart';
 import '../../screens/builder/home/presentation/pages/map_screen.dart';
 import '../../screens/builder/home/presentation/pages/worker_list_screen.dart';
@@ -463,6 +466,18 @@ abstract class AppPages {
       name: EditPersonalDetailsScreen.id,
       page: () => EditPersonalDetailsScreen(),
       binding: BuilderBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: CameraWithOverlayScreen.id,
+      page: () => CameraWithOverlayScreen(
+        flavor: Get.arguments?['flavor'] ?? AppFlavor.sport,
+        onImageCaptured: (File image) {
+          // Este callback se ejecutará cuando se capture la imagen
+          print('Image captured in route: ${image.path}');
+        },
+      ),
       transitionDuration: duration,
       transition: Transition.fadeIn,
     ),

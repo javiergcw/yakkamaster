@@ -145,14 +145,14 @@ class EditPersonalDetailsScreen extends StatelessWidget {
                     SizedBox(height: verticalSpacing * 2),
 
                     // Imagen de perfil con botón de edición
-                    ProfileImageSection(
+                    Obx(() => ProfileImageSection(
                       profileImage: controller.profileImage.value,
                       onTap: controller.showImageSourceDialog,
                       flavor: controller.currentFlavor.value,
                       imageSize: profileImageSize,
                       editIconSize: editIconSize,
                       cameraIconSize: cameraIconSize,
-                    ),
+                    )),
 
                     SizedBox(height: verticalSpacing * 3),
 

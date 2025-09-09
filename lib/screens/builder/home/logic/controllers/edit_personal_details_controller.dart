@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
 import '../../presentation/pages/builder_home_screen.dart';
+import '../../presentation/pages/camera_with_overlay_screen.dart';
 
 class EditPersonalDetailsController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -29,6 +30,8 @@ class EditPersonalDetailsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    print('EditPersonalDetailsController initialized');
+    print('Initial profileImage.value: ${profileImage.value?.path}');
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
     }
@@ -70,7 +73,7 @@ class EditPersonalDetailsController extends GetxController {
             const Padding(
               padding: EdgeInsets.all(20),
               child: Text(
-                'Seleccionar imagen',
+                'Select image',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -79,17 +82,17 @@ class EditPersonalDetailsController extends GetxController {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('Cámara'),
-              subtitle: const Text('Tomar una nueva foto'),
+              title: const Text('Camera'),
+              subtitle: const Text('Take a new photo'),
               onTap: () {
                 Get.back();
-                pickImage(ImageSource.camera);
+                _openCameraWithOverlay();
               },
             ),
             ListTile(
               leading: const Icon(Icons.photo_library, color: Colors.green),
-              title: const Text('Galería'),
-              subtitle: const Text('Seleccionar de la galería'),
+              title: const Text('Gallery'),
+              subtitle: const Text('Select from gallery'),
               onTap: () {
                 Get.back();
                 pickImage(ImageSource.gallery);
@@ -102,6 +105,78 @@ class EditPersonalDetailsController extends GetxController {
     );
   }
 
+  // Función para abrir la cámara con overlay
+  Future<void> _openCameraWithOverlay() async {
+    try {
+      // Verificar permisos de cámara
+      PermissionStatus status = await Permission.camera.request();
+      if (status.isDenied || status.isPermanentlyDenied) {
+        Get.dialog(
+          AlertDialog(
+            title: const Text('Camera Permission'),
+            content: const Text('This app needs camera access to take photos. Please grant permission in settings.'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  openAppSettings();
+                },
+                child: const Text('Settings'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (!status.isGranted) {
+        return;
+      }
+
+      // Navegar a la pantalla de cámara con overlay
+      final File? capturedImage = await Get.to<File>(
+        CameraWithOverlayScreen(
+          flavor: currentFlavor.value,
+          onImageCaptured: (File image) {
+            // Este callback se ejecutará cuando se capture la imagen
+            print('Image captured callback executed: ${image.path}');
+          },
+        ),
+      );
+
+      // Si se capturó una imagen, actualizarla
+      if (capturedImage != null) {
+        print('Image received from camera: ${capturedImage.path}');
+        print('Before updating profileImage.value: ${profileImage.value?.path}');
+        profileImage.value = capturedImage;
+        print('After updating profileImage.value: ${profileImage.value?.path}');
+        
+        // Mostrar mensaje de éxito
+        Get.snackbar(
+          'Success',
+          'Image updated successfully',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        print('No image captured');
+      }
+    } catch (e) {
+      print('Error opening camera with overlay: $e');
+      Get.snackbar(
+        'Error',
+        'Error opening camera: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   // Función para verificar y solicitar permisos
   Future<bool> requestPermissions(ImageSource source) async {
     if (source == ImageSource.camera) {
@@ -110,19 +185,19 @@ class EditPersonalDetailsController extends GetxController {
       if (status.isDenied || status.isPermanentlyDenied) {
         Get.dialog(
           AlertDialog(
-            title: const Text('Permiso de Cámara'),
-            content: const Text('Esta aplicación necesita acceso a la cámara para tomar fotos. Por favor, concede el permiso en la configuración.'),
+            title: const Text('Camera Permission'),
+            content: const Text('This app needs camera access to take photos. Please grant permission in settings.'),
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
-                child: const Text('Cancelar'),
+                child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   Get.back();
                   openAppSettings();
                 },
-                child: const Text('Configuración'),
+                child: const Text('Settings'),
               ),
             ],
           ),
@@ -176,8 +251,8 @@ class EditPersonalDetailsController extends GetxController {
         
         // Mostrar mensaje de éxito
         Get.snackbar(
-          'Éxito',
-          'Imagen actualizada exitosamente',
+          'Success',
+          'Image updated successfully',
           backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
@@ -190,16 +265,16 @@ class EditPersonalDetailsController extends GetxController {
       }
       
       // Manejo específico de errores
-      String errorMessage = 'Error al seleccionar imagen';
+      String errorMessage = 'Error selecting image';
       
       if (e.toString().contains('channel-error')) {
-        errorMessage = 'Error de comunicación. Intenta:\n1. Reiniciar la app\n2. Verificar permisos de cámara\n3. Usar galería en lugar de cámara';
+        errorMessage = 'Communication error. Try:\n1. Restart the app\n2. Check camera permissions\n3. Use gallery instead of camera';
       } else if (e.toString().contains('permission')) {
-        errorMessage = 'Permisos no concedidos. Ve a:\nConfiguración > Aplicaciones > Yakka Sports > Permisos';
+        errorMessage = 'Permissions not granted. Go to:\nSettings > Apps > Yakka Sports > Permissions';
       } else if (e.toString().contains('camera')) {
-        errorMessage = 'Error al acceder a la cámara. Intenta usar la galería.';
+        errorMessage = 'Error accessing camera. Try using gallery.';
       } else if (e.toString().contains('pigeon')) {
-        errorMessage = 'Error interno del plugin. Intenta:\n1. Reiniciar la app\n2. Usar galería en lugar de cámara';
+        errorMessage = 'Plugin internal error. Try:\n1. Restart the app\n2. Use gallery instead of camera';
       }
       
       // Mostrar diálogo de error más informativo
@@ -219,11 +294,11 @@ class EditPersonalDetailsController extends GetxController {
                   pickImage(ImageSource.gallery);
                 }
               },
-              child: const Text('Intentar con galería'),
+              child: const Text('Try with gallery'),
             ),
             TextButton(
               onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
+              child: const Text('Cancel'),
             ),
           ],
         ),

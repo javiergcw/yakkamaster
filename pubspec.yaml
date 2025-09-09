@@ -40,6 +40,8 @@ dependencies:
   intl_phone_field: ^3.2.0
   file_picker: ^8.0.0+1
   image_picker: ^1.0.7
+  camera: ^0.10.5+9
+  image: ^4.1.7
   permission_handler: ^11.3.1
   url_launcher: ^6.2.5
   get: ^4.6.6
