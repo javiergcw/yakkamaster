@@ -7,14 +7,20 @@ class PdfViewerController extends GetxController {
   // Variables observables para el estado
   final RxBool isLoading = true.obs;
   
-  late InvoiceDto invoice;
+  InvoiceDto? invoice;
 
   @override
   void onInit() {
     super.onInit();
     // Obtener la factura de los argumentos
-    invoice = Get.arguments['invoice'];
-    _loadPdf();
+    final arguments = Get.arguments;
+    if (arguments != null && arguments['invoice'] != null) {
+      invoice = arguments['invoice'];
+      _loadPdf();
+    } else {
+      print('Error: No invoice provided in arguments');
+      Get.back();
+    }
   }
 
   void _loadPdf() {

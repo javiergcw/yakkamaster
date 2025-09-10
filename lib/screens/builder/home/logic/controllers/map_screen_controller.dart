@@ -11,6 +11,7 @@ class MapScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
   final Rx<GoogleMapController?> mapController = Rx<GoogleMapController?>(null);
   final TextEditingController searchController = TextEditingController();
+  final RxBool showListFirst = false.obs; // Controlar si mostrar lista primero
   
   // Palo Alto area coordinates
   static const CameraPosition initialPosition = CameraPosition(
@@ -30,8 +31,19 @@ class MapScreenController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    if (Get.arguments != null && Get.arguments['flavor'] != null) {
-      currentFlavor.value = Get.arguments['flavor'];
+    print('=== MapScreenController onInit called ===');
+    print('Get.arguments: ${Get.arguments}');
+    if (Get.arguments != null) {
+      if (Get.arguments['flavor'] != null) {
+        currentFlavor.value = Get.arguments['flavor'];
+        print('Flavor set to: ${currentFlavor.value}');
+      }
+      if (Get.arguments['showList'] != null) {
+        showListFirst.value = Get.arguments['showList'];
+        print('Show list first: ${showListFirst.value}');
+      }
+    } else {
+      print('No arguments found, using defaults');
     }
     searchController.text = '';
   }

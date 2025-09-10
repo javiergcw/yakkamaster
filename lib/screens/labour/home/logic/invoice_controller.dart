@@ -67,11 +67,11 @@ class InvoiceController extends GetxController {
 
   void viewInvoice(InvoiceDto invoice) {
     print('View invoice called for: ${invoice.dateRange}');
-    // Navegar a la pantalla del PDF
-    Get.to(() => PdfViewerScreen(
-      invoice: invoice,
-      flavor: AppFlavorConfig.currentFlavor,
-    ));
+    // Navegar a la pantalla del PDF usando Get.toNamed con argumentos
+    Get.toNamed(PdfViewerScreen.id, arguments: {
+      'invoice': invoice,
+      'flavor': AppFlavorConfig.currentFlavor,
+    });
   }
 
   void editInvoice(InvoiceDto invoice) {

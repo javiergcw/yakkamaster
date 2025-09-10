@@ -22,6 +22,60 @@ class PdfViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PdfViewerController controller = Get.find<PdfViewerController>();
+    
+    // Verificar si hay invoice disponible
+    if (controller.invoice == null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Error',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 80,
+                color: Colors.red[400],
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Error al cargar la factura',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'No se pudo obtener la información de la factura',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
@@ -76,7 +130,7 @@ class PdfViewerScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Factura: ${controller.invoice.dateRange}',
+                    'Factura: ${controller.invoice!.dateRange}',
                     style: GoogleFonts.poppins(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -85,17 +139,17 @@ class PdfViewerScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Destinatario: ${controller.invoice.recipientName}',
+                    'Destinatario: ${controller.invoice!.recipientName}',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: Colors.grey[700],
                     ),
                   ),
                   Text(
-                    'Estado: ${controller.invoice.status == 'paid' ? 'Pagada' : 'Pendiente'}',
+                    'Estado: ${controller.invoice!.status == 'paid' ? 'Pagada' : 'Pendiente'}',
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: controller.invoice.status == 'paid' ? Colors.green[600] : Colors.orange[600],
+                      color: controller.invoice!.status == 'paid' ? Colors.green[600] : Colors.orange[600],
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -157,7 +211,7 @@ class PdfViewerScreen extends StatelessWidget {
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'factura_${controller.invoice.dateRange.replaceAll(' ', '_')}.pdf',
+                                    'factura_${controller.invoice!.dateRange.replaceAll(' ', '_')}.pdf',
                                     style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,

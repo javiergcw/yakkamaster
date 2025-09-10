@@ -29,7 +29,7 @@ class BuilderBinding extends Bindings {
     Get.lazyPut<NotificationsScreenController>(() => NotificationsScreenController());
     Get.lazyPut<EditPersonalDetailsController>(() => EditPersonalDetailsController());
     Get.lazyPut<JobSitesListController>(() => JobSitesListController());
-    Get.lazyPut<MapScreenController>(() => MapScreenController());
+    // Get.put<MapScreenController>(MapScreenController()); // Temporalmente comentado para debug
     Get.lazyPut<WorkerListController>(() => WorkerListController());
     Get.lazyPut<ChatScreenController>(() => ChatScreenController());
     Get.lazyPut<PostJobController>(() => PostJobController());

@@ -1,16 +1,17 @@
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
+import '../../../applicants/presentation/pages/applicants_screen.dart';
 import '../../presentation/pages/map_screen.dart';
 import '../../presentation/pages/messages_screen.dart';
 import '../../presentation/pages/profile_screen.dart';
 import '../../../post_job/presentation/pages/job_sites_screen.dart';
 import '../../../my_jobs/presentation/pages/my_jobs_screen.dart';
-import '../../presentation/pages/worker_list_screen.dart';
 import '../../presentation/pages/job_sites_list_screen.dart';
 import '../../presentation/pages/notifications_screen.dart';
 import '../../../invoices/presentation/pages/invoices_screen.dart';
 import '../../../expenses/presentation/pages/expenses_screen.dart';
+import '../../../staff/presentation/pages/staff_screen.dart';
 
 class BuilderHomeController extends GetxController {
   final RxInt selectedIndex = 0.obs; // Home tab selected
@@ -26,8 +27,7 @@ class BuilderHomeController extends GetxController {
     } catch (e) {
       Get.put(ApplicantController());
     }
-    // Asegurar que Home esté seleccionado cuando se navega desde Map
-    selectedIndex.value = 0;
+    // No establecer selectedIndex aquí para evitar conflictos de navegación
   }
 
   void toggleSidebar() {
@@ -39,14 +39,18 @@ class BuilderHomeController extends GetxController {
   }
 
   void selectTab(int index) {
+    print('=== selectTab called with index: $index ===');
     selectedIndex.value = index;
     
     // Navigate to different screens based on index
     if (index == 1) { // Map
+      print('Navigating to MapScreen with flavor: ${currentFlavor.value}');
       Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 2) { // Messages
+      print('Navigating to MessagesScreen with flavor: ${currentFlavor.value}');
       Get.toNamed(MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 3) { // Profile
+      print('Navigating to ProfileScreen with flavor: ${currentFlavor.value}');
       Get.toNamed(ProfileScreen.id, arguments: {'flavor': currentFlavor.value});
     }
   }
@@ -60,11 +64,18 @@ class BuilderHomeController extends GetxController {
   }
 
   void navigateToApplicants() {
-    Get.toNamed(WorkerListScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(ApplicantsScreen.id, arguments: {'flavor': currentFlavor.value});
+  }
+
+  void navigateToWorkers() {
+    Get.toNamed(MapScreen.id, arguments: {
+      'flavor': currentFlavor.value,
+      'showList': true, // Indicar que debe mostrar la lista primero
+    });
   }
 
   void navigateToStaff() {
-    Get.toNamed(WorkerListScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(StaffScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToJobSitesList() {
@@ -81,5 +92,10 @@ class BuilderHomeController extends GetxController {
 
   void navigateToExpenses() {
     Get.toNamed(ExpensesScreen.id, arguments: {'flavor': currentFlavor.value});
+  }
+
+  void navigateToMap() {
+    print('=== navigateToMap called directly ===');
+    Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

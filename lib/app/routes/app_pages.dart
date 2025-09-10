@@ -490,7 +490,7 @@ abstract class AppPages {
     ),
     GetPage(
       name: MapScreen.id,
-      page: () => MapScreen(),
+      page: () => MapScreen(flavor: Get.arguments?['flavor']),
       binding: BuilderBinding(),
       transitionDuration: duration,
       transition: Transition.fadeIn,

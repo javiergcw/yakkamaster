@@ -306,9 +306,7 @@ class BuilderHomeScreen extends StatelessWidget {
               child: _buildWorkerCard(
                 icon: Icons.search,
                 title: "Search",
-                onTap: () {
-                  // TODO: Navegar a search
-                },
+                onTap: () => controller.navigateToWorkers(),
               ),
             ),
           ],
@@ -596,7 +594,13 @@ class BuilderHomeScreen extends StatelessWidget {
 
   Widget _buildBottomNavItem(IconData icon, String label, int index, bool isSelected) {
     return GestureDetector(
-      onTap: () => controller.selectTab(index),
+      onTap: () {
+        if (index == 1) { // Map
+          controller.navigateToMap();
+        } else {
+          controller.selectTab(index);
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
