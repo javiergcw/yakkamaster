@@ -291,28 +291,27 @@ class WorkerListScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
           // Profile Picture
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              image: DecorationImage(
-                image: NetworkImage(worker['image']),
-                fit: BoxFit.cover,
-              ),
-            ),
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.grey[300],
+            backgroundImage: worker['image'] != null && worker['image'].isNotEmpty
+                ? NetworkImage(worker['image'])
+                : null,
+            child: worker['image'] == null || worker['image'].isEmpty
+                ? Icon(
+                    Icons.account_circle,
+                    size: 30,
+                    color: Colors.grey[600],
+                  )
+                : null,
           ),
           
           SizedBox(width: 16),
@@ -366,7 +365,7 @@ class WorkerListScreen extends StatelessWidget {
                      controller.openChat(worker);
                    },
                    style: ElevatedButton.styleFrom(
-                                             backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                     backgroundColor: Colors.grey[800],
                      foregroundColor: Colors.white,
                      shape: RoundedRectangleBorder(
                        borderRadius: BorderRadius.circular(16),
@@ -392,7 +391,7 @@ class WorkerListScreen extends StatelessWidget {
                          controller.showJobSelectionModal(worker['name']);
                        },
                        style: ElevatedButton.styleFrom(
-                         backgroundColor: Colors.grey[800],
+                         backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
                          foregroundColor: Colors.white,
                          shape: RoundedRectangleBorder(
                            borderRadius: BorderRadius.circular(16),

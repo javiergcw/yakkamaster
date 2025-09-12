@@ -8,6 +8,7 @@ import '../../../../../config/app_flavor.dart';
 import '../../presentation/widgets/company_selection_dialog.dart';
 import '../../presentation/pages/register_new_company_screen.dart';
 import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
+import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
 
 class CreateProfileBuilderController extends GetxController {
   // Controllers para los campos de texto
@@ -54,61 +55,309 @@ class CreateProfileBuilderController extends GetxController {
 
   // Función para mostrar opciones de selección de imagen
   void showImageSourceDialog() {
+    final mediaQuery = MediaQuery.of(Get.context!);
+    final screenWidth = mediaQuery.size.width;
+    
+    // Calcular valores responsive
+    final modalPadding = screenWidth * 0.06;
+    final titleFontSize = screenWidth * 0.048;
+    final itemFontSize = screenWidth * 0.038;
+    final subtitleFontSize = screenWidth * 0.032;
+    final iconSize = screenWidth * 0.08;
+    
     Get.bottomSheet(
       Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, -4),
+              blurRadius: 20,
+              spreadRadius: 0,
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Handle del modal
             Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(top: 12),
+              width: 50,
+              height: 5,
+              margin: EdgeInsets.only(top: modalPadding * 0.5),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.all(20),
+            
+            // Título del modal
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: modalPadding,
+                vertical: modalPadding * 1.2,
+              ),
               child: Text(
-                'Seleccionar imagen',
+                'Select image',
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  letterSpacing: 0.5,
                 ),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.blue),
-              title: const Text('Cámara'),
-              subtitle: const Text('Tomar una nueva foto'),
-              onTap: () {
-                Get.back();
-                pickImage(ImageSource.camera);
-              },
+            
+            // Opciones de selección
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: modalPadding),
+              child: Column(
+                children: [
+                  // Opción Camera
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: modalPadding * 0.8),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Get.back();
+                          _openCameraWithOverlay();
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: EdgeInsets.all(modalPadding),
+                          child: Row(
+                            children: [
+                              // Icono de cámara
+                              Container(
+                                width: iconSize,
+                                height: iconSize,
+                                decoration: BoxDecoration(
+                                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: iconSize * 0.6,
+                                ),
+                              ),
+                              
+                              SizedBox(width: modalPadding),
+                              
+                              // Texto
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Camera',
+                                      style: TextStyle(
+                                        fontSize: itemFontSize,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Take a new photo',
+                                      style: TextStyle(
+                                        fontSize: subtitleFontSize,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Flecha
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Opción Gallery
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: modalPadding * 1.5),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey[200]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Get.back();
+                          pickImage(ImageSource.gallery);
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: EdgeInsets.all(modalPadding),
+                          child: Row(
+                            children: [
+                              // Icono de galería
+                              Container(
+                                width: iconSize,
+                                height: iconSize,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[600],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.photo_library,
+                                  color: Colors.white,
+                                  size: iconSize * 0.6,
+                                ),
+                              ),
+                              
+                              SizedBox(width: modalPadding),
+                              
+                              // Texto
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Gallery',
+                                      style: TextStyle(
+                                        fontSize: itemFontSize,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Select from gallery',
+                                      style: TextStyle(
+                                        fontSize: subtitleFontSize,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Flecha
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.photo_library, color: Colors.green),
-              title: const Text('Galería'),
-              subtitle: const Text('Seleccionar de la galería'),
-              onTap: () {
-                Get.back();
-                pickImage(ImageSource.gallery);
-              },
-            ),
-            const SizedBox(height: 20),
           ],
         ),
       ),
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
     );
+  }
+
+  // Función para abrir la cámara con overlay
+  Future<void> _openCameraWithOverlay() async {
+    try {
+      // Verificar permisos de cámara
+      PermissionStatus status = await Permission.camera.request();
+      if (status.isDenied || status.isPermanentlyDenied) {
+        Get.dialog(
+          AlertDialog(
+            title: const Text('Camera Permission'),
+            content: const Text('This app needs camera access to take photos. Please grant permission in settings.'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  openAppSettings();
+                },
+                child: const Text('Settings'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (!status.isGranted) {
+        return;
+      }
+
+      // Navegar a la pantalla de cámara con overlay
+      final File? capturedImage = await Get.to<File>(
+        CameraWithOverlayScreen(
+          flavor: currentFlavor.value,
+          onImageCaptured: (File image) {
+            // Este callback se ejecutará cuando se capture la imagen
+            print('Image captured callback executed: ${image.path}');
+          },
+        ),
+      );
+
+      // Si se capturó una imagen, actualizarla
+      if (capturedImage != null) {
+        print('Image received from camera: ${capturedImage.path}');
+        profileImage.value = capturedImage;
+        
+        // Mostrar mensaje de éxito
+        Get.snackbar(
+          'Success',
+          'Image updated successfully',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        print('No image captured');
+      }
+    } catch (e) {
+      print('Error opening camera with overlay: $e');
+      Get.snackbar(
+        'Error',
+        'Error opening camera: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   // Función para verificar y solicitar permisos
@@ -538,3 +787,4 @@ class CreateProfileBuilderController extends GetxController {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
+

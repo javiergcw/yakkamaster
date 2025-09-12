@@ -30,8 +30,6 @@ class ProfileScreen extends StatelessWidget {
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
     final subtitleFontSize = screenWidth * 0.035;
-    final statsFontSize = screenWidth * 0.045;
-    final statsLabelFontSize = screenWidth * 0.03;
     final profileImageSize = screenWidth * 0.2; // Reducido de 0.25 a 0.2
   
 
@@ -39,8 +37,9 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Fondo gris oscuro
       body: SafeArea(
-        child: Column(
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
             // Header con información del perfil
             Container(
               width: double.infinity,
@@ -50,6 +49,32 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
+                  // Nombre del usuario
+                  Text(
+                    "testing testing",
+                    style: GoogleFonts.poppins(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  
+                  SizedBox(height: verticalSpacing * 0.5),
+                
+                  
+                  SizedBox(height: verticalSpacing * 0.3),
+                  
+                  Text(
+                    "user ID #0",
+                    style: GoogleFonts.poppins(
+                      fontSize: subtitleFontSize,
+                      color: Colors.grey[300],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  
+                  SizedBox(height: verticalSpacing),
+                  
                   // Foto de perfil con botón de actualización
                   Center(
                     child: Stack(
@@ -119,94 +144,84 @@ class ProfileScreen extends StatelessWidget {
                     ),
                   ),
                   
-                  SizedBox(height: verticalSpacing), // Reducido de 2 a 1
+                  SizedBox(height: verticalSpacing * 1.5),
                   
-                  // Nombre del usuario
-                  Text(
-                    "testing testing",
-                    style: GoogleFonts.poppins(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  
-                  SizedBox(height: verticalSpacing * 0.5), // Reducido de 1 a 0.5
-                  
-                  // ID de la empresa
-                  Text(
-                    "Company linked: user ID #0",
-                    style: GoogleFonts.poppins(
-                      fontSize: subtitleFontSize,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                  
-                  SizedBox(height: verticalSpacing), // Reducido de 2 a 1
-                  
-                  // Estadísticas
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  // Botones de acción
+                  Column(
                     children: [
-                      // Jobs
-                      Column(
+                      // Botón Complete your profile
+                      Stack(
                         children: [
-                          Text(
-                            "0",
-                            style: GoogleFonts.poppins(
-                              fontSize: statsFontSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "Jobs",
-                            style: GoogleFonts.poppins(
-                              fontSize: statsLabelFontSize,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      // Separador vertical
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: horizontalPadding * 1.5),
-                        width: 1,
-                        height: verticalSpacing * 2, // Reducido de 3 a 2
-                        color: Colors.white,
-                      ),
-                      
-                      // Rating
-                      Column(
-                        children: [
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "5.0",
-                                style: GoogleFonts.poppins(
-                                  fontSize: statsFontSize,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          Container(
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(horizontal: horizontalPadding * 1.5),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // TODO: Implementar navegación a completar perfil
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.8),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                elevation: 0,
                               ),
-                              SizedBox(width: 4),
-                              Icon(
-                                Icons.star,
-                                size: statsFontSize * 0.8,
-                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.edit,
+                                    size: screenWidth * 0.04,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: horizontalPadding * 0.3),
+                                  Text(
+                                    'Complete your profile',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: subtitleFontSize * 0.9,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
-                          Text(
-                            "Rating",
-                            style: GoogleFonts.poppins(
-                              fontSize: statsLabelFontSize,
-                              color: Colors.white,
+                          // Punto de notificación
+                          Positioned(
+                            top: 6,
+                            right: horizontalPadding * 1.5 + 6,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
                         ],
+                      ),
+                      
+                      SizedBox(height: verticalSpacing * 0.6),
+                      
+                      // Botón View profile
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Implementar navegación a ver perfil
+                        },
+                        child: Text(
+                          'View profile',
+                          style: GoogleFonts.poppins(
+                            fontSize: subtitleFontSize * 0.9,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -215,16 +230,14 @@ class ProfileScreen extends StatelessWidget {
             ),
             
             // Lista de opciones del menú
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2C2C2C),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: [
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2C2C2C),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
                     ProfileMenuItem(
                       icon: Icons.chat,
                       title: "Help",
@@ -267,13 +280,13 @@ class ProfileScreen extends StatelessWidget {
                       onTap: controller.handleLogOut,
                       flavor: controller.currentFlavor.value,
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
             
-            SizedBox(height: verticalSpacing), // Reducido de 2 a 1
-          ],
+            SizedBox(height: verticalSpacing * 2), // Espaciado al final
+            ],
+          ),
         ),
       ),
     );

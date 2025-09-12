@@ -32,14 +32,10 @@ class InvoiceCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            offset: const Offset(0, 2),
-            blurRadius: 8,
-            spreadRadius: 0,
-          ),
-        ],
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,16 +45,19 @@ class InvoiceCard extends StatelessWidget {
           Row(
             children: [
               // Profile Picture
-              Container(
-                width: 45,
-                height: 45,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22.5),
-                  image: DecorationImage(
-                    image: NetworkImage(invoice.workerImageUrl),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+              CircleAvatar(
+                radius: 22.5,
+                backgroundColor: Colors.grey[300],
+                backgroundImage: invoice.workerImageUrl != null && invoice.workerImageUrl.isNotEmpty
+                    ? NetworkImage(invoice.workerImageUrl)
+                    : null,
+                child: invoice.workerImageUrl == null || invoice.workerImageUrl.isEmpty
+                    ? Icon(
+                        Icons.account_circle,
+                        size: 22.5,
+                        color: Colors.grey[600],
+                      )
+                    : null,
               ),
               
               SizedBox(width: 10),

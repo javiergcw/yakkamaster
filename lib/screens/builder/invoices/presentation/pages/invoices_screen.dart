@@ -35,6 +35,7 @@ class InvoicesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
             // App Bar
@@ -150,7 +151,7 @@ class InvoicesScreen extends StatelessWidget {
   Widget _buildAppBar() {
     return Container(
       color: Colors.grey[900],
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: EdgeInsets.fromLTRB(16, 54, 16, 16),
       child: Column(
         children: [
           // Header with back button and title

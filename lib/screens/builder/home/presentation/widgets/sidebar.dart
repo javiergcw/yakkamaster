@@ -66,19 +66,13 @@ class Sidebar extends StatelessWidget {
                 SizedBox(height: 16),
                 
                 // Profile Picture
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                      width: 2,
-                    ),
-                    image: DecorationImage(
-                      image: NetworkImage('https://via.placeholder.com/100/00ff00/000000?text=TB'),
-                      fit: BoxFit.cover,
-                    ),
+                CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey[300],
+                  child: Icon(
+                    Icons.account_circle,
+                    size: 100,
+                    color: Colors.grey[600],
                   ),
                 ),
                 
@@ -106,84 +100,6 @@ class Sidebar extends StatelessWidget {
                 ),
                 
                 SizedBox(height: 24),
-                
-                // Statistics Row
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.grey[700]!),
-                      bottom: BorderSide(color: Colors.grey[700]!),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      // Jobs Statistic
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(
-                              '1',
-                              style: GoogleFonts.poppins(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              'Jobs',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      // Vertical Divider
-                      Container(
-                        width: 1,
-                        height: 40,
-                        color: Colors.white,
-                      ),
-                      
-                      // Rating Statistic
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '5.0',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(
-                                  Icons.star,
-                                  color: Colors.yellow,
-                                  size: 24,
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'Rating',
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),

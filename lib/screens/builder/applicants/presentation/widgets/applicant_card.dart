@@ -41,14 +41,10 @@ class ApplicantCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-            spreadRadius: 0,
-          ),
-        ],
+        border: Border.all(
+          color: Colors.grey[300]!,
+          width: 1,
+        ),
       ),
              child: Stack(
          children: [
@@ -61,15 +57,13 @@ class ApplicantCard extends StatelessWidget {
               Row(
                 children: [
                   // Foto del postulante (izquierda)
-                  Container(
-                    width: profileImageSize,
-                    height: profileImageSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: NetworkImage(applicant.profileImageUrl),
-                        fit: BoxFit.cover,
-                      ),
+                  CircleAvatar(
+                    radius: profileImageSize / 2,
+                    backgroundColor: Colors.grey[300],
+                    child: Icon(
+                      Icons.person,
+                      size: profileImageSize * 0.6,
+                      color: Colors.grey[600],
                     ),
                   ),
                   
@@ -139,38 +133,6 @@ class ApplicantCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Botón Decline (OutlinedButton)
-                  OutlinedButton(
-                    onPressed: onDecline,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.grey[700],
-                      side: BorderSide(color: Colors.grey[400]!),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.close,
-                          size: 14,
-                          color: Colors.grey[700],
-                        ),
-                        SizedBox(width: screenWidth * 0.01),
-                        Text(
-                          'Decline',
-                          style: GoogleFonts.poppins(
-                            fontSize: buttonFontSize,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
                   // Botón Hire (ElevatedButton)
                   ElevatedButton(
                     onPressed: onHire,
@@ -195,6 +157,40 @@ class ApplicantCard extends StatelessWidget {
                         SizedBox(width: screenWidth * 0.01),
                         Text(
                           'Hire',
+                          style: GoogleFonts.poppins(
+                            fontSize: buttonFontSize,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  // Botón Decline (ElevatedButton)
+                  ElevatedButton(
+                    onPressed: onDecline,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[600],
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shadowColor: Colors.red[600]!.withOpacity(0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.close,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                        SizedBox(width: screenWidth * 0.01),
+                        Text(
+                          'Decline',
                           style: GoogleFonts.poppins(
                             fontSize: buttonFontSize,
                             fontWeight: FontWeight.w600,

@@ -40,6 +40,7 @@ class ExpensesScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
             // Header (Dark Grey)
@@ -98,9 +99,11 @@ class ExpensesScreen extends StatelessWidget {
     
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalSpacing * 1.2,
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        verticalSpacing * 2.0,
+        horizontalPadding,
+        verticalSpacing * 1.2,
       ),
       decoration: BoxDecoration(
         color: Colors.grey[800],
@@ -120,15 +123,12 @@ class ExpensesScreen extends StatelessWidget {
           SizedBox(width: horizontalPadding),
           
           // Title
-          Expanded(
-            child: Text(
-              "Reporting",
-              style: GoogleFonts.poppins(
-                fontSize: titleFontSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
+          Text(
+            "Reporting",
+            style: GoogleFonts.poppins(
+              fontSize: titleFontSize,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
           

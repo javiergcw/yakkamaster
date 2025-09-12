@@ -16,6 +16,7 @@ import '../../presentation/pages/respect_screen.dart';
 import '../../presentation/pages/lets_be_clear_screen.dart';
 import '../../presentation/pages/profile_created_screen.dart';
 import '../../../home/presentation/pages/home_screen.dart';
+import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
 
 class CreateProfileController extends GetxController {
   // ===== STEP 1: BASIC INFO =====
@@ -345,7 +346,7 @@ class CreateProfileController extends GetxController {
     final screenHeight = mediaQuery.size.height;
     
     // Calcular valores responsive para el modal
-    final modalHeight = screenHeight * 0.6;
+    final modalHeight = screenHeight * 0.5;
     final modalPadding = screenWidth * 0.06;
     final titleFontSize = screenWidth * 0.048;
     final buttonFontSize = screenWidth * 0.032;
@@ -398,188 +399,188 @@ class CreateProfileController extends GetxController {
                   child: Container(
                     color: Colors.white,
                     padding: EdgeInsets.all(modalPadding),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          // Grid de opciones de experiencia
-                          Column(
-                            children: [
-                              // Primera fila: 2 opciones
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildExperienceButton(
-                                      'Less than 6 months',
-                                      selectedExperienceLevel,
-                                      () => setModalState(() => selectedExperienceLevel = 'Less than 6 months'),
-                                      buttonFontSize,
-                                    ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: _buildExperienceButton(
-                                      '6-12 months',
-                                      selectedExperienceLevel,
-                                      () => setModalState(() => selectedExperienceLevel = '6-12 months'),
-                                      buttonFontSize,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 12),
-                              // Segunda fila: 2 opciones
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildExperienceButton(
-                                      '1-2 years',
-                                      selectedExperienceLevel,
-                                      () => setModalState(() => selectedExperienceLevel = '1-2 years'),
-                                      buttonFontSize,
-                                    ),
-                                  ),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: _buildExperienceButton(
-                                      '2-5 years',
-                                      selectedExperienceLevel,
-                                      () => setModalState(() => selectedExperienceLevel = '2-5 years'),
-                                      buttonFontSize,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 12),
-                              // Tercera fila: 1 opción centrada
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 1,
-                                    child: SizedBox(),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildExperienceButton(
-                                      'More than 5 years',
-                                      selectedExperienceLevel,
-                                      () => setModalState(() => selectedExperienceLevel = 'More than 5 years'),
-                                      buttonFontSize,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 1,
-                                    child: SizedBox(),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        
-                        SizedBox(height: modalPadding),
-                        
-                        // Texto Add reference (optional) o referencia guardada
-                        Obx(() {
-                          final currentReference = skillReferences[selectedSkill];
-                          if (currentReference != null) {
-                            // Mostrar referencia guardada para esta habilidad
-                            return Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.green[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.green[200]!),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Reference Added:',
-                                    style: TextStyle(
-                                      fontSize: buttonFontSize * 0.9,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.green[700],
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '${currentReference['name']} - ${currentReference['company']}',
-                                    style: TextStyle(
-                                      fontSize: buttonFontSize * 0.85,
-                                      color: Colors.green[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          } else {
-                            // Mostrar botón para agregar referencia
-                            return GestureDetector(
-                              onTap: () {
-                                // Usar el modal de supervisor existente
-                                showAddSupervisorModalForSkill(selectedSkill);
-                              },
-                              child: Center(
-                                child: Text(
-                                  '+add reference (optional)',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: buttonFontSize,
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                    decoration: TextDecoration.underline,
-                                    letterSpacing: 0.3,
+                    child: Column(
+                      children: [
+                        // Grid de opciones de experiencia
+                        Column(
+                          children: [
+                            // Primera fila: 2 opciones
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildExperienceButton(
+                                    'Less than 6 months',
+                                    selectedExperienceLevel,
+                                    () => setModalState(() => selectedExperienceLevel = 'Less than 6 months'),
+                                    buttonFontSize,
                                   ),
                                 ),
-                              ),
-                            );
-                          }
-                        }),
-                        
-                        SizedBox(height: modalPadding * 0.5),
-                        
-                        // Botón SAVE sin sombra
-                        Container(
-                          width: double.infinity,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: ElevatedButton(
-                            onPressed: selectedExperienceLevel != null 
-                                ? () {
-                                    // Agregar la skill a selectedSkills solo cuando se guarda exitosamente
-                                    selectedSkills.add(selectedSkill);
-                                    // Guardar la experiencia seleccionada
-                                    skillExperience[selectedSkill] = _getExperienceValue(selectedExperienceLevel!);
-                                    Get.back();
-                                  }
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.zero,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
+                                SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildExperienceButton(
+                                    '6-12 months',
+                                    selectedExperienceLevel,
+                                    () => setModalState(() => selectedExperienceLevel = '6-12 months'),
+                                    buttonFontSize,
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: Text(
-                              'SAVE',
-                              style: TextStyle(
-                                fontSize: buttonFontSize * 1.1,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 1.2,
+                            SizedBox(height: 12),
+                            // Segunda fila: 2 opciones
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildExperienceButton(
+                                    '1-2 years',
+                                    selectedExperienceLevel,
+                                    () => setModalState(() => selectedExperienceLevel = '1-2 years'),
+                                    buttonFontSize,
+                                  ),
+                                ),
+                                SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildExperienceButton(
+                                    '2-5 years',
+                                    selectedExperienceLevel,
+                                    () => setModalState(() => selectedExperienceLevel = '2-5 years'),
+                                    buttonFontSize,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 12),
+                            // Tercera fila: 1 opción centrada
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 1,
+                                  child: SizedBox(),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: _buildExperienceButton(
+                                    'More than 5 years',
+                                    selectedExperienceLevel,
+                                    () => setModalState(() => selectedExperienceLevel = 'More than 5 years'),
+                                    buttonFontSize,
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 1,
+                                  child: SizedBox(),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      
+                      SizedBox(height: modalPadding),
+                      
+                      // Texto Add reference (optional) o referencia guardada
+                      Obx(() {
+                        final currentReference = skillReferences[selectedSkill];
+                        if (currentReference != null) {
+                          // Mostrar referencia guardada para esta habilidad
+                          return Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.green[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.green[200]!),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Reference Added:',
+                                  style: TextStyle(
+                                    fontSize: buttonFontSize * 0.9,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green[700],
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  '${currentReference['name']} - ${currentReference['company']}',
+                                  style: TextStyle(
+                                    fontSize: buttonFontSize * 0.85,
+                                    color: Colors.green[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          // Mostrar botón para agregar referencia
+                          return GestureDetector(
+                            onTap: () {
+                              // Usar el modal de supervisor existente
+                              showAddSupervisorModalForSkill(selectedSkill);
+                            },
+                            child: Center(
+                              child: Text(
+                                '+add reference (optional)',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: buttonFontSize,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                  letterSpacing: 0.3,
+                                ),
                               ),
+                            ),
+                          );
+                        }
+                      }),
+                      
+                      // Spacer para empujar el botón hacia abajo
+                      Spacer(),
+                   
+                      // Botón SAVE sin sombra
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: ElevatedButton(
+                          onPressed: selectedExperienceLevel != null 
+                              ? () {
+                                  // Agregar la skill a selectedSkills solo cuando se guarda exitosamente
+                                  selectedSkills.add(selectedSkill);
+                                  // Guardar la experiencia seleccionada
+                                  skillExperience[selectedSkill] = _getExperienceValue(selectedExperienceLevel!);
+                                  Get.back();
+                                }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            elevation: 0,
+                          ),
+                          
+                          child: Text(
+                            'SAVE',
+                            style: TextStyle(
+                              fontSize: buttonFontSize * 1.1,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ),
-                        
-                        SizedBox(height: modalPadding * 0.5),
-                        ],
                       ),
+                      
+                      SizedBox(height: modalPadding * 0.5),
+                      ],
                     ),
                   ),
                 ),
@@ -757,7 +758,309 @@ class CreateProfileController extends GetxController {
   }
 
   void showPhotoOptions() {
-    pickImage(ImageSource.gallery);
+    final mediaQuery = MediaQuery.of(Get.context!);
+    final screenWidth = mediaQuery.size.width;
+    
+    // Calcular valores responsive
+    final modalPadding = screenWidth * 0.06;
+    final titleFontSize = screenWidth * 0.048;
+    final itemFontSize = screenWidth * 0.038;
+    final subtitleFontSize = screenWidth * 0.032;
+    final iconSize = screenWidth * 0.08;
+    
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, -4),
+              blurRadius: 20,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle del modal
+            Container(
+              width: 50,
+              height: 5,
+              margin: EdgeInsets.only(top: modalPadding * 0.5),
+              decoration: BoxDecoration(
+                color: Colors.grey[400],
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            
+            // Título del modal
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: modalPadding,
+                vertical: modalPadding * 1.2,
+              ),
+              child: Text(
+                'Select image',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: titleFontSize,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+            
+            // Opciones de selección
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: modalPadding),
+              child: Column(
+                children: [
+                  // Opción Camera
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: modalPadding * 0.8),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Get.back();
+                          _openCameraWithOverlay();
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: EdgeInsets.all(modalPadding),
+                          child: Row(
+                            children: [
+                              // Icono de cámara
+                              Container(
+                                width: iconSize,
+                                height: iconSize,
+                                decoration: BoxDecoration(
+                                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                  size: iconSize * 0.6,
+                                ),
+                              ),
+                              
+                              SizedBox(width: modalPadding),
+                              
+                              // Texto
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Camera',
+                                      style: TextStyle(
+                                        fontSize: itemFontSize,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Take a new photo',
+                                      style: TextStyle(
+                                        fontSize: subtitleFontSize,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Flecha
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  // Opción Gallery
+                  Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: modalPadding * 1.5),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.grey[200]!,
+                        width: 1,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Get.back();
+                          pickImage(ImageSource.gallery);
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: EdgeInsets.all(modalPadding),
+                          child: Row(
+                            children: [
+                              // Icono de galería
+                              Container(
+                                width: iconSize,
+                                height: iconSize,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[600],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.photo_library,
+                                  color: Colors.white,
+                                  size: iconSize * 0.6,
+                                ),
+                              ),
+                              
+                              SizedBox(width: modalPadding),
+                              
+                              // Texto
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Gallery',
+                                      style: TextStyle(
+                                        fontSize: itemFontSize,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Text(
+                                      'Select from gallery',
+                                      style: TextStyle(
+                                        fontSize: subtitleFontSize,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              
+                              // Flecha
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.grey[400],
+                                size: 16,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  // Función para abrir la cámara con overlay
+  Future<void> _openCameraWithOverlay() async {
+    try {
+      // Verificar permisos de cámara
+      PermissionStatus status = await Permission.camera.request();
+      if (status.isDenied || status.isPermanentlyDenied) {
+        Get.dialog(
+          AlertDialog(
+            title: const Text('Camera Permission'),
+            content: const Text('This app needs camera access to take photos. Please grant permission in settings.'),
+            actions: [
+              TextButton(
+                onPressed: () => Get.back(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.back();
+                  openAppSettings();
+                },
+                child: const Text('Settings'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      if (!status.isGranted) {
+        return;
+      }
+
+      // Navegar a la pantalla de cámara con overlay
+      final File? capturedImage = await Get.to<File>(
+        CameraWithOverlayScreen(
+          flavor: currentFlavor.value,
+          onImageCaptured: (File image) {
+            // Este callback se ejecutará cuando se capture la imagen
+            print('Image captured callback executed: ${image.path}');
+          },
+        ),
+      );
+
+      // Si se capturó una imagen, actualizarla
+      if (capturedImage != null) {
+        print('Image received from camera: ${capturedImage.path}');
+        profileImage.value = capturedImage;
+        
+        // Mostrar mensaje de éxito
+        Get.snackbar(
+          'Success',
+          'Image updated successfully',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        print('No image captured');
+      }
+    } catch (e) {
+      print('Error opening camera with overlay: $e');
+      Get.snackbar(
+        'Error',
+        'Error opening camera: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<bool> requestPermissions(ImageSource source) async {

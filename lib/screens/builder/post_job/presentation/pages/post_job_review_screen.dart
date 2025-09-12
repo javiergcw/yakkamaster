@@ -155,7 +155,7 @@ class PostJobReviewScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Switch(
+                        Obx(() => Switch(
                           value: controller.isPublic.value,
                           onChanged: (value) {
                             controller.updateIsPublic(value);
@@ -164,7 +164,7 @@ class PostJobReviewScreen extends StatelessWidget {
                           activeTrackColor: Colors.grey[400],
                           inactiveThumbColor: Colors.white,
                           inactiveTrackColor: Colors.grey[300],
-                        ),
+                        )),
                       ],
                     ),
 
@@ -266,8 +266,10 @@ class PostJobReviewScreen extends StatelessWidget {
                     width: double.infinity,
                     child: CustomButton(
                       text: "Edit",
-                      onPressed: controller.handleEdit,
-                      type: ButtonType.secondary,
+                      onPressed: () {
+                        controller.goToStep(1);
+                      },
+                      type: ButtonType.outline,
                       flavor: controller.currentFlavor.value,
                       showShadow: false,
                     ),

@@ -69,7 +69,7 @@ class JoinSplashController extends GetxController with GetTickerProviderStateMix
       case AppFlavor.labour:
         return 'WORK OR HIRE';
       case AppFlavor.sport:
-        return 'PLAY OR WATCH';
+        return ' Connecting sport People';
       case AppFlavor.hospitality:
         return 'SERVE OR ENJOY';
     }
@@ -91,7 +91,7 @@ class JoinSplashController extends GetxController with GetTickerProviderStateMix
       case AppFlavor.labour:
         return 'Construction &\nHospitality Jobs';
       case AppFlavor.sport:
-        return 'Sports &\nFitness Activities';
+        return 'Work or hire';
       case AppFlavor.hospitality:
         return 'Hospitality &\nService Industry';
     }

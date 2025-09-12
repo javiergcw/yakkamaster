@@ -226,12 +226,6 @@ class MyJobsScreen extends StatelessWidget {
 
   void _handleShareJob(String jobId) {
     controller.shareJob(jobId);
-    Get.snackbar(
-      'Info',
-      'Sharing job...',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: Duration(seconds: 2),
-    );
   }
 
   void _handleDeleteJob(String jobId) {

@@ -22,32 +22,14 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: SafeArea(
-        child: Column(
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
             // Profile Information Section
             Container(
               padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
               child: Column(
                 children: [
-                  // Profile Picture
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                        width: 2,
-                      ),
-                      image: DecorationImage(
-                        image: NetworkImage('https://via.placeholder.com/100/00ff00/000000?text=TB'),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  
-                  SizedBox(height: 16),
-                  
                   // User Name
                   Text(
                     'testing builder',
@@ -79,93 +61,107 @@ class ProfileScreen extends StatelessWidget {
                   
                   SizedBox(height: 24),
                   
-                  // Statistics Row
-                  Container(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: Colors.grey[700]!),
-                        bottom: BorderSide(color: Colors.grey[700]!),
-                      ),
+                  // Profile Picture
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    child: Icon(
+                      Icons.account_circle,
+                      size: 100,
+                      color: Colors.grey[600],
                     ),
-                    child: Row(
-                      children: [
-                        // Jobs Statistic
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Text(
-                                '1',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                  ),
+                  
+                  SizedBox(height: 24),
+                  
+                  // Botones de acción
+                  Column(
+                    children: [
+                      // Botón Complete your profile
+                      Stack(
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(horizontal: 24),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                // TODO: Implementar navegación a completar perfil
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
+                                elevation: 0,
                               ),
-                              Text(
-                                'Jobs',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        // Vertical Divider
-                        Container(
-                          width: 1,
-                          height: 40,
-                          color: Colors.white,
-                        ),
-                        
-                        // Rating Statistic
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Row(
+                              child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                  Icon(
+                                    Icons.edit,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                  SizedBox(width: 8),
                                   Text(
-                                    '5.0',
+                                    'Complete your profile',
                                     style: GoogleFonts.poppins(
-                                      fontSize: 28,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
                                   ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.star,
-                                    color: Colors.yellow,
-                                    size: 24,
-                                  ),
                                 ],
                               ),
-                              Text(
-                                'Rating',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.white,
-                                ),
+                            ),
+                          ),
+                          // Punto de notificación
+                          Positioned(
+                            top: 6,
+                            right: 30,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
                               ),
-                            ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      SizedBox(height: 12),
+                      
+                      // Botón View profile
+                      TextButton(
+                        onPressed: () {
+                          // TODO: Implementar navegación a ver perfil
+                        },
+                        child: Text(
+                          'View profile',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
+                            decorationColor: Colors.white,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
             
             // Menu Options
-            Expanded(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
                     _buildMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help',
@@ -193,14 +189,13 @@ class ProfileScreen extends StatelessWidget {
                         // TODO: Handle logout
                       },
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
             
             // App Version
             Container(
-              padding: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.only(bottom: 16, top: 16),
               child: Text(
                 '4.3.53+153',
                 style: GoogleFonts.poppins(
@@ -209,7 +204,8 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),

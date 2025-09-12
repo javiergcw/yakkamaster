@@ -78,7 +78,7 @@ class LetsBeClearScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   children: [
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.5),
                     
                     // Logo de YAKKA
                     Center(
@@ -92,7 +92,7 @@ class LetsBeClearScreen extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing * 3),
+                    SizedBox(height: verticalSpacing * 2),
                     
                     // Título principal
                     Text(
@@ -106,7 +106,7 @@ class LetsBeClearScreen extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.5),
                     
                     // Texto descriptivo
                     Text(
@@ -119,7 +119,7 @@ class LetsBeClearScreen extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.5),
                     
                     // Sección de disclaimer
                     Text(
@@ -133,7 +133,7 @@ class LetsBeClearScreen extends StatelessWidget {
                       ),
                     ),
                     
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 1.5),
                     
                     // Lista numerada de responsabilidades
                     Column(
@@ -146,7 +146,7 @@ class LetsBeClearScreen extends StatelessWidget {
                         ),
                         Divider(
                           color: Colors.grey[300],
-                          height: verticalSpacing * 2,
+                          height: verticalSpacing * 1.5,
                           thickness: 1,
                         ),
                         _buildNumberedItem(
@@ -156,7 +156,7 @@ class LetsBeClearScreen extends StatelessWidget {
                         ),
                         Divider(
                           color: Colors.grey[300],
-                          height: verticalSpacing * 2,
+                          height: verticalSpacing * 1.5,
                           thickness: 1,
                         ),
                         _buildNumberedItem(
@@ -167,13 +167,14 @@ class LetsBeClearScreen extends StatelessWidget {
                       ],
                     ),
                     
-                    SizedBox(height: verticalSpacing * 4),
+                    SizedBox(height: verticalSpacing * 3),
                     
                     // Botón de aceptación usando CustomButton
                     CustomButton(
                       text: "I understand and accept",
                       onPressed: controller.handleAccept,
                       isLoading: false,
+                      showShadow: false,
                     ),
                     
                     SizedBox(height: verticalSpacing * 2),

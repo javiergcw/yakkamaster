@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../config/constants.dart';
 import '../../data/applied_job_dto.dart';
 import '../../../../job_listings/data/dto/job_dto.dart';
 import '../../../../job_listings/presentation/widgets/job_card.dart';
@@ -43,8 +44,9 @@ class AppliedJobsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+        backgroundColor: AppConstants.darkGreyColor,
         elevation: 0,
+        toolbarHeight: screenHeight * 0.08, // Aumentar la altura del AppBar
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -61,7 +63,7 @@ class AppliedJobsScreen extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
       body: Obx(() => controller.jobCards.isEmpty
           ? _buildEmptyState()

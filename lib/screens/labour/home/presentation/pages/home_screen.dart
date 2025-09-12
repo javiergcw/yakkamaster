@@ -24,12 +24,11 @@ import 'wallet_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const String id = '/labour/home';
-  
+
   final AppFlavor? flavor;
   HomeScreen({super.key, this.flavor});
 
   final HomeScreenController controller = Get.put(HomeScreenController());
-
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +40,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
@@ -51,88 +50,103 @@ class HomeScreen extends StatelessWidget {
     final buttonFontSize = screenWidth * 0.04;
     final profileImageSize = screenWidth * 0.12;
 
-    return Obx(() => Stack(
-      children: [
-        Scaffold(
-          backgroundColor: controller.selectedIndex.value == 3 ? const Color(0xFF2C2C2C) : Colors.grey[100],
-          body: SafeArea(
-            child: Stack(
-              children: [
-                // Main Content basado en el tab seleccionado
-                _buildCurrentView(),
-                
-                // Banner flotante para Home tab
-                if (controller.selectedIndex.value == 0) _buildFloatingBanner(),
-              ],
-            ),
-          ),
-          
-          // Bottom Navigation Bar
-          bottomNavigationBar: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  offset: const Offset(0, -2),
-                  blurRadius: 4,
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              type: BottomNavigationBarType.fixed,
-              currentIndex: controller.isShiftsModalOpen.value ? 1 : controller.selectedIndex.value,
-              onTap: controller.handleBottomNavTap,
-              selectedItemColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-              unselectedItemColor: Colors.grey[600],
-              selectedLabelStyle: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold,
-                fontSize: bodyFontSize * 0.9,
+    return Obx(
+      () => Stack(
+        children: [
+          Scaffold(
+            backgroundColor: controller.selectedIndex.value == 3
+                ? const Color(0xFF2C2C2C)
+                : Colors.grey[100],
+            body: SafeArea(
+              top: false,
+              child: Stack(
+                children: [
+                  // Main Content basado en el tab seleccionado
+                  _buildCurrentView(),
+
+                  // Banner flotante para Home tab
+                  if (controller.selectedIndex.value == 0)
+                    _buildFloatingBanner(),
+                ],
               ),
-              unselectedLabelStyle: GoogleFonts.poppins(
-                fontSize: bodyFontSize * 0.9,
-              ),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: 'Home',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today),
-                  label: 'Shifts',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.message),
-                  label: 'Messages',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
             ),
-          ),
-        ),
-        
-        // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal)
-        if (controller.isSidebarOpen.value)
-          Positioned(
-            left: screenWidth * 0.7, // Empezar después del sidebar
-            top: 0,
-            right: 0,
-            bottom: 0,
-            child: GestureDetector(
-              onTap: controller.closeSidebar,
-              child: Container(
-                color: Colors.black.withOpacity(0.3),
+
+            // Bottom Navigation Bar
+            bottomNavigationBar: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, -2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: BottomNavigationBar(
+                type: BottomNavigationBarType.fixed,
+                currentIndex: controller.isShiftsModalOpen.value
+                    ? 1
+                    : controller.selectedIndex.value,
+                onTap: controller.handleBottomNavTap,
+                selectedItemColor: Color(
+                  AppFlavorConfig.getPrimaryColor(
+                    controller.currentFlavor.value,
+                  ),
+                ),
+                unselectedItemColor: Colors.grey[600],
+                selectedLabelStyle: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: bodyFontSize * 0.9,
+                ),
+                unselectedLabelStyle: GoogleFonts.poppins(
+                  fontSize: bodyFontSize * 0.9,
+                ),
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: 'Home',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_today),
+                    label: 'Shifts',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.message),
+                    label: 'Messages',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person),
+                    label: 'Profile',
+                  ),
+                ],
               ),
             ),
           ),
-        
-        // Sidebar (por encima de todo, sin overlay)
-        if (controller.isSidebarOpen.value)
-          Positioned(
-            left: 0,
+
+          // Overlay para cerrar sidebar al tocar fuera (solo sobre el contenido principal) con animación
+          AnimatedOpacity(
+            duration: const Duration(milliseconds: 300),
+            opacity: controller.isSidebarOpen.value ? 1.0 : 0.0,
+            child: controller.isSidebarOpen.value
+                ? Positioned(
+                    left: screenWidth * 0.7, // Empezar después del sidebar
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: GestureDetector(
+                      onTap: controller.closeSidebar,
+                      child: Container(color: Colors.black.withOpacity(0.3)),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+          ),
+
+          // Sidebar (por encima de todo, sin overlay) con animación
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            left: controller.isSidebarOpen.value ? 0 : -screenWidth * 0.7,
             top: 0,
             bottom: 0,
             child: Container(
@@ -143,20 +157,18 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
           ),
-        
-        // Overlay semi-transparente para el modal de shifts
-        if (controller.isShiftsModalOpen.value)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
+
+          // Overlay semi-transparente para el modal de shifts
+          if (controller.isShiftsModalOpen.value)
+            Positioned.fill(
+              child: Container(color: Colors.black.withOpacity(0.3)),
             ),
-          ),
-        
-        // Modal de Shifts (por encima de todo)
-        if (controller.isShiftsModalOpen.value)
-          _buildShiftsModal(),
-      ],
-    ));
+
+          // Modal de Shifts (por encima de todo)
+          if (controller.isShiftsModalOpen.value) _buildShiftsModal(),
+        ],
+      ),
+    );
   }
 
   Widget _buildCurrentView() {
@@ -178,7 +190,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
@@ -197,9 +209,7 @@ class HomeScreen extends StatelessWidget {
             horizontal: horizontalPadding,
             vertical: verticalSpacing * 2.5,
           ),
-          decoration: BoxDecoration(
-            color: AppConstants.darkGreyColor,
-          ),
+          decoration: BoxDecoration(color: AppConstants.darkGreyColor),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
@@ -223,13 +233,14 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(width: horizontalPadding),
-                  
+
                   // App Name
                   Expanded(
                     child: Text(
                       "YAKKA",
+                      textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,
@@ -238,14 +249,14 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
+
                   // Notification Icon
                   IconButton(
                     onPressed: () {
                       controller.navigateToNotifications();
                     },
                     icon: Icon(
-                      Icons.notifications,
+                      Icons.notifications_none_outlined,
                       color: Colors.white,
                       size: screenWidth * 0.06,
                     ),
@@ -255,7 +266,7 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-        
+
         // Main Content (Scrollable)
         Expanded(
           child: SingleChildScrollView(
@@ -268,8 +279,10 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ACTIVE JOBS Section (solo si hay trabajos aplicados)
-                if (controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty) _buildActiveJobsSection(),
-                
+                if (controller.hasAppliedJobs.value &&
+                    controller.appliedJobs.isNotEmpty)
+                  _buildActiveJobsSection(),
+
                 // ACTIVITY Section
                 Text(
                   "ACTIVITY",
@@ -280,9 +293,9 @@ class HomeScreen extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                
+
                 SizedBox(height: verticalSpacing * 0.8),
-                
+
                 // Activity Items
                 ActivityItem(
                   icon: Icons.receipt,
@@ -291,9 +304,9 @@ class HomeScreen extends StatelessWidget {
                     controller.navigateToInvoice();
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing),
-                
+
                 ActivityItem(
                   icon: Icons.work,
                   title: "Applied jobs",
@@ -301,21 +314,23 @@ class HomeScreen extends StatelessWidget {
                     controller.navigateToAppliedJobs();
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing),
-                
+
                 ActivityItem(
                   icon: Icons.warning,
                   title: "Report harassment",
                   subtitle: "You can remain anonymous",
                   onTap: () async {
                     try {
-                      final Uri url = Uri.parse(AppConstants.reportHarassmentUrl);
+                      final Uri url = Uri.parse(
+                        AppConstants.reportHarassmentUrl,
+                      );
                       final bool launched = await launchUrl(
                         url,
                         mode: LaunchMode.platformDefault,
                       );
-                      
+
                       if (!launched) {
                         _showUrlDialog(AppConstants.reportHarassmentUrl);
                       }
@@ -325,9 +340,9 @@ class HomeScreen extends StatelessWidget {
                     }
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing * 1.5),
-                
+
                 // PROFILE Section
                 Text(
                   "PROFILE",
@@ -338,9 +353,9 @@ class HomeScreen extends StatelessWidget {
                     letterSpacing: 0.5,
                   ),
                 ),
-                
+
                 SizedBox(height: verticalSpacing * 0.8),
-                
+
                 // Profile Items
                 ProfileItem(
                   icon: Icons.qr_code,
@@ -350,29 +365,35 @@ class HomeScreen extends StatelessWidget {
                     controller.navigateToDigitalId();
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing),
-                
+
                 ProfileItem(
                   icon: Icons.attach_money,
                   title: "Earnings",
                   subtitle: "View your payment history",
                   onTap: () {
-                    Get.toNamed(WalletScreen.id, arguments: {'flavor': controller.currentFlavor.value});
+                    Get.toNamed(
+                      WalletScreen.id,
+                      arguments: {'flavor': controller.currentFlavor.value},
+                    );
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing),
-                
+
                 ProfileItem(
                   icon: Icons.description,
                   title: "Licenses",
                   subtitle: "Manage your credentials",
                   onTap: () {
-                    Get.toNamed(EditDocumentsScreen.id, arguments: {'flavor': controller.currentFlavor.value});
+                    Get.toNamed(
+                      EditDocumentsScreen.id,
+                      arguments: {'flavor': controller.currentFlavor.value},
+                    );
                   },
                 ),
-                
+
                 SizedBox(height: verticalSpacing * 1.2),
               ],
             ),
@@ -427,7 +448,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final bodyFontSize = screenWidth * 0.035;
@@ -441,7 +462,9 @@ class HomeScreen extends StatelessWidget {
           vertical: verticalSpacing * 1.2,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(
+            AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
+          ),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
@@ -456,7 +479,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             Icon(
               Icons.search,
-              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              color: Colors.white,
               size: bodyFontSize * 1.3,
             ),
             SizedBox(width: horizontalPadding * 0.4),
@@ -466,13 +489,13 @@ class HomeScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: bodyFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                  color: Colors.white,
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              color: Colors.white,
               size: bodyFontSize * 1.1,
             ),
           ],
@@ -485,7 +508,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final sectionTitleFontSize = screenWidth * 0.045;
@@ -516,7 +539,11 @@ class HomeScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: bodyFontSize * 0.9,
                   fontWeight: FontWeight.w500,
-                  color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                  color: Color(
+                    AppFlavorConfig.getPrimaryColor(
+                      controller.currentFlavor.value,
+                    ),
+                  ),
                   decoration: TextDecoration.underline,
                 ),
               ),
@@ -532,28 +559,30 @@ class HomeScreen extends StatelessWidget {
             fontStyle: FontStyle.italic,
           ),
         ),
-        // Swiper con cards de trabajos aplicados
-          Container(
-            height: screenHeight * 0.4, // Altura reducida para cards más compactas
-            child: PageView.builder(
+        // Lista horizontal con cards de trabajos aplicados
+        Container(
+          height: screenHeight * 0.32, // Altura más reducida para cards más compactas
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
             itemCount: controller.appliedJobs.length,
             itemBuilder: (context, index) {
               final job = controller.appliedJobs[index];
-              return Center(
-                child: Container(
-                  width: screenWidth * 0.65, // Aumentar un poco más el ancho
-                  child: AppliedJobCard(
-                    job: job,
-                    onShowDetails: () {
-                      print('Show details for job: ${job.companyName}');
-                    },
-                    onSubmitTimesheet: () {
-                      print('Submit timesheet for job: ${job.companyName}');
-                    },
-                    onQuickNotify: () {
-                      print('Quick notify for job: ${job.companyName}');
-                    },
-                  ),
+              return Container(
+                width: screenWidth * 0.65, // Mantener el mismo ancho
+                margin: EdgeInsets.only(
+                  right: index < controller.appliedJobs.length - 1 ? horizontalPadding * 0.5 : 0,
+                ),
+                child: AppliedJobCard(
+                  job: job,
+                  onShowDetails: () {
+                    print('Show details for job: ${job.companyName}');
+                  },
+                  onSubmitTimesheet: () {
+                    print('Submit timesheet for job: ${job.companyName}');
+                  },
+                  onQuickNotify: () {
+                    print('Quick notify for job: ${job.companyName}');
+                  },
                 ),
               );
             },
@@ -567,7 +596,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final sectionTitleFontSize = screenWidth * 0.045;
@@ -578,77 +607,81 @@ class HomeScreen extends StatelessWidget {
       top: verticalSpacing * 6,
       left: horizontalPadding,
       right: horizontalPadding,
-      child: controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty 
-        ? _buildApplyForJobBanner()
-        : Container(
-            padding: EdgeInsets.all(horizontalPadding * 0.4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  offset: const Offset(0, 2),
-                  blurRadius: 8,
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  "No active jobs yet",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: sectionTitleFontSize * 0.85,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+      child:
+          controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty
+          ? _buildApplyForJobBanner()
+          : Container(
+              padding: EdgeInsets.all(horizontalPadding * 0.4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                    spreadRadius: 0,
                   ),
-                ),
-                SizedBox(height: verticalSpacing * 0.2),
-                Text(
-                  "Once you get hired, you'll see your timesheets to submit here",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: bodyFontSize * 0.8,
-                    color: Colors.grey[700],
-                    height: 1.1,
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "No active jobs yet",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: sectionTitleFontSize * 0.85,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
                   ),
-                ),
-                SizedBox(height: verticalSpacing * 1.0),
-                Center(
-                  child: SizedBox(
-                    width: screenWidth * 0.45,
-                    height: screenHeight * 0.05,
-                    child: ElevatedButton(
-                      onPressed: controller.handleApplyForJob,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                  SizedBox(height: verticalSpacing * 0.2),
+                  Text(
+                    "Once you get hired, you'll see your timesheets to submit here",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: bodyFontSize * 0.8,
+                      color: Colors.grey[700],
+                      height: 1.1,
+                    ),
+                  ),
+                  SizedBox(height: verticalSpacing * 1.0),
+                  Center(
+                    child: SizedBox(
+                      width: screenWidth * 0.45,
+                      height: screenHeight * 0.05,
+                      child: ElevatedButton(
+                        onPressed: controller.handleApplyForJob,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(
+                            AppFlavorConfig.getPrimaryColor(
+                              controller.currentFlavor.value,
+                            ),
+                          ),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                      ),
-                      child: Text(
-                        "Apply for a job now",
-                        style: GoogleFonts.poppins(
-                          fontSize: buttonFontSize * 0.75,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                        child: Text(
+                          "Apply for a job now",
+                          style: GoogleFonts.poppins(
+                            fontSize: buttonFontSize * 0.75,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
     );
   }
 
-  
   Widget _buildShiftsModal() {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
@@ -659,7 +692,7 @@ class HomeScreen extends StatelessWidget {
     final titleFontSize = screenWidth * 0.045;
     final subtitleFontSize = screenWidth * 0.035;
 
-        return Positioned(
+    return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
@@ -704,10 +737,20 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            // Texto instructivo
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                              child: Text(
+            // Mostrar shifts si hay alguna seleccionada
+            if (controller.hasShiftsForSelectedDate()) ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: _buildShiftsSection(),
+              ),
+              SizedBox(height: verticalSpacing),
+            ],
+
+            // Texto instructivo (solo si no hay shifts seleccionadas)
+            if (!controller.hasShiftsForSelectedDate())
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Text(
                   'Select a day to view the events.',
                   style: GoogleFonts.poppins(
                     fontSize: subtitleFontSize,
@@ -715,7 +758,7 @@ class HomeScreen extends StatelessWidget {
                     decoration: TextDecoration.none,
                   ),
                 ),
-            ),
+              ),
 
             SizedBox(height: verticalSpacing * 1.5),
 
@@ -736,7 +779,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      controller.getMonthYearString(controller.focusedDate.value),
+                      controller.getMonthYearString(
+                        controller.focusedDate.value,
+                      ),
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
                         fontSize: subtitleFontSize,
@@ -791,13 +836,7 @@ class HomeScreen extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   children: [
-                    Expanded(
-                      child: _buildCalendarGrid(),
-                    ),
-                    if (controller.hasShiftsForSelectedDate()) ...[
-                      SizedBox(height: verticalSpacing),
-                      _buildShiftsSection(),
-                    ],
+                    Expanded(child: _buildCalendarGrid()),
                   ],
                 ),
               ),
@@ -815,8 +854,16 @@ class HomeScreen extends StatelessWidget {
     final screenWidth = mediaQuery.size.width;
     final subtitleFontSize = screenWidth * 0.035;
 
-    final firstDayOfMonth = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month, 1);
-    final lastDayOfMonth = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month + 1, 0);
+    final firstDayOfMonth = DateTime(
+      controller.focusedDate.value.year,
+      controller.focusedDate.value.month,
+      1,
+    );
+    final lastDayOfMonth = DateTime(
+      controller.focusedDate.value.year,
+      controller.focusedDate.value.month + 1,
+      0,
+    );
     final firstWeekday = firstDayOfMonth.weekday;
     final daysInMonth = lastDayOfMonth.day;
 
@@ -829,12 +876,18 @@ class HomeScreen extends StatelessWidget {
 
     // Agregar días del mes
     for (int day = 1; day <= daysInMonth; day++) {
-      final date = DateTime(controller.focusedDate.value.year, controller.focusedDate.value.month, day);
-      final isSelected = date.year == controller.selectedDate.value.year &&
+      final date = DateTime(
+        controller.focusedDate.value.year,
+        controller.focusedDate.value.month,
+        day,
+      );
+      final isSelected =
+          date.year == controller.selectedDate.value.year &&
           date.month == controller.selectedDate.value.month &&
           date.day == controller.selectedDate.value.day;
-      
-      final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+      final dateKey =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
       final hasShift = controller.hasShiftsForDate(date);
 
       calendarDays.add(
@@ -849,7 +902,13 @@ class HomeScreen extends StatelessWidget {
               width: double.infinity,
               height: 40,
               decoration: BoxDecoration(
-                color: isSelected ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)) : Colors.transparent,
+                color: isSelected
+                    ? Color(
+                        AppFlavorConfig.getPrimaryColor(
+                          controller.currentFlavor.value,
+                        ),
+                      )
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Stack(
@@ -873,7 +932,11 @@ class HomeScreen extends StatelessWidget {
                         width: 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                          color: Color(
+                            AppFlavorConfig.getPrimaryColor(
+                              controller.currentFlavor.value,
+                            ),
+                          ),
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -898,7 +961,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildShiftsSection() {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
@@ -912,16 +974,16 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-                  Text(
-            'Shifts for ${controller.selectedDate.value.day}/${controller.selectedDate.value.month}/${controller.selectedDate.value.year}',
-            style: GoogleFonts.poppins(
-              fontSize: subtitleFontSize,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-              decoration: TextDecoration.none,
-            ),
+        Text(
+          'Shifts for ${controller.selectedDate.value.day}/${controller.selectedDate.value.month}/${controller.selectedDate.value.year}',
+          style: GoogleFonts.poppins(
+            fontSize: subtitleFontSize,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+            decoration: TextDecoration.none,
           ),
-        SizedBox(height: verticalSpacing * 0.5),
+        ),
+        SizedBox(height: verticalSpacing * 0.3),
         ...shifts.map((shift) => _buildShiftCard(shift)).toList(),
       ],
     );
@@ -937,11 +999,11 @@ class HomeScreen extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.only(bottom: verticalSpacing * 0.5),
-      padding: EdgeInsets.all(horizontalPadding * 0.8),
+      margin: EdgeInsets.only(bottom: verticalSpacing * 0.3),
+      padding: EdgeInsets.all(horizontalPadding * 0.5),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[300] ?? Colors.grey),
       ),
       child: Column(
@@ -956,7 +1018,7 @@ class HomeScreen extends StatelessWidget {
               decoration: TextDecoration.none,
             ),
           ),
-          SizedBox(height: verticalSpacing * 0.3),
+          SizedBox(height: verticalSpacing * 0.2),
           Text(
             shift.jobSite,
             style: GoogleFonts.poppins(
@@ -966,13 +1028,15 @@ class HomeScreen extends StatelessWidget {
               decoration: TextDecoration.none,
             ),
           ),
-          SizedBox(height: verticalSpacing * 0.3),
+          SizedBox(height: verticalSpacing * 0.2),
           Text(
             '${shift.startTime}-${shift.endTime}',
             style: GoogleFonts.poppins(
               fontSize: subtitleFontSize * 0.9,
               fontWeight: FontWeight.w500,
-              color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              color: Color(
+                AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
+              ),
               decoration: TextDecoration.none,
             ),
           ),

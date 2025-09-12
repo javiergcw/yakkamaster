@@ -167,8 +167,16 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
             left: 20,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor)),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    offset: const Offset(0, 2),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                  ),
+                ],
               ),
               child: IconButton(
                 onPressed: () {
@@ -178,7 +186,7 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
                 icon: const Icon(
                   Icons.close,
                   color: Colors.white,
-                  size: 30,
+                  size: 24,
                 ),
               ),
             ),
@@ -200,23 +208,33 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _isCapturing ? Colors.grey : Colors.white,
+                    color: _isCapturing 
+                        ? Colors.grey[400] 
+                        : Color(AppFlavorConfig.getPrimaryColor(widget.flavor)),
                     border: Border.all(
                       color: Colors.white,
                       width: 4,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 4),
+                        blurRadius: 12,
+                        spreadRadius: 0,
+                      ),
+                    ],
                   ),
                   child: _isCapturing
                       ? const Center(
                           child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
+                            color: Colors.white,
+                            strokeWidth: 3,
                           ),
                         )
                       : const Icon(
                           Icons.camera_alt,
-                          color: Colors.black,
-                          size: 40,
+                          color: Colors.white,
+                          size: 36,
                         ),
                 ),
               ),
@@ -230,17 +248,32 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor)).withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
                 child: const Text(
                   'Position your face within the frame\nOnly this area will be saved',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
                   ),
                 ),
               ),

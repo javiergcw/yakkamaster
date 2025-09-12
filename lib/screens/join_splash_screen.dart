@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../config/app_flavor.dart';
 import '../config/assets_config.dart';
@@ -17,8 +16,18 @@ class JoinSplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() => Scaffold(
-      backgroundColor: AppFlavorConfig.getJoinBackgroundColor(controller.currentFlavor.value),
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+            colors: [
+              AppFlavorConfig.getJoinBackgroundColor(controller.currentFlavor.value),
+              AppFlavorConfig.getJoinBackgroundColor(controller.currentFlavor.value).withOpacity(0.8),
+            ],
+          ),
+        ),
+        child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -31,7 +40,7 @@ class JoinSplashScreen extends StatelessWidget {
                   scale: animationValue,
                   child: Opacity(
                     opacity: animationValue,
-                    child: Obx(() => SvgPicture.asset(
+                    child: Obx(() => Image.asset(
                       AssetsConfig.getJoinLogo(controller.currentFlavor.value),
                       width: 200,
                       height: 80,
@@ -106,6 +115,7 @@ class JoinSplashScreen extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     ));

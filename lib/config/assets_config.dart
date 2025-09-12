@@ -10,6 +10,8 @@ enum AssetType {
   finishedIcon,
   inProgressIcon,
   cameraOverlay,
+  googleIcon,
+  emailIcon,
 }
 
 enum AppFlavor {
@@ -22,7 +24,7 @@ class AssetsConfig {
   static const Map<AppFlavor, Map<AssetType, String>> _assets = {
     AppFlavor.labour: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/yakka_sport_logo.svg',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
       AssetType.icon: 'assets/icons/labour_icon.png',
       AssetType.background: 'assets/backgrounds/labour_bg.png',
       AssetType.respect: 'assets/respect.png',
@@ -31,10 +33,12 @@ class AssetsConfig {
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
       AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
+      AssetType.googleIcon: 'assets/icons/social_media/google-icon.png',
+      AssetType.emailIcon: 'assets/icons/social_media/email.png',
     },
     AppFlavor.sport: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/yakka_sport_logo.svg',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
       AssetType.icon: 'assets/icons/sport_icon.png',
       AssetType.background: 'assets/backgrounds/sport_bg.png',
       AssetType.respect: 'assets/respect.png',
@@ -43,10 +47,12 @@ class AssetsConfig {
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
       AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
+      AssetType.googleIcon: 'assets/icons/social_media/google-icon.png',
+      AssetType.emailIcon: 'assets/icons/social_media/email.png',
     },
     AppFlavor.hospitality: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/yakka_sport_logo.svg',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
       AssetType.icon: 'assets/icons/hospitality_icon.png',
       AssetType.background: 'assets/backgrounds/hospitality_bg.png',
       AssetType.respect: 'assets/respect.png',
@@ -55,6 +61,8 @@ class AssetsConfig {
       AssetType.finishedIcon: 'assets/icons/finished.svg',
       AssetType.inProgressIcon: 'assets/icons/in-progress.svg',
       AssetType.cameraOverlay: 'assets/camera-overlay-conceptcoder.png',
+      AssetType.googleIcon: 'assets/icons/social_media/google-icon.png',
+      AssetType.emailIcon: 'assets/icons/social_media/email.png',
     },
   };
 
@@ -100,5 +108,13 @@ class AssetsConfig {
 
   static String getCameraOverlay(AppFlavor flavor) {
     return getAsset(flavor, AssetType.cameraOverlay);
+  }
+
+  static String getGoogleIcon(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.googleIcon);
+  }
+
+  static String getEmailIcon(AppFlavor flavor) {
+    return getAsset(flavor, AssetType.emailIcon);
   }
 }

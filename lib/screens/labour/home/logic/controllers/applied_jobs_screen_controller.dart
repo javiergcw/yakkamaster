@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
 import '../../../../job_listings/data/dto/job_dto.dart';
@@ -40,12 +41,24 @@ class AppliedJobsScreenController extends GetxController {
 
   void handleShare(JobDto job) {
     print('Share job: ${job.title}');
-    // Aquí puedes implementar la lógica de compartir
+    
+    // Generar URL específica con el formato requerido
+    final baseUrl = 'https://yakka.com/6NHtwTGCYycOchh8KroQ';
+    final shareUrl = 'https://yakka.page.link?apn=com.labours.yakka&ibi=com.labours.yakka&link=${Uri.encodeComponent(baseUrl)}';
+    
+    // Compartir usando share_plus
+    Share.share(
+      'Check out this job opportunity: ${job.title} at ${job.source}\n\n$shareUrl',
+      subject: 'Job Opportunity - ${job.title}',
+    );
+    
+    // Mostrar confirmación
     Get.snackbar(
-      'Share',
-      'Share functionality not implemented yet',
-      backgroundColor: Colors.blue,
+      'Shared',
+      'Job shared successfully',
+      backgroundColor: Colors.green,
       colorText: Colors.white,
+      duration: const Duration(seconds: 2),
     );
   }
 

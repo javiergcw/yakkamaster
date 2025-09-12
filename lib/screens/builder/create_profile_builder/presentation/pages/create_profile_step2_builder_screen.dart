@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
+import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
 import '../widgets/country_selector.dart';
 import '../../logic/controllers/create_profile_builder_controller.dart';
@@ -24,7 +24,6 @@ class CreateProfileStep2BuilderScreen extends StatelessWidget {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.06;
-    final buttonFontSize = screenWidth * 0.045;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -151,29 +150,13 @@ class CreateProfileStep2BuilderScreen extends StatelessWidget {
               const Spacer(),
 
               // Botón Continue
-              SizedBox(
-                width: double.infinity,
-                height: screenHeight * 0.065,
-                child: ElevatedButton(
-                  onPressed: controller.handleNextStep2,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                    foregroundColor: Colors.black,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'CONTINUE',
-                    style: GoogleFonts.poppins(
-                      fontSize: buttonFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-              ),
+              Obx(() => CustomButton(
+                text: 'CONTINUE',
+                onPressed: controller.handleNextStep2,
+                type: ButtonType.primary,
+                flavor: controller.currentFlavor.value,
+                showShadow: false,
+              )),
 
               SizedBox(height: verticalSpacing * 2),
             ],

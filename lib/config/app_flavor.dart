@@ -37,7 +37,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return 0xFFFFD700; // Azul
       case AppFlavor.sport:
-        return 0xFF06AB24; // Verde deportivo
+        return 0xFF0d8c3e; // Verde deportivo
       case AppFlavor.hospitality:
         return 0xFFFF6B35; // Naranja
     }
@@ -59,7 +59,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return const Color(0xFFFFD700); // Amarillo
       case AppFlavor.sport:
-        return const Color(0xFF06AB24); // Verde deportivo
+        return const Color(0xFF0d8c3e); // Verde deportivo
       case AppFlavor.hospitality:
         return const Color(0xFFFF6B35); // Naranja
     }
@@ -70,7 +70,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return "G'day, mate.";
       case AppFlavor.sport:
-        return "Ready to play?";
+        return "G'day, mate.";
       case AppFlavor.hospitality:
         return "Welcome back!";
     }
@@ -92,7 +92,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return "Continue";
       case AppFlavor.sport:
-        return "Play Now";
+        return "Continue";
       case AppFlavor.hospitality:
         return "Sign In";
     }
@@ -104,7 +104,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return const Color(0xFFFFD700); // Amarillo
       case AppFlavor.sport:
-        return const Color(0xFF06AB24); // Verde deportivo
+        return const Color(0xFF0d8c3e); // Verde deportivo
       case AppFlavor.hospitality:
         return const Color(0xFFFF6B35); // Naranja
     }
@@ -217,7 +217,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return 'WORK OR HIRE';
       case AppFlavor.sport:
-        return 'PLAY OR WATCH';
+        return ' Connecting sport People';
       case AppFlavor.hospitality:
         return 'SERVE OR ENJOY';
     }
@@ -239,7 +239,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return 'Construction &\nHospitality Jobs';
       case AppFlavor.sport:
-        return 'Sports &\nFitness Activities';
+        return 'Work or hire';
       case AppFlavor.hospitality:
         return 'Hospitality &\nService Industry';
     }

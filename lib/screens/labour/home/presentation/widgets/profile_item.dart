@@ -36,13 +36,10 @@ class ProfileItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              offset: const Offset(0, 2),
-              blurRadius: 4,
-            ),
-          ],
+          border: Border.all(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
         ),
         child: Row(
           children: [

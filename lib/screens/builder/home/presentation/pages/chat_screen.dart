@@ -59,7 +59,7 @@ class ChatScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => controller.navigateBack(),
+                    onPressed: () => controller.handleBackNavigation(),
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.black,
@@ -103,9 +103,7 @@ class ChatScreen extends StatelessWidget {
                   
                   // Iconos de acción
                   IconButton(
-                    onPressed: () {
-                      controller.makeCall();
-                    },
+                    onPressed: controller.initiateCall,
                     icon: Icon(
                       Icons.call,
                       color: Colors.black,
@@ -164,42 +162,41 @@ class ChatScreen extends StatelessWidget {
                   ),
                   
                   // Botón Quick Chat (flotante)
-                  Obx(() => controller.messages.isEmpty
-                      ? Positioned(
-                          bottom: verticalSpacing * 2,
-                          right: horizontalPadding,
-                          child: GestureDetector(
-                            key: controller.quickChatButtonKey,
-                            onTap: controller.showQuickChatOptions,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: horizontalPadding * 0.6,
-                                vertical: verticalSpacing * 0.8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                                borderRadius: BorderRadius.circular(8),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    offset: const Offset(0, 2),
-                                    blurRadius: 4,
+                  Obx(
+                    () => controller.messages.isEmpty
+                        ? Positioned(
+                            bottom: verticalSpacing * 2,
+                            right: horizontalPadding,
+                            child: GestureDetector(
+                              key: controller.quickChatButtonKey,
+                              onTap: controller.showQuickChatOptions,
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding * 0.8,
+                                  vertical: verticalSpacing * 1.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Color(
+                                    AppFlavorConfig.getPrimaryColor(
+                                      controller.currentFlavor.value,
+                                    ),
                                   ),
-                                ],
-                              ),
-                              child: Text(
-                                'Quick\nchat',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: inputFontSize * 0.7,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Quick\nchat',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: inputFontSize * 0.75,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    height: 1.1,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
-                      : const SizedBox.shrink(),
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ],
               ),
@@ -274,7 +271,7 @@ class ChatScreen extends StatelessWidget {
                     ),
                     child: IconButton(
                       onPressed: () {
-                        controller.openCamera();
+                        // TODO: Implementar cámara
                       },
                       icon: Icon(
                         Icons.camera_alt,
@@ -296,7 +293,7 @@ class ChatScreen extends StatelessWidget {
                     ),
                     child: IconButton(
                       onPressed: () {
-                        controller.translateMessage();
+                        // TODO: Implementar traducción
                       },
                       icon: Text(
                         'A文',

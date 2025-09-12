@@ -129,6 +129,7 @@ class RespectScreen extends StatelessWidget {
                 text: "I commit to being respectful",
                 onPressed: controller.handleRespectCommit,
                 isLoading: false,
+                showShadow: false,
               ),
             ),
             

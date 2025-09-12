@@ -69,12 +69,13 @@ class Sidebar extends StatelessWidget {
               width: double.infinity,
               padding: EdgeInsets.symmetric(
                 horizontal: horizontalPadding,
-                vertical: verticalSpacing * 2,
+                vertical: verticalSpacing * 1.5,
               ),
               decoration: BoxDecoration(
                 color: AppConstants.darkGreyColor,
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Profile Image
                   Container(
@@ -91,30 +92,23 @@ class Sidebar extends StatelessWidget {
                     ),
                   ),
                   
-                  SizedBox(width: horizontalPadding),
+                  SizedBox(height: verticalSpacing * 0.5),
                   
                   // User Information
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "testing",
-                          style: GoogleFonts.poppins(
-                            fontSize: titleFontSize * 0.9,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: verticalSpacing * 0.3),
-                        Text(
-                          "testing22@gmail.com",
-                          style: GoogleFonts.poppins(
-                            fontSize: bodyFontSize * 0.9,
-                            color: Colors.grey[300],
-                          ),
-                        ),
-                      ],
+                  Text(
+                    "testing",
+                    style: GoogleFonts.poppins(
+                      fontSize: titleFontSize * 0.9,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: verticalSpacing * 0.2),
+                  Text(
+                    "testing22@gmail.com",
+                    style: GoogleFonts.poppins(
+                      fontSize: bodyFontSize * 0.9,
+                      color: Colors.grey[300],
                     ),
                   ),
                 ],
@@ -124,7 +118,7 @@ class Sidebar extends StatelessWidget {
             // Menu Items Section
             Expanded(
               child: SingleChildScrollView(
-                padding: EdgeInsets.symmetric(vertical: verticalSpacing),
+                padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.2),
                 child: Column(
                   children: [
                     // Home
@@ -331,9 +325,11 @@ class Sidebar extends StatelessWidget {
             // Footer Section
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalSpacing,
+              padding: EdgeInsets.only(
+                left: horizontalPadding,
+                right: horizontalPadding,
+                top: verticalSpacing * 0.3,
+                bottom: verticalSpacing * 0.2,
               ),
               child: Text(
                 "Version 2.1",
@@ -365,7 +361,7 @@ class Sidebar extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,
-          vertical: verticalSpacing * 1.2,
+          vertical: verticalSpacing * 0.5,
         ),
         child: Row(
           children: [
@@ -395,7 +391,7 @@ class Sidebar extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: horizontalPadding,
-        vertical: verticalSpacing * 0.5,
+        vertical: verticalSpacing * 0.2,
       ),
       height: 1,
       color: Colors.grey[300],

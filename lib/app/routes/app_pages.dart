@@ -367,14 +367,14 @@ abstract class AppPages {
       page: () => CreateProfileBuilderScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
-      transition: Transition.fadeIn,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: CreateProfileStep2BuilderScreen.id,
       page: () => CreateProfileStep2BuilderScreen(),
       binding: CreateProfileBinding(),
       transitionDuration: duration,
-      transition: Transition.fadeIn,
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: LocationBuilderScreen.id,

@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
-import '../../../../config/assets_config.dart';
 import '../../../../features/widgets/custom_button.dart';
 import '../../../../features/widgets/custom_text_field.dart';
 import '../widgets/login_tabs.dart';
-import '../widgets/terms_conditions.dart';
 import '../../logic/controllers/email_login_controller.dart';
 
 class EmailLoginScreen extends StatelessWidget {
@@ -25,7 +23,6 @@ class EmailLoginScreen extends StatelessWidget {
     // Calcular valores responsive
     final horizontalPadding = screenWidth * 0.06; // 6% del ancho de pantalla
     final verticalSpacing = screenHeight * 0.02; // 2% de la altura de pantalla
-    final buttonSpacing = screenHeight * 0.015; // 1.5% de la altura de pantalla
     final titleFontSize = screenWidth * 0.055; // 5.5% del ancho para el título
     final linkFontSize = screenWidth * 0.035; // 3.5% del ancho para enlaces
     
@@ -231,6 +228,7 @@ class EmailLoginScreen extends StatelessWidget {
                         type: ButtonType.primary,
                         isLoading: controller.isLoading.value,
                         flavor: controller.currentFlavor.value,
+                        showShadow: false,
                       )),
                       
                       SizedBox(height: verticalSpacing * 2),

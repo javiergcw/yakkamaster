@@ -26,6 +26,7 @@ class ApplicantsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
             // Header
@@ -93,7 +94,7 @@ class ApplicantsScreen extends StatelessWidget {
       color: Colors.grey[800],
       padding: EdgeInsets.symmetric(
         horizontal: screenWidth * 0.05,
-        vertical: screenWidth * 0.06, // Aumentar altura del app bar
+        vertical: screenWidth * 0.12, // Aumentar altura del app bar
       ),
       child: Row(
         children: [
@@ -236,7 +237,7 @@ class ApplicantsScreen extends StatelessWidget {
           final applicant = applicants[index];
                      return Container(
              width: screenWidth * 0.75, // Aumentar ligeramente el ancho
-            margin: EdgeInsets.only(right: screenWidth * 0.04),
+            margin: EdgeInsets.only(right: screenWidth * 0.025),
             child: ApplicantCard(
               applicant: applicant,
               flavor: flavor,
@@ -273,16 +274,64 @@ class ApplicantsScreen extends StatelessWidget {
 
   void _handleDecline(BuildContext context, String applicantId) {
     final ApplicantController controller = Get.find<ApplicantController>();
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    
     Get.dialog(
       AlertDialog(
-        title: Text('Decline Applicant'),
-        content: Text('Are you sure you want to decline this applicant?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.close,
+                color: Colors.red[600],
+                size: 24,
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Decline Applicant',
+                style: GoogleFonts.poppins(
+                  fontSize: screenWidth * 0.045,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to decline this applicant? This action cannot be undone.',
+          style: GoogleFonts.poppins(
+            fontSize: screenWidth * 0.035,
+            color: Colors.grey[600],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+            ),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Get.back();
               controller.declineApplicant(applicantId);
@@ -291,9 +340,24 @@ class ApplicantsScreen extends StatelessWidget {
                 'Applicant declined',
                 snackPosition: SnackPosition.BOTTOM,
                 duration: const Duration(seconds: 2),
+                backgroundColor: Colors.red[100],
+                colorText: Colors.red[800],
               );
             },
-            child: Text('Decline', style: TextStyle(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[600],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Decline',
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -302,16 +366,65 @@ class ApplicantsScreen extends StatelessWidget {
 
   void _handleHire(BuildContext context, String applicantId) {
     final ApplicantController controller = Get.find<ApplicantController>();
+    final mediaQuery = MediaQuery.of(context);
+    final screenWidth = mediaQuery.size.width;
+    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
+    
     Get.dialog(
       AlertDialog(
-        title: Text('Hire Applicant'),
-        content: Text('Are you sure you want to hire this applicant?'),
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.check,
+                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                size: 24,
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Hire Applicant',
+                style: GoogleFonts.poppins(
+                  fontSize: screenWidth * 0.045,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to hire this applicant? They will be notified of your decision.',
+          style: GoogleFonts.poppins(
+            fontSize: screenWidth * 0.035,
+            color: Colors.grey[600],
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('Cancel'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+            ),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Get.back();
               controller.hireApplicant(applicantId);
@@ -320,9 +433,24 @@ class ApplicantsScreen extends StatelessWidget {
                 'Applicant hired successfully',
                 snackPosition: SnackPosition.BOTTOM,
                 duration: const Duration(seconds: 2),
+                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)).withOpacity(0.1),
+                colorText: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
               );
             },
-            child: Text('Hire', style: TextStyle(color: Colors.green)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Hire',
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

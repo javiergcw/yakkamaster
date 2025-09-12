@@ -27,8 +27,8 @@ class ProfileMenuItem extends StatelessWidget {
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.04;
-    final iconSize = screenWidth * 0.05;
-    final circleSize = screenWidth * 0.12;
+    final iconSize = screenWidth * 0.045;
+    final circleSize = screenWidth * 0.11;
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return GestureDetector(
@@ -36,8 +36,8 @@ class ProfileMenuItem extends StatelessWidget {
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-          vertical: verticalSpacing * 1.2,
+          horizontal: horizontalPadding * 0.8,
+          vertical: verticalSpacing * 0.8,
         ),
         decoration: BoxDecoration(
           border: Border(

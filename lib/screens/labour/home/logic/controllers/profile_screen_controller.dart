@@ -13,6 +13,8 @@ class ProfileScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
   final ImagePicker picker = ImagePicker();
   final Rx<XFile?> selectedImage = Rx<XFile?>(null);
+  final RxDouble userRating = 5.0.obs;
+  final RxInt jobsCount = 0.obs;
 
   @override
   void onInit() {

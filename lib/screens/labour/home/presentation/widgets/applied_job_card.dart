@@ -35,20 +35,16 @@ class AppliedJobCard extends StatelessWidget {
 
         return Container(
         width: double.infinity,
-        height: screenHeight * 0.32, // Altura un poco más reducida para la card
+        height: screenHeight * 0.28, // Altura más reducida para la card
         margin: EdgeInsets.symmetric(vertical: verticalSpacing * 0.1),
         padding: EdgeInsets.all(horizontalPadding * 0.8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-              spreadRadius: 0,
-            ),
-          ],
+          border: Border.all(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

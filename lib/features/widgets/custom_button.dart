@@ -10,6 +10,7 @@ class CustomButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final ButtonType type;
   final IconData? icon;
+  final String? iconAsset;
   final bool isLoading;
   final double? width;
   final double? height;
@@ -23,6 +24,7 @@ class CustomButton extends StatelessWidget {
     this.onPressed,
     this.type = ButtonType.primary,
     this.icon,
+    this.iconAsset,
     this.isLoading = false,
     this.width,
     this.height,
@@ -41,8 +43,6 @@ class CustomButton extends StatelessWidget {
 
     // Calcular valores responsive
     final buttonHeight = height ?? (screenHeight * 0.065); // 6.5% de la altura
-    final fontSize =
-        screenWidth * 0.04; // 4% del ancho para el tamaño de fuente
     final iconSize =
         screenWidth * 0.05; // 5% del ancho para el tamaño del icono
 
@@ -138,10 +138,19 @@ class CustomButton extends StatelessWidget {
         : Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (icon != null) ...[
-                Icon(icon, size: iconSize),
-                SizedBox(width: screenWidth * 0.02),
+              if (icon != null || iconAsset != null) ...[
+                if (icon != null)
+                  Icon(icon, size: iconSize)
+                else if (iconAsset != null)
+                  Image.asset(
+                    iconAsset!,
+                    width: iconSize,
+                    height: iconSize,
+                    fit: BoxFit.contain,
+                  ),
+               // Espacio reducido
               ],
+              Spacer(),
               Text(
                 text,
                 style: GoogleFonts.poppins(
@@ -150,6 +159,7 @@ class CustomButton extends StatelessWidget {
                   color: _getForegroundColor(),
                 ),
               ),
+              Spacer(),
             ],
           );
   }
@@ -172,20 +182,10 @@ class CustomButton extends StatelessWidget {
       case ButtonType.secondary:
         return Colors.black87;
       case ButtonType.outline:
-        return Color(AppFlavorConfig.getPrimaryColor(_currentFlavor));
+        return Colors.black;
     }
   }
 
-  double _getElevation() {
-    switch (type) {
-      case ButtonType.primary:
-        return 8;
-      case ButtonType.secondary:
-        return 4;
-      case ButtonType.outline:
-        return 0;
-    }
-  }
 
   BorderSide _getBorderSide() {
     if (customBorder != null) {
@@ -199,7 +199,7 @@ class CustomButton extends StatelessWidget {
         return BorderSide.none;
       case ButtonType.outline:
         return BorderSide(
-          color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+          color: Colors.black,
           width: 1.5,
         );
     }

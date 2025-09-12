@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/data.dart';
 
@@ -64,10 +65,31 @@ class MyJobsController extends GetxController {
 
   Future<void> shareJob(String jobId) async {
     try {
-      await _repository.shareJob(jobId);
+      // Buscar el trabajo en la lista
+      final job = _jobs.firstWhere((job) => job.id == jobId);
+      
+      // Crear el contenido para compartir
+      final shareText = '''
+🏗️ Job Opportunity: ${job.title}
+
+💰 Rate: \$${job.rate.toStringAsFixed(2)}/hr
+📍 Location: ${job.location}
+📅 Dates: ${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}
+🔧 Type: ${job.jobType}
+📱 Source: ${job.source}
+
+Check out this job opportunity on Yakka Sports!
+      ''';
+      
+      // Compartir usando share_plus
+      await Share.share(shareText);
     } catch (e) {
       _errorMessage.value = 'Error sharing job: $e';
     }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 
   void clearError() {

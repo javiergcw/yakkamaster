@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190.43 74.9">
+  <defs>
+    <style>
+      .cls-1 {
+        font-size: 24px;
+      }
+
+      .cls-1, .cls-2 {
+        font-family: Inter-Bold, Inter;
+        font-variation-settings: 'opsz' 14, 'wght' 700;
+        font-weight: 700;
+      }
+
+      .cls-3 {
+        font-family: Inter-Medium, Inter;
+        font-variation-settings: 'opsz' 14, 'wght' 500;
+        font-weight: 500;
+      }
+
+      .cls-4 {
+        font-size: 12px;
+      }
+
+      .cls-5 {
+        fill: none;
+        stroke: #0d8c3d;
+        stroke-miterlimit: 10;
+        stroke-width: 2px;
+      }
+
+      .cls-6 {
+        fill: #fff;
+      }
+
+      .cls-7 {
+        fill: #0d8c3d;
+      }
+
+      .cls-8 {
+        letter-spacing: -.08em;
+      }
+    </style>
+  </defs>
+  <circle class="cls-6" cx="42.4" cy="37.13" r="25.9"/>
+  <circle class="cls-6" cx="42.4" cy="37.13" r="29.13"/>
+  <circle class="cls-5" cx="42.4" cy="37.13" r="29.66"/>
+  <circle class="cls-7" cx="42.4" cy="37.13" r="25.9"/>
+  <g>
+    <path class="cls-6" d="M25.6,22.36h6.28c.16,0,.32.08.41.22l8.34,12.06c.12.17.12.4,0,.57l-3.13,4.55c-.2.29-.62.29-.82,0l-11.5-16.61c-.23-.33,0-.78.41-.78Z"/>
+    <path class="cls-6" d="M52.8,22.36h6.43c.4,0,.64.45.41.78l-14.12,20.79c-.06.08-.09.18-.09.28v12.34c0,.28-.22.5-.5.5h-5.7c-.28,0-.5-.22-.5-.5v-13.95c0-.1.03-.2.09-.28l13.56-19.75c.09-.14.25-.22.41-.22Z"/>
+  </g>
+  <text class="cls-6" transform="translate(83.68 38.3)"><tspan class="cls-1"><tspan class="cls-8" x="0" y="0">Y</tspan><tspan x="15.66" y="0">AKKA </tspan></tspan><tspan class="cls-4"><tspan class="cls-3" x="0" y="14.4"> </tspan><tspan class="cls-2" x="3.2" y="14.4">SPORT</tspan></tspan></text>
+</svg>

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
 import '../../logic/controllers/create_profile_controller.dart';
@@ -85,7 +84,7 @@ class ProfilePhotoScreen extends StatelessWidget {
                     // Círculo para foto de perfil
                     Center(
                       child: Obx(() => GestureDetector(
-                                                    onTap: () => controller.showPhotoOptions(),
+                        onTap: () => controller.showPhotoOptions(),
                         child: Container(
                           width: screenWidth * 0.4,
                           height: screenWidth * 0.4,
@@ -146,7 +145,7 @@ class ProfilePhotoScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => controller.pickImage(ImageSource.camera),
+                                  onTap: () => controller.showPhotoOptions(),
                                   child: Container(
                                     padding: EdgeInsets.symmetric(vertical: 12),
                                     decoration: BoxDecoration(
@@ -180,7 +179,7 @@ class ProfilePhotoScreen extends StatelessWidget {
                               
                               Expanded(
                                 child: GestureDetector(
-                                  onTap: () => controller.pickImage(ImageSource.gallery),
+                                  onTap: () => controller.showPhotoOptions(),
                                   child: Container(
                                     padding: EdgeInsets.symmetric(vertical: 12),
                                     decoration: BoxDecoration(

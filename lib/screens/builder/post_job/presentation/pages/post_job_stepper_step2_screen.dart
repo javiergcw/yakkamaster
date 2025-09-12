@@ -172,56 +172,70 @@ class PostJobStepperStep2Screen extends StatelessWidget {
     final buttonHeight = screenHeight * 0.08;
     final buttonFontSize = screenWidth * 0.04;
 
-    final options = ['1', '2', '3', '4', '5', 'More than 5'];
+    return Obx(() {
+      final options = ['1', '2', '3', '4', '5', 'More than 5'];
+      
+      // Si hay un número mayor a 5 seleccionado, reemplazar "More than 5" con el número
+      final displayOptions = List<String>.from(options);
+      if (controller.postJobData.workersNeeded != null && controller.postJobData.workersNeeded! > 5) {
+        displayOptions[5] = controller.postJobData.workersNeeded.toString();
+      }
 
-    return Column(
-      children: [
-        for (int i = 0; i < options.length; i += 2)
-          Padding(
-            padding: EdgeInsets.only(bottom: verticalSpacing),
-            child: Row(
-              children: [
-                // First button in row
-                Expanded(
-                  child: _buildOptionButton(
-                    context,
-                    options[i],
-                    buttonHeight,
-                    buttonFontSize,
-                  ),
-                ),
-                
-                SizedBox(width: horizontalPadding * 0.5),
-                
-                // Second button in row (if exists)
-                if (i + 1 < options.length)
+      return Column(
+        children: [
+          for (int i = 0; i < displayOptions.length; i += 2)
+            Padding(
+              padding: EdgeInsets.only(bottom: verticalSpacing),
+              child: Row(
+                children: [
+                  // First button in row
                   Expanded(
                     child: _buildOptionButton(
                       context,
-                      options[i + 1],
+                      displayOptions[i],
                       buttonHeight,
                       buttonFontSize,
                     ),
-                  )
-                else
-                  Expanded(child: SizedBox()),
-              ],
+                  ),
+                  
+                  SizedBox(width: horizontalPadding * 0.5),
+                  
+                  // Second button in row (if exists)
+                  if (i + 1 < displayOptions.length)
+                    Expanded(
+                      child: _buildOptionButton(
+                        context,
+                        displayOptions[i + 1],
+                        buttonHeight,
+                        buttonFontSize,
+                      ),
+                    )
+                  else
+                    Expanded(child: SizedBox()),
+                ],
+              ),
             ),
-          ),
-      ],
-    );
+        ],
+      );
+    });
   }
 
   Widget _buildOptionButton(BuildContext context, String option, double height, double fontSize) {
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
     return Obx(() {
+      // Determinar si es la opción "More than 5" original o un número mayor a 5
+      final isMoreThan5Option = option == 'More than 5' || 
+          (controller.postJobData.workersNeeded != null && 
+           controller.postJobData.workersNeeded! > 5 && 
+           option == controller.postJobData.workersNeeded.toString());
+      
       final isSelected = controller.postJobData.workersNeeded != null &&
-          ((option == 'More than 5' && controller.postJobData.workersNeeded! > 5) ||
-           (option != 'More than 5' && controller.postJobData.workersNeeded == int.parse(option)));
+          ((isMoreThan5Option && controller.postJobData.workersNeeded! > 5) ||
+           (!isMoreThan5Option && controller.postJobData.workersNeeded == int.parse(option)));
 
              return GestureDetector(
          onTap: () {
-           if (option == 'More than 5') {
+           if (isMoreThan5Option) {
              _showWorkersCountModal(context);
            } else {
              controller.updateWorkersNeeded(int.parse(option));
@@ -236,7 +250,7 @@ class PostJobStepperStep2Screen extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected 
-                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                  ? Colors.black
                   : Colors.grey[300]!,
               width: 1,
             ),
