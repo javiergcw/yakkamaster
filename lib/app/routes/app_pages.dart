@@ -115,6 +115,8 @@ import '../../screens/labour/home/presentation/pages/pdf_viewer_screen.dart';
 // Importar pantallas de job listings
 import '../../screens/job_listings/presentation/pages/job_listings_screen.dart';
 import '../../screens/job_listings/presentation/pages/job_details_screen.dart';
+import '../../screens/job_listings/presentation/pages/job_search_screen.dart';
+import '../../screens/job_listings/presentation/pages/job_search_results_screen.dart';
 import '../../screens/job_listings/data/dto/job_details_dto.dart';
 
 // Importar bindings
@@ -705,6 +707,24 @@ abstract class AppPages {
     GetPage(
       name: JobListingsScreen.id,
       page: () => JobListingsScreen(),
+      binding: JobListingsBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: JobSearchScreen.id,
+      page: () => JobSearchScreen(flavor: Get.arguments?['flavor']),
+      binding: JobListingsBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: JobSearchResultsScreen.id,
+      page: () => JobSearchResultsScreen(
+        flavor: Get.arguments?['flavor'],
+        whatQuery: Get.arguments?['whatQuery'],
+        whereQuery: Get.arguments?['whereQuery'],
+      ),
       binding: JobListingsBinding(),
       transitionDuration: duration,
       transition: Transition.fadeIn,

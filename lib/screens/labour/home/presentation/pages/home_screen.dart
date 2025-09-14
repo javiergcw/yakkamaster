@@ -3,24 +3,18 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../../../config/assets_config.dart';
 import '../../../../../config/constants.dart';
-import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/activity_item.dart';
-import 'invoice_screen.dart';
 import '../widgets/profile_item.dart';
 import '../widgets/sidebar.dart';
-import 'digital_id_screen.dart';
-import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
 import 'profile_screen.dart';
 import 'messages_screen.dart';
-import '../../data/applied_job_dto.dart';
 import '../widgets/applied_job_card.dart';
-import 'applied_jobs_screen.dart';
-import 'notifications_screen.dart';
 import '../../logic/controllers/home_screen_controller.dart';
 import 'edit_documents_screen.dart';
 import 'wallet_screen.dart';
+import '../../../../job_listings/presentation/widgets/search_button_bar.dart';
+import '../../../../job_listings/presentation/pages/job_search_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   static const String id = '/labour/home';
@@ -40,15 +34,9 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-
-    // Calcular valores responsive
+    final bodyFontSize = screenWidth * 0.035;
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
-    final titleFontSize = screenWidth * 0.055;
-    final sectionTitleFontSize = screenWidth * 0.045;
-    final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
-    final profileImageSize = screenWidth * 0.12;
 
     return Obx(
       () => Stack(
@@ -63,10 +51,6 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   // Main Content basado en el tab seleccionado
                   _buildCurrentView(),
-
-                  // Banner flotante para Home tab
-                  if (controller.selectedIndex.value == 0)
-                    _buildFloatingBanner(),
                 ],
               ),
             ),
@@ -166,6 +150,46 @@ class HomeScreen extends StatelessWidget {
 
           // Modal de Shifts (por encima de todo)
           if (controller.isShiftsModalOpen.value) _buildShiftsModal(),
+
+          // Floating Action Buttons (over AppBar)
+          if (controller.selectedIndex.value == 0)
+            Positioned(
+              top: verticalSpacing * 9.5, // Position below search bar
+              left: horizontalPadding,
+              right: horizontalPadding,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Workplace Check-in Button
+                  _buildActionButton(
+                    icon: Icons.location_on,
+                    title: "Workplace\nCheck-in",
+                    onTap: () {
+                      // Handle workplace check-in
+                      print('Workplace Check-in tapped');
+                    },
+                  ),
+                  
+                  // Create Invoice Button
+                  _buildActionButton(
+                    icon: Icons.receipt,
+                    title: "Create\ninvoice",
+                    onTap: () {
+                      controller.navigateToInvoice();
+                    },
+                  ),
+                  
+                  // Show ID/QR Button
+                  _buildActionButton(
+                    icon: Icons.qr_code,
+                    title: "Show your\nID / QR",
+                    onTap: () {
+                      controller.navigateToDigitalId();
+                    },
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -197,7 +221,6 @@ class HomeScreen extends StatelessWidget {
     final titleFontSize = screenWidth * 0.055;
     final sectionTitleFontSize = screenWidth * 0.045;
     final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
     final profileImageSize = screenWidth * 0.12;
 
     return Column(
@@ -263,6 +286,25 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              
+              SizedBox(height: verticalSpacing * 1.5),
+              
+              // Search Bar
+              SearchButtonBar(
+                placeholder: "Apply and Find jobs",
+                onTap: () {
+                  print('SearchButtonBar tapped - navigating to: ${JobSearchScreen.id}');
+                  Get.toNamed(
+                    JobSearchScreen.id,
+                    arguments: {'flavor': controller.currentFlavor.value},
+                  );
+                },
+                horizontalPadding: horizontalPadding,
+                verticalSpacing: verticalSpacing,
+                bodyFontSize: bodyFontSize,
+                iconSize: screenWidth * 0.05,
+                flavor: controller.currentFlavor.value,
+              ),
             ],
           ),
         ),
@@ -273,7 +315,7 @@ class HomeScreen extends StatelessWidget {
             padding: EdgeInsets.only(
               left: horizontalPadding,
               right: horizontalPadding,
-              top: verticalSpacing * 3,
+              top: verticalSpacing * 2,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,6 +454,67 @@ class HomeScreen extends StatelessWidget {
     return MessagesScreen(flavor: controller.currentFlavor.value);
   }
 
+  Widget _buildActionButton({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    final mediaQuery = MediaQuery.of(Get.context!);
+    final screenWidth = mediaQuery.size.width;
+    final screenHeight = mediaQuery.size.height;
+    
+    final verticalSpacing = screenHeight * 0.025;
+    final bodyFontSize = screenWidth * 0.035;
+    final buttonHeight = screenHeight * 0.1; // Aumentado de 0.09 a 0.1
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: buttonHeight,
+        width: screenWidth * 0.25, // Ancho fijo más pequeño
+        decoration: BoxDecoration(
+          color: Color(
+            AppFlavorConfig.getPrimaryColor(
+              controller.currentFlavor.value,
+            ),
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, 2),
+              blurRadius: 4,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: screenWidth * 0.06,
+              color: Colors.black87,
+            ),
+            SizedBox(height: verticalSpacing * 0.3),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                fontSize: bodyFontSize * 0.8,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                height: 1.1,
+                decoration: TextDecoration.none, // Quitar underline
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   void _showUrlDialog(String url) {
     showDialog(
       context: Get.context!,
@@ -444,65 +547,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildApplyForJobBanner() {
-    final mediaQuery = MediaQuery.of(Get.context!);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final bodyFontSize = screenWidth * 0.035;
-
-    return GestureDetector(
-      onTap: controller.handleApplyForJob,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding * 0.6,
-          vertical: verticalSpacing * 1.2,
-        ),
-        decoration: BoxDecoration(
-          color: Color(
-            AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
-          ),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              offset: const Offset(0, 2),
-              blurRadius: 8,
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.search,
-              color: Colors.white,
-              size: bodyFontSize * 1.3,
-            ),
-            SizedBox(width: horizontalPadding * 0.4),
-            Expanded(
-              child: Text(
-                'Apply for a job',
-                style: GoogleFonts.poppins(
-                  fontSize: bodyFontSize,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white,
-              size: bodyFontSize * 1.1,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildActiveJobsSection() {
     final mediaQuery = MediaQuery.of(Get.context!);
@@ -510,7 +554,6 @@ class HomeScreen extends StatelessWidget {
     final screenHeight = mediaQuery.size.height;
 
     final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
     final sectionTitleFontSize = screenWidth * 0.045;
     final bodyFontSize = screenWidth * 0.035;
 
@@ -592,95 +635,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFloatingBanner() {
-    final mediaQuery = MediaQuery.of(Get.context!);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final sectionTitleFontSize = screenWidth * 0.045;
-    final bodyFontSize = screenWidth * 0.035;
-    final buttonFontSize = screenWidth * 0.04;
-
-    return Positioned(
-      top: verticalSpacing * 6,
-      left: horizontalPadding,
-      right: horizontalPadding,
-      child:
-          controller.hasAppliedJobs.value && controller.appliedJobs.isNotEmpty
-          ? _buildApplyForJobBanner()
-          : Container(
-              padding: EdgeInsets.all(horizontalPadding * 0.4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    offset: const Offset(0, 2),
-                    blurRadius: 8,
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "No active jobs yet",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: sectionTitleFontSize * 0.85,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: verticalSpacing * 0.2),
-                  Text(
-                    "Once you get hired, you'll see your timesheets to submit here",
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: bodyFontSize * 0.8,
-                      color: Colors.grey[700],
-                      height: 1.1,
-                    ),
-                  ),
-                  SizedBox(height: verticalSpacing * 1.0),
-                  Center(
-                    child: SizedBox(
-                      width: screenWidth * 0.45,
-                      height: screenHeight * 0.05,
-                      child: ElevatedButton(
-                        onPressed: controller.handleApplyForJob,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(
-                            AppFlavorConfig.getPrimaryColor(
-                              controller.currentFlavor.value,
-                            ),
-                          ),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          "Apply for a job now",
-                          style: GoogleFonts.poppins(
-                            fontSize: buttonFontSize * 0.75,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
 
   Widget _buildShiftsModal() {
     final mediaQuery = MediaQuery.of(Get.context!);
@@ -886,8 +840,6 @@ class HomeScreen extends StatelessWidget {
           date.month == controller.selectedDate.value.month &&
           date.day == controller.selectedDate.value.day;
 
-      final dateKey =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
       final hasShift = controller.hasShiftsForDate(date);
 
       calendarDays.add(
@@ -965,7 +917,6 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
     final subtitleFontSize = screenWidth * 0.035;
 

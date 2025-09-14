@@ -32,60 +32,62 @@ class JobSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: verticalSpacing),
-      child: Row(
-        children: [
-          // Search input field
-          Expanded(
-            child: Container(
-                             padding: EdgeInsets.symmetric(
-                 horizontal: horizontalPadding,
-                 vertical: verticalSpacing * 0.3, // Más reducido la altura del input
-               ),
+      margin: EdgeInsets.symmetric(vertical: verticalSpacing * 0.5),
+      child: Container(
+        height: verticalSpacing * 1.8,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              offset: const Offset(0, 1),
+              blurRadius: 3,
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: TextEditingController(text: searchQuery),
+          onChanged: onSearchChanged,
+          onSubmitted: (value) => onSearch(),
+          style: GoogleFonts.poppins(
+            fontSize: bodyFontSize,
+            color: Colors.black87,
+          ),
+          decoration: InputDecoration(
+            hintText: placeholder,
+            hintStyle: GoogleFonts.poppins(
+              fontSize: bodyFontSize,
+              color: Colors.grey[500],
+            ),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding * 0.5,
+              vertical: verticalSpacing * 0.2,
+            ),
+            suffixIcon: Container(
+              margin: EdgeInsets.all(verticalSpacing * 0.1),
               decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12),
+                color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+                borderRadius: BorderRadius.circular(6),
               ),
-              child: TextField(
-                controller: TextEditingController(text: searchQuery),
-                onChanged: onSearchChanged,
-                style: GoogleFonts.poppins(
-                  fontSize: bodyFontSize,
+              child: IconButton(
+                onPressed: onSearch,
+                icon: Icon(
+                  Icons.search,
+                  size: iconSize,
                   color: Colors.black87,
                 ),
-                decoration: InputDecoration(
-                  hintText: placeholder,
-                  hintStyle: GoogleFonts.poppins(
-                    fontSize: bodyFontSize,
-                    color: Colors.grey[500],
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(
+                  minWidth: verticalSpacing * 1.2,
+                  minHeight: verticalSpacing * 1.2,
                 ),
               ),
             ),
           ),
-          
-          SizedBox(width: horizontalPadding * 0.5),
-          
-          // Search button
-          GestureDetector(
-            onTap: onSearch,
-            child: Container(
-              width: iconSize * 2.5,
-              height: iconSize * 2.5,
-                             decoration: BoxDecoration(
-                 color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
-                 borderRadius: BorderRadius.circular(8),
-               ),
-              child: Icon(
-                Icons.search,
-                size: iconSize,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
