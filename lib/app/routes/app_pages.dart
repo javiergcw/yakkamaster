@@ -102,6 +102,8 @@ import '../../screens/labour/home/presentation/pages/notifications_screen.dart'
 import '../../screens/labour/home/presentation/pages/applied_jobs_screen.dart';
 import '../../screens/labour/home/presentation/pages/wallet_screen.dart';
 import '../../screens/labour/home/presentation/pages/invoice_screen.dart';
+import '../../screens/labour/home/presentation/pages/create_invoice_screen.dart';
+import '../../screens/labour/home/presentation/pages/invoice_preview_screen.dart';
 import '../../screens/labour/home/presentation/pages/chat_screen.dart'
     as labour_chat;
 import '../../screens/labour/home/presentation/pages/digital_id_screen.dart';
@@ -297,6 +299,20 @@ abstract class AppPages {
     GetPage(
       name: InvoiceScreen.id,
       page: () => InvoiceScreen(),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: CreateInvoiceScreen.id,
+      page: () => CreateInvoiceScreen(flavor: Get.arguments?['flavor']),
+      binding: LabourBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: InvoicePreviewScreen.id,
+      page: () => InvoicePreviewScreen(flavor: Get.arguments?['flavor']),
       binding: LabourBinding(),
       transitionDuration: duration,
       transition: Transition.fadeIn,

@@ -3,7 +3,7 @@ import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
 import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
 import '../../../../../screens/labour/home/presentation/pages/notifications_screen.dart';
-import '../../../../../screens/labour/home/presentation/pages/invoice_screen.dart';
+import '../../../../../screens/labour/home/presentation/pages/create_invoice_screen.dart';
 import '../../../../../screens/labour/home/presentation/pages/applied_jobs_screen.dart';
 import '../../../../../screens/labour/home/presentation/pages/digital_id_screen.dart';
 import '../../../../../screens/labour/home/presentation/pages/messages_screen.dart';
@@ -139,7 +139,7 @@ class HomeScreenController extends GetxController {
   }
 
   void navigateToInvoice() {
-    Get.toNamed(InvoiceScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(CreateInvoiceScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
   void navigateToAppliedJobs() {
