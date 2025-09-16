@@ -151,43 +151,55 @@ class HomeScreen extends StatelessWidget {
           // Modal de Shifts (por encima de todo)
           if (controller.isShiftsModalOpen.value) _buildShiftsModal(),
 
-          // Floating Action Buttons (over AppBar)
-          if (controller.selectedIndex.value == 0)
+          // Floating Action Buttons (over AppBar) - con animación suave
+          if (controller.selectedIndex.value == 0 && !controller.isShiftsModalOpen.value)
             Positioned(
               top: verticalSpacing * 9.5, // Position below search bar
               left: horizontalPadding,
               right: horizontalPadding,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Workplace Check-in Button
-                  _buildActionButton(
-                    icon: Icons.location_on,
-                    title: "Workplace\nCheck-in",
-                    onTap: () {
-                      // Handle workplace check-in
-                      print('Workplace Check-in tapped');
-                    },
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                opacity: controller.showFloatingButtons.value ? 1.0 : 0.0,
+                child: AnimatedSlide(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  offset: controller.showFloatingButtons.value 
+                      ? Offset.zero 
+                      : const Offset(0, -0.5),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // Workplace Check-in Button
+                      _buildActionButton(
+                        icon: Icons.location_on,
+                        title: "Workplace\nCheck-in",
+                        onTap: () {
+                          // Handle workplace check-in
+                          print('Workplace Check-in tapped');
+                        },
+                      ),
+
+                      // Create Invoice Button
+                      _buildActionButton(
+                        icon: Icons.receipt,
+                        title: "Create\ninvoice",
+                        onTap: () {
+                          controller.navigateToInvoice();
+                        },
+                      ),
+
+                      // Show ID/QR Button
+                      _buildActionButton(
+                        icon: Icons.qr_code,
+                        title: "Show your\nID / QR",
+                        onTap: () {
+                          controller.navigateToDigitalId();
+                        },
+                      ),
+                    ],
                   ),
-                  
-                  // Create Invoice Button
-                  _buildActionButton(
-                    icon: Icons.receipt,
-                    title: "Create\ninvoice",
-                    onTap: () {
-                      controller.navigateToInvoice();
-                    },
-                  ),
-                  
-                  // Show ID/QR Button
-                  _buildActionButton(
-                    icon: Icons.qr_code,
-                    title: "Show your\nID / QR",
-                    onTap: () {
-                      controller.navigateToDigitalId();
-                    },
-                  ),
-                ],
+                ),
               ),
             ),
         ],
@@ -286,14 +298,16 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               SizedBox(height: verticalSpacing * 1.5),
-              
+
               // Search Bar
               SearchButtonBar(
                 placeholder: "Apply and Find jobs",
                 onTap: () {
-                  print('SearchButtonBar tapped - navigating to: ${JobSearchScreen.id}');
+                  print(
+                    'SearchButtonBar tapped - navigating to: ${JobSearchScreen.id}',
+                  );
                   Get.toNamed(
                     JobSearchScreen.id,
                     arguments: {'flavor': controller.currentFlavor.value},
@@ -311,133 +325,145 @@ class HomeScreen extends StatelessWidget {
 
         // Main Content (Scrollable)
         Expanded(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.only(
-              left: horizontalPadding,
-              right: horizontalPadding,
-              top: verticalSpacing * 2,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ACTIVE JOBS Section (solo si hay trabajos aplicados)
-                if (controller.hasAppliedJobs.value &&
-                    controller.appliedJobs.isNotEmpty)
-                  _buildActiveJobsSection(),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification scrollInfo) {
+              // Controlar visibilidad de los botones flotantes basado en la posición del scroll
+              if (scrollInfo is ScrollUpdateNotification) {
+                controller.updateFloatingButtonsVisibility(
+                  scrollInfo.metrics.pixels,
+                );
+              }
+              return false;
+            },
+            child: SingleChildScrollView(
+              controller: controller.scrollController,
+              padding: EdgeInsets.only(
+                left: horizontalPadding,
+                right: horizontalPadding,
+                top: verticalSpacing * 2,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ACTIVE JOBS Section (solo si hay trabajos aplicados)
+                  if (controller.hasAppliedJobs.value &&
+                      controller.appliedJobs.isNotEmpty)
+                    _buildActiveJobsSection(),
 
-                // ACTIVITY Section
-                Text(
-                  "ACTIVITY",
-                  style: GoogleFonts.poppins(
-                    fontSize: sectionTitleFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    letterSpacing: 0.5,
+                  // ACTIVITY Section
+                  Text(
+                    "ACTIVITY",
+                    style: GoogleFonts.poppins(
+                      fontSize: sectionTitleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                ),
 
-                SizedBox(height: verticalSpacing * 0.8),
+                  SizedBox(height: verticalSpacing * 0.8),
 
-                // Activity Items
-                ActivityItem(
-                  icon: Icons.receipt,
-                  title: "Invoices",
-                  onTap: () {
-                    controller.navigateToInvoice();
-                  },
-                ),
+                  // Activity Items
+                  ActivityItem(
+                    icon: Icons.receipt,
+                    title: "Invoices",
+                    onTap: () {
+                      controller.navigateToInvoice();
+                    },
+                  ),
 
-                SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing),
 
-                ActivityItem(
-                  icon: Icons.work,
-                  title: "Applied jobs",
-                  onTap: () {
-                    controller.navigateToAppliedJobs();
-                  },
-                ),
+                  ActivityItem(
+                    icon: Icons.work,
+                    title: "Applied jobs",
+                    onTap: () {
+                      controller.navigateToAppliedJobs();
+                    },
+                  ),
 
-                SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing),
 
-                ActivityItem(
-                  icon: Icons.warning,
-                  title: "Report harassment",
-                  subtitle: "You can remain anonymous",
-                  onTap: () async {
-                    try {
-                      final Uri url = Uri.parse(
-                        AppConstants.reportHarassmentUrl,
-                      );
-                      final bool launched = await launchUrl(
-                        url,
-                        mode: LaunchMode.platformDefault,
-                      );
+                  ActivityItem(
+                    icon: Icons.warning,
+                    title: "Report harassment",
+                    subtitle: "You can remain anonymous",
+                    onTap: () async {
+                      try {
+                        final Uri url = Uri.parse(
+                          AppConstants.reportHarassmentUrl,
+                        );
+                        final bool launched = await launchUrl(
+                          url,
+                          mode: LaunchMode.platformDefault,
+                        );
 
-                      if (!launched) {
+                        if (!launched) {
+                          _showUrlDialog(AppConstants.reportHarassmentUrl);
+                        }
+                      } catch (e) {
+                        print('Error launching URL: $e');
                         _showUrlDialog(AppConstants.reportHarassmentUrl);
                       }
-                    } catch (e) {
-                      print('Error launching URL: $e');
-                      _showUrlDialog(AppConstants.reportHarassmentUrl);
-                    }
-                  },
-                ),
-
-                SizedBox(height: verticalSpacing * 1.5),
-
-                // PROFILE Section
-                Text(
-                  "PROFILE",
-                  style: GoogleFonts.poppins(
-                    fontSize: sectionTitleFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    letterSpacing: 0.5,
+                    },
                   ),
-                ),
 
-                SizedBox(height: verticalSpacing * 0.8),
+                  SizedBox(height: verticalSpacing * 1.5),
 
-                // Profile Items
-                ProfileItem(
-                  icon: Icons.qr_code,
-                  title: "Show your QR",
-                  subtitle: "Share your profile to get hired",
-                  onTap: () {
-                    controller.navigateToDigitalId();
-                  },
-                ),
+                  // PROFILE Section
+                  Text(
+                    "PROFILE",
+                    style: GoogleFonts.poppins(
+                      fontSize: sectionTitleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
 
-                SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing * 0.8),
 
-                ProfileItem(
-                  icon: Icons.attach_money,
-                  title: "Earnings",
-                  subtitle: "View your payment history",
-                  onTap: () {
-                    Get.toNamed(
-                      WalletScreen.id,
-                      arguments: {'flavor': controller.currentFlavor.value},
-                    );
-                  },
-                ),
+                  // Profile Items
+                  ProfileItem(
+                    icon: Icons.qr_code,
+                    title: "Show your QR",
+                    subtitle: "Share your profile to get hired",
+                    onTap: () {
+                      controller.navigateToDigitalId();
+                    },
+                  ),
 
-                SizedBox(height: verticalSpacing),
+                  SizedBox(height: verticalSpacing),
 
-                ProfileItem(
-                  icon: Icons.description,
-                  title: "Licenses",
-                  subtitle: "Manage your credentials",
-                  onTap: () {
-                    Get.toNamed(
-                      EditDocumentsScreen.id,
-                      arguments: {'flavor': controller.currentFlavor.value},
-                    );
-                  },
-                ),
+                  ProfileItem(
+                    icon: Icons.attach_money,
+                    title: "Earnings",
+                    subtitle: "View your payment history",
+                    onTap: () {
+                      Get.toNamed(
+                        WalletScreen.id,
+                        arguments: {'flavor': controller.currentFlavor.value},
+                      );
+                    },
+                  ),
 
-                SizedBox(height: verticalSpacing * 1.2),
-              ],
+                  SizedBox(height: verticalSpacing),
+
+                  ProfileItem(
+                    icon: Icons.description,
+                    title: "Licenses",
+                    subtitle: "Manage your credentials",
+                    onTap: () {
+                      Get.toNamed(
+                        EditDocumentsScreen.id,
+                        arguments: {'flavor': controller.currentFlavor.value},
+                      );
+                    },
+                  ),
+
+                  SizedBox(height: verticalSpacing * 1.2),
+                ],
+              ),
             ),
           ),
         ),
@@ -462,7 +488,7 @@ class HomeScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     final verticalSpacing = screenHeight * 0.025;
     final bodyFontSize = screenWidth * 0.035;
     final buttonHeight = screenHeight * 0.1; // Aumentado de 0.09 a 0.1
@@ -474,9 +500,7 @@ class HomeScreen extends StatelessWidget {
         width: screenWidth * 0.25, // Ancho fijo más pequeño
         decoration: BoxDecoration(
           color: Color(
-            AppFlavorConfig.getPrimaryColor(
-              controller.currentFlavor.value,
-            ),
+            AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
@@ -491,11 +515,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: screenWidth * 0.06,
-              color: Colors.black87,
-            ),
+            Icon(icon, size: screenWidth * 0.06, color: Colors.black87),
             SizedBox(height: verticalSpacing * 0.3),
             Text(
               title,
@@ -513,7 +533,6 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-
 
   void _showUrlDialog(String url) {
     showDialog(
@@ -546,7 +565,6 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-
 
   Widget _buildActiveJobsSection() {
     final mediaQuery = MediaQuery.of(Get.context!);
@@ -604,7 +622,9 @@ class HomeScreen extends StatelessWidget {
         ),
         // Lista horizontal con cards de trabajos aplicados
         Container(
-          height: screenHeight * 0.32, // Altura más reducida para cards más compactas
+          height:
+              screenHeight *
+              0.32, // Altura más reducida para cards más compactas
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: controller.appliedJobs.length,
@@ -613,7 +633,9 @@ class HomeScreen extends StatelessWidget {
               return Container(
                 width: screenWidth * 0.65, // Mantener el mismo ancho
                 margin: EdgeInsets.only(
-                  right: index < controller.appliedJobs.length - 1 ? horizontalPadding * 0.5 : 0,
+                  right: index < controller.appliedJobs.length - 1
+                      ? horizontalPadding * 0.5
+                      : 0,
                 ),
                 child: AppliedJobCard(
                   job: job,
@@ -634,7 +656,6 @@ class HomeScreen extends StatelessWidget {
       ],
     );
   }
-
 
   Widget _buildShiftsModal() {
     final mediaQuery = MediaQuery.of(Get.context!);
@@ -789,9 +810,7 @@ class HomeScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
-                  children: [
-                    Expanded(child: _buildCalendarGrid()),
-                  ],
+                  children: [Expanded(child: _buildCalendarGrid())],
                 ),
               ),
             ),

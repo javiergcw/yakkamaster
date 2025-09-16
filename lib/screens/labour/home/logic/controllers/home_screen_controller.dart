@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
@@ -33,6 +34,10 @@ class HomeScreenController extends GetxController {
   final Rx<DateTime> selectedDate = DateTime.now().obs;
   final Rx<DateTime> focusedDate = DateTime.now().obs;
   
+  // Control de scroll y visibilidad de botones flotantes
+  final ScrollController scrollController = ScrollController();
+  final RxBool showFloatingButtons = true.obs;
+  
   // Datos de ejemplo de shifts
   late final Map<String, List<Shift>> shiftsData;
   
@@ -52,6 +57,12 @@ class HomeScreenController extends GetxController {
     if (arguments != null && arguments['flavor'] != null) {
       currentFlavor.value = arguments['flavor'];
     }
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 
   void _initializeData() {
@@ -200,5 +211,11 @@ class HomeScreenController extends GetxController {
   bool hasShiftsForDate(DateTime date) {
     final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     return shiftsData.containsKey(dateKey);
+  }
+
+  // Método para actualizar la visibilidad de los botones flotantes basado en el scroll
+  void updateFloatingButtonsVisibility(double scrollOffset) {
+    // Mostrar botones solo cuando el scroll esté en la parte superior (offset <= 50)
+    showFloatingButtons.value = scrollOffset <= 50;
   }
 }
