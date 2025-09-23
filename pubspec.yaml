@@ -53,6 +53,7 @@ dependencies:
   fl_chart: ^0.68.0
   mime: ^1.0.4
   google_maps_flutter: ^2.6.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
