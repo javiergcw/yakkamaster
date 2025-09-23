@@ -437,7 +437,7 @@ class UnhireWorkersStepper extends StatelessWidget {
           top: BorderSide(color: Colors.grey[300]!),
         ),
       ),
-      child: Row(
+      child: Obx(() => Row(
         children: [
           TextButton(
             onPressed: () {
@@ -482,7 +482,7 @@ class UnhireWorkersStepper extends StatelessWidget {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../post_job/data/dto/job_site_dto.dart';
+import '../../../post_job/presentation/pages/project_overview_screen.dart';
 
 class JobSiteListCard extends StatelessWidget {
   final JobSiteDto jobSite;
@@ -177,7 +179,22 @@ class JobSiteListCard extends StatelessWidget {
                     
                     // View Project Row
                     GestureDetector(
-                      onTap: onTap,
+                      onTap: () {
+                        try {
+                          Get.toNamed(ProjectOverviewScreen.id, arguments: {
+                            'flavor': AppFlavorConfig.currentFlavor,
+                            'jobSite': jobSite,
+                          });
+                        } catch (e) {
+                          print('Error navigating to Project Overview: $e');
+                          Get.snackbar(
+                            'Error',
+                            'Could not open project overview',
+                            backgroundColor: Colors.red,
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
