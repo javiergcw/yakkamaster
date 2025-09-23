@@ -91,13 +91,19 @@ class ApiService extends GetxService {
   Future<Map<String, String>> _buildHeaders({
     Map<String, String>? customHeaders,
     bool requireAuth = true,
+    bool isPublic = false,
   }) async {
     final headers = <String, String>{
       ...ApiConfig.defaultHeaders,
       ...?customHeaders,
     };
     
-    // Agregar license key si está disponible
+    // Para endpoints públicos, solo incluir headers básicos (Content-Type, Accept)
+    if (isPublic) {
+      return headers;
+    }
+    
+    // Para endpoints privados, agregar license key si está disponible
     final licenseKey = await _tokenProvider.getLicenseKey();
     if (licenseKey != null) {
       headers['X-License-Key'] = licenseKey;
@@ -180,6 +186,7 @@ class ApiService extends GetxService {
       final requestHeaders = await _buildHeaders(
         customHeaders: headers,
         requireAuth: shouldRequireAuth,
+        isPublic: isPublic,
       );
       
       // Serializar body

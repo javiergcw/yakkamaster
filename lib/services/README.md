@@ -5,9 +5,10 @@ Este servicio proporciona una interfaz unificada para realizar peticiones HTTP c
 ## Características
 
 - ✅ Headers automáticos (Content-Type, Accept)
-- ✅ Header X-License-Key opcional
-- ✅ Header Authorization: Bearer <token> opcional
+- ✅ Header X-License-Key opcional (solo para endpoints privados)
+- ✅ Header Authorization: Bearer <token> opcional (solo para endpoints privados)
 - ✅ Detección de endpoints públicos mediante patrones RegExp
+- ✅ Endpoints públicos NO incluyen headers de autenticación
 - ✅ Inyección de TokenProvider personalizable
 - ✅ Serialización automática de query params y body JSON
 - ✅ Manejo de timeout con http.Client + Future.timeout
@@ -135,15 +136,20 @@ await ApiService.instance.delete<Map<String, dynamic>>(
 
 ### Endpoints Públicos
 
-Los endpoints públicos se detectan automáticamente y no requieren autenticación:
+Los endpoints públicos se detectan automáticamente y **NO incluyen headers de autenticación** (ni X-License-Key ni Authorization Bearer):
 
 ```dart
 // Este endpoint es público (patrón: /api/master/.*)
+// Solo incluye headers básicos: Content-Type, Accept
 final countries = await ApiService.instance.get<List<Map<String, dynamic>>>(
   '/api/master/countries',
   requireAuth: false, // Opcional, se detecta automáticamente
 );
 ```
+
+**Importante**: Los endpoints públicos solo incluyen los headers básicos (Content-Type, Accept) y **NO** incluyen:
+- ❌ X-License-Key
+- ❌ Authorization: Bearer <token>
 
 ## Manejo de Errores
 
