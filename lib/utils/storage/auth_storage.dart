@@ -6,21 +6,21 @@ class AuthStorage {
   factory AuthStorage() => _instance;
   AuthStorage._internal();
 
-  static const String _jwtTokenKey = 'jwt_token';
+  static const String _bearerTokenKey = 'bearer_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userTokenKey = 'user_token';
   static const String _sessionTokenKey = 'session_token';
 
   final StorageManager _storage = StorageManager();
 
-  /// Guarda el token JWT
-  Future<bool> setJwtToken(String token) async {
-    return await _storage.setString(_jwtTokenKey, token);
+  /// Guarda el Bearer token
+  Future<bool> setBearerToken(String token) async {
+    return await _storage.setString(_bearerTokenKey, token);
   }
 
-  /// Obtiene el token JWT
-  Future<String?> getJwtToken() async {
-    return await _storage.getString(_jwtTokenKey);
+  /// Obtiene el Bearer token
+  Future<String?> getBearerToken() async {
+    return await _storage.getString(_bearerTokenKey);
   }
 
   /// Guarda el refresh token
@@ -53,9 +53,9 @@ class AuthStorage {
     return await _storage.getString(_sessionTokenKey);
   }
 
-  /// Verifica si existe un token JWT
-  Future<bool> hasJwtToken() async {
-    return await _storage.containsKey(_jwtTokenKey);
+  /// Verifica si existe un Bearer token
+  Future<bool> hasBearerToken() async {
+    return await _storage.containsKey(_bearerTokenKey);
   }
 
   /// Verifica si existe un refresh token
@@ -73,9 +73,9 @@ class AuthStorage {
     return await _storage.containsKey(_sessionTokenKey);
   }
 
-  /// Elimina el token JWT
-  Future<bool> removeJwtToken() async {
-    return await _storage.remove(_jwtTokenKey);
+  /// Elimina el Bearer token
+  Future<bool> removeBearerToken() async {
+    return await _storage.remove(_bearerTokenKey);
   }
 
   /// Elimina el refresh token
@@ -96,7 +96,7 @@ class AuthStorage {
   /// Elimina todos los tokens de autenticación
   Future<void> clearAllTokens() async {
     await _storage.removeMultiple([
-      _jwtTokenKey,
+      _bearerTokenKey,
       _refreshTokenKey,
       _userTokenKey,
       _sessionTokenKey,
@@ -106,7 +106,7 @@ class AuthStorage {
   /// Obtiene todos los tokens disponibles
   Future<Map<String, String?>> getAllTokens() async {
     return {
-      'jwt': await getJwtToken(),
+      'bearer': await getBearerToken(),
       'refresh': await getRefreshToken(),
       'user': await getUserToken(),
       'session': await getSessionToken(),

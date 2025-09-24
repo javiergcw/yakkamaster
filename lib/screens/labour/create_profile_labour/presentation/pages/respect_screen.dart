@@ -11,7 +11,7 @@ class RespectScreen extends StatelessWidget {
   
   RespectScreen({super.key});
 
-  final CreateProfileController controller = Get.put(CreateProfileController());
+  final CreateProfileController controller = Get.find<CreateProfileController>();
 
   @override
   Widget build(BuildContext context) {

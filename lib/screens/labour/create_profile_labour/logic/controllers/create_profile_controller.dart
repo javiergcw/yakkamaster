@@ -6,6 +6,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_skill.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_experience_level.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
+import '../../../../../features/logic/labour/use_case/labour_use_case.dart';
+import '../../../../../features/logic/labour/models/send/dto_send_labour_profile.dart';
 import '../../presentation/pages/create_profile_step2_screen.dart';
 import '../../presentation/pages/skills_experience_screen.dart';
 import '../../presentation/pages/location_screen.dart';
@@ -19,52 +25,55 @@ import '../../../home/presentation/pages/home_screen.dart';
 import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
 
 class CreateProfileController extends GetxController {
+  // ===== GENERAL CONFIGURATION =====
+  final String controllerId = DateTime.now().millisecondsSinceEpoch.toString();
+  static bool _isInitialized = false;
+  final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
+  
+  // Instancias de los casos de uso
+  final MasterUseCase _masterUseCase = MasterUseCase();
+  final LabourUseCase _labourUseCase = LabourUseCase();
+  
+  // Variables estáticas para preservar datos entre navegaciones
+  static String? _preservedFirstName;
+  static String? _preservedLastName;
+  static String? _preservedPhone;
+  static String? _preservedEmail;
+  static String? _preservedAddress;
+  static String? _preservedSuburb;
+  static List<String> _preservedSelectedSkills = [];
+  static List<Map<String, dynamic>> _preservedLicenses = [];
+  static String? _preservedProfileImagePath;
+  
   // ===== STEP 1: BASIC INFO =====
-  // Controllers para los campos de texto
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController(text: '0412345678');
   final TextEditingController emailController = TextEditingController(text: 'testing22@gmail.com');
   final TextEditingController birthCountryController = TextEditingController();
   
-  // Variables para la imagen de perfil
-  final Rx<File?> profileImage = Rx<File?>(null);
-  final ImagePicker picker = ImagePicker();
-  
   // ===== STEP 2: SKILLS & EXPERIENCE =====
-  // Controller para el campo de búsqueda
   final TextEditingController searchController = TextEditingController();
   
-  // Lista de habilidades disponibles
-  final List<String> allSkills = [
-    'General Labourer',
-    'Paver Operator',
-    'Carpenter',
-    'Truck LR Driver',
-    'Asbestos Remover',
-    'Elevator operator',
-    'Foreman',
-    'Tow Truck Driver',
-    'Lawn mower',
-    'Construction Foreman',
-    'Bulldozer Operator',
-    'Plumber',
-    'Heavy Rigid Truck Driver',
-    'Traffic Controller',
-    'Excavator Operator',
-    'Bartender',
-    'Gardener',
-    'Truck HC Driver',
-    'Waitress / Waiter',
-    'Truck Driver',
-    'Crane Operator - Mobile',
-  ];
+  // Variables para datos dinámicos de la API
+  final RxList<DtoReceiveSkill> allSkillsFromApi = <DtoReceiveSkill>[].obs;
+  final RxList<DtoReceiveExperienceLevel> experienceLevelsFromApi = <DtoReceiveExperienceLevel>[].obs;
+  final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
+  final RxBool isLoadingSkills = false.obs;
+  final RxBool isLoadingExperienceLevels = false.obs;
+  final RxBool isLoadingLicenses = false.obs;
   
   // Lista de habilidades filtradas
   final RxList<String> filteredSkills = <String>[].obs;
   
-  // Habilidades seleccionadas
+  // Habilidades seleccionadas (usando ID único: "categoryId_subcategoryId")
   final RxSet<String> selectedSkills = <String>{}.obs;
+  
+  // Categorías expandidas
+  final RxSet<String> expandedCategories = <String>{}.obs;
+  
+  // Mapa de categorías y sus subcategorías
+  final RxMap<String, List<String>> categorySubcategories = <String, List<String>>{}.obs;
   
   // Experiencia por habilidad
   final RxMap<String, int> skillExperience = <String, int>{}.obs;
@@ -73,7 +82,6 @@ class CreateProfileController extends GetxController {
   final RxMap<String, Map<String, dynamic>?> skillReferences = <String, Map<String, dynamic>?>{}.obs;
   
   // ===== STEP 3: LOCATION =====
-  // Controllers para los campos de ubicación
   final TextEditingController addressController = TextEditingController();
   final TextEditingController suburbController = TextEditingController();
   
@@ -82,25 +90,17 @@ class CreateProfileController extends GetxController {
   final RxBool hasCar = true.obs;
   
   // ===== STEP 4: PROFILE PHOTO =====
+  final ImagePicker picker = ImagePicker();
   final ImagePicker _photoPicker = ImagePicker();
+  final Rx<File?> profileImage = Rx<File?>(null);
   final Rx<File?> profilePhoto = Rx<File?>(null);
   
   // ===== STEP 5: LICENSES =====
-  // Variables para licencias
   final RxList<Map<String, dynamic>> licenses = <Map<String, dynamic>>[].obs;
   final RxString? selectedLicenseType = RxString('');
-  final RxList<String> licenseTypes = <String>[
-    'Driver License',
-    'Forklift License',
-    'White Card',
-    'First Aid Certificate',
-    'Working at Heights',
-    'Confined Spaces',
-    'Other'
-  ].obs;
+  final RxList<String> licenseTypes = <String>[].obs;
   
   // ===== STEP 6: PREVIOUS EMPLOYER =====
-  // Controllers para empleador anterior
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController positionController = TextEditingController();
   final TextEditingController startDateController = TextEditingController();
@@ -116,17 +116,8 @@ class CreateProfileController extends GetxController {
   final Rx<Map<String, dynamic>?> secondSupervisor = Rx<Map<String, dynamic>?>(null);
   
   // ===== STEP 7: DOCUMENTS =====
-  // Variables para documentos
   final RxString? selectedCredential = RxString('');
-  final RxList<String> credentials = <String>[
-    'Driver License',
-    'Forklift License',
-    'White Card',
-    'First Aid Certificate',
-    'Working at Heights',
-    'Confined Spaces',
-    'Other'
-  ].obs;
+  final RxList<String> credentials = <String>[].obs;
   
   final RxList<Map<String, dynamic>> documents = <Map<String, dynamic>>[
     {'type': 'Resume', 'file': null, 'uploaded': false, 'path': null, 'size': null},
@@ -134,25 +125,33 @@ class CreateProfileController extends GetxController {
     {'type': 'Police check', 'file': null, 'uploaded': false, 'path': null, 'size': null},
     {'type': 'Other', 'file': null, 'uploaded': false, 'path': null, 'size': null},
   ].obs;
-  
-  // ===== GENERAL =====
-  final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
 
   @override
   void onInit() {
     super.onInit();
+    
     // Si se pasa un flavor específico, usarlo
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
     }
     
-    // Inicializar habilidades filtradas
-    filteredSkills.value = List.from(allSkills);
+    // Solo inicializar la primera vez
+    if (!_isInitialized) {
+      _isInitialized = true;
+      
+      // Cargar datos desde la API
+      loadSkillsFromApi(showSnackbar: true);
+      loadExperienceLevelsFromApi(showSnackbar: true);
+      loadLicensesFromApi(showSnackbar: true);
     
     // Agregar listener para búsqueda
     searchController.addListener(() {
       filterSkills(searchController.text);
     });
+    }
+    
+    // Restaurar datos preservados si existen
+    restoreControllerData();
   }
 
   @override
@@ -176,20 +175,11 @@ class CreateProfileController extends GetxController {
     super.onClose();
   }
 
-  // ===== NAVIGATION METHODS =====
   
-  // Industry Selection → Create Profile
-  void handleConstructionSelection() {
-    Get.toNamed('/create-profile', arguments: {'flavor': currentFlavor.value});
-  }
 
-  void handleHospitalitySelection() {
-    Get.toNamed('/create-profile', arguments: {'flavor': currentFlavor.value});
-  }
 
-  void handleBothSelection() {
-    Get.toNamed('/create-profile', arguments: {'flavor': currentFlavor.value});
-  }
+
+  // ===== STEP 1: BASIC INFO METHODS =====
 
   // Create Profile → Create Profile Step 2
   void handleNext() {
@@ -251,6 +241,8 @@ class CreateProfileController extends GetxController {
     Get.toNamed(SkillsExperienceScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
+  // ===== STEP 2: SKILLS & EXPERIENCE METHODS =====
+
   // Skills Experience → Location
   void handleSkillsContinue() {
     // Validar que se hayan seleccionado habilidades
@@ -265,45 +257,78 @@ class CreateProfileController extends GetxController {
       return;
     }
     
-    // Navegar al siguiente paso del stepper
+    // Navegar a la pantalla de ubicación (step 3)
     Get.toNamed(LocationScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
+  // ===== STEP 3: LOCATION METHODS =====
+
   // Location → Profile Photo
   void handleLocationContinue() {
-    // Navegar a la pantalla de foto de perfil
+    // Navegar a la pantalla de foto de perfil (step 4)
     Get.toNamed(ProfilePhotoScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
+  void toggleWillingToRelocate() {
+    willingToRelocate.value = !willingToRelocate.value;
+  }
+
+  void toggleHasCar() {
+    hasCar.value = !hasCar.value;
+  }
+
+  // ===== STEP 4: PROFILE PHOTO METHODS =====
+
   // Profile Photo → License
   void handleProfilePhotoContinue() {
-    // Navegar a la pantalla de licencias
+    // Navegar a la pantalla de licencias (step 5)
     Get.toNamed(LicenseScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
-  // License → Previous Employer
+  // ===== STEP 5: LICENSES METHODS =====
+  
+  // License → Respect
   void handleLicenseContinue() {
-    // Navegar a la pantalla de respeto
+    // Navegar a la pantalla de respeto (step 6)
     Get.toNamed(RespectScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
+  // ===== STEP 6: RESPECT METHODS =====
+
   // Respect → Let's Be Clear
   void handleRespectCommit() {
-    // Navegar a la pantalla "Let's Be Clear" después del compromiso
-    Get.offAllNamed(LetsBeClearScreen.id, arguments: {'flavor': currentFlavor.value});
+    // Preservar datos antes de navegar
+    preserveControllerData();
+    
+    // Navegar a la pantalla "Let's Be Clear" (step 7)
+    Get.offAndToNamed(LetsBeClearScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
+  // ===== STEP 7: LET'S BE CLEAR METHODS =====
+
   // Let's Be Clear → Profile Created
-  void handleLetsBeClearAccept() {
-    // Navegar a la pantalla de perfil creado después de aceptar los términos
-    Get.offAllNamed(ProfileCreatedScreen.id, arguments: {'flavor': currentFlavor.value});
+  void handleLetsBeClearAccept() async {
+    // Crear el perfil de trabajador antes de navegar
+    bool profileCreated = await createLabourProfile();
+    
+    // Solo navegar si el perfil se creó exitosamente
+    if (profileCreated) {
+      Get.offAndToNamed(ProfileCreatedScreen.id, arguments: {'flavor': currentFlavor.value});
+    }
   }
+
+  // ===== STEP 8: PROFILE CREATED METHODS =====
 
   // Profile Created → Home
   void handleStartUsingYakka() {
-    // Navegar a la pantalla home de YAKKA usando GetX
+    // Limpiar el controlador después de completar el flujo
+    resetController();
+    
+    // Navegar a la pantalla home de YAKKA
     Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
+
+  // ===== STEP 9: DOCUMENTS METHODS =====
 
   void handleUploadResume() {
     // Navegar a la pantalla de documentos
@@ -316,16 +341,489 @@ class CreateProfileController extends GetxController {
     Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
-  // ===== SKILLS & EXPERIENCE METHODS =====
+  
+  /// Carga las habilidades desde la API
+  Future<void> loadSkillsFromApi({bool showSnackbar = true}) async {
+    try {
+      isLoadingSkills.value = true;
+      
+      final result = await _masterUseCase.getSkills();
+      
+      if (result.isSuccess && result.data != null) {
+        allSkillsFromApi.value = result.data!;
+        filteredSkills.value = result.data!.map((skill) => skill.name).toList();
+        
+        if (showSnackbar) {
+          Get.snackbar(
+            'Success',
+            'Skills loaded successfully (${result.data!.length} skills)',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+        }
+      } else {
+        if (showSnackbar) {
+          Get.snackbar(
+            'Error',
+            'Failed to load skills: ${result.message ?? 'Unknown error'}',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+        }
+      }
+    } catch (e) {
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load skills: $e',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } finally {
+      isLoadingSkills.value = false;
+    }
+  }
+  
+  /// Carga los niveles de experiencia desde la API
+  Future<void> loadExperienceLevelsFromApi({bool showSnackbar = true}) async {
+    try {
+      isLoadingExperienceLevels.value = true;
+      
+      final result = await _masterUseCase.getActiveExperienceLevels();
+      
+      if (result.isSuccess && result.data != null) {
+        experienceLevelsFromApi.value = result.data!;
+        
+        if (showSnackbar) {
+          Get.snackbar(
+            'Success',
+            'Experience levels loaded successfully (${result.data!.length} levels)',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 2),
+          );
+        }
+      } else {
+        if (showSnackbar) {
+          Get.snackbar(
+            'Error',
+            'Failed to load experience levels: ${result.message ?? 'Unknown error'}',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
+        }
+      }
+    } catch (e) {
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load experience levels: $e',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } finally {
+      isLoadingExperienceLevels.value = false;
+    }
+  }
+
+  /// Carga las licencias desde la API
+  Future<void> loadLicensesFromApi({bool showSnackbar = true}) async {
+    try {
+      isLoadingLicenses.value = true;
+      final result = await _masterUseCase.getLicenses();
+      
+      if (result.isSuccess && result.data != null) {
+        licensesFromApi.value = result.data!;
+        credentials.value = result.data!.map((license) => license.name).toList();
+        licenseTypes.value = result.data!.map((license) => license.name).toList();
+        
+        if (showSnackbar) {
+          Get.snackbar(
+            'Success', 
+            'Licenses loaded successfully (${result.data!.length} licenses)', 
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: Duration(seconds: 2),
+          );
+        }
+      } else {
+        if (showSnackbar) {
+          Get.snackbar(
+            'Error', 
+            'Failed to load licenses: ${result.message ?? 'Unknown error'}', 
+            snackPosition: SnackPosition.TOP,
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: Duration(seconds: 3),
+          );
+        }
+      }
+    } catch (e) {
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error', 
+          'Failed to load licenses: $e', 
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+      }
+    } finally {
+      isLoadingLicenses.value = false;
+    }
+  }
+
+  /// Método para resetear el controlador (usar solo cuando sea necesario)
+  static void resetController() {
+    _isInitialized = false;
+  }
+
+  /// Preserva los datos del controlador antes de navegación
+  void preserveControllerData() {
+    _preservedFirstName = firstNameController.text;
+    _preservedLastName = lastNameController.text;
+    _preservedPhone = phoneController.text;
+    _preservedEmail = emailController.text;
+    _preservedAddress = addressController.text;
+    _preservedSuburb = suburbController.text;
+    _preservedSelectedSkills = List.from(selectedSkills);
+    _preservedLicenses = List.from(licenses);
+    _preservedProfileImagePath = profileImage.value?.path;
+  }
+
+  /// Restaura los datos preservados en el controlador
+  void restoreControllerData() {
+    if (_preservedFirstName != null) {
+      firstNameController.text = _preservedFirstName!;
+    }
+    if (_preservedLastName != null) {
+      lastNameController.text = _preservedLastName!;
+    }
+    if (_preservedPhone != null) {
+      phoneController.text = _preservedPhone!;
+    }
+    if (_preservedEmail != null) {
+      emailController.text = _preservedEmail!;
+    }
+    if (_preservedAddress != null) {
+      addressController.text = _preservedAddress!;
+    }
+    if (_preservedSuburb != null) {
+      suburbController.text = _preservedSuburb!;
+    }
+    if (_preservedSelectedSkills.isNotEmpty) {
+      selectedSkills.assignAll(_preservedSelectedSkills);
+    }
+    if (_preservedLicenses.isNotEmpty) {
+      licenses.value = List.from(_preservedLicenses);
+    }
+    if (_preservedProfileImagePath != null) {
+      profileImage.value = File(_preservedProfileImagePath!);
+    }
+  }
+
+  /// Recopila todos los datos del stepper y crea el perfil de trabajador
+  Future<bool> createLabourProfile() async {
+    try {
+      // ===== STEP 1: BASIC INFO =====
+      final firstName = firstNameController.text.trim();
+      final lastName = lastNameController.text.trim();
+      final phone = phoneController.text.trim();
+      
+      if (firstName.isEmpty || lastName.isEmpty) {
+        Get.snackbar(
+          'Error',
+          'First name and last name are required',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+      
+      // ===== STEP 3: LOCATION =====
+      final location = '${addressController.text.trim()}, ${suburbController.text.trim()}';
+      final bio = 'Experienced worker with ${selectedSkills.length} skills';
+      
+      // ===== STEP 4: PROFILE PHOTO =====
+      String avatarFileName = '';
+      if (profileImage.value != null) {
+        avatarFileName = profileImage.value!.path.split('/').last;
+      }
+      
+      // ===== STEP 2: SKILLS & EXPERIENCE =====
+      List<DtoSendLabourSkill> skills = [];
+      if (selectedSkills.isEmpty) {
+        Get.snackbar(
+          'Error',
+          'At least one skill is required',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+      
+      for (String uniqueId in selectedSkills) {
+        // Extraer categoryId y subcategoryId del ID único
+        List<String> parts = uniqueId.split('_');
+        if (parts.length >= 2) {
+          String categoryId = parts[0];
+          String subcategoryId = parts[1];
+          
+          // Obtener experiencia
+          int experienceValue = skillExperience[uniqueId] ?? 0;
+          double yearsExperience = _convertExperienceToYears(experienceValue);
+          String experienceLevelId = _getExperienceLevelId(experienceValue);
+          
+          print('DEBUG - Skill: $uniqueId');
+          print('DEBUG - Experience Value: $experienceValue');
+          print('DEBUG - Experience Level ID: $experienceLevelId');
+          print('DEBUG - Years Experience: $yearsExperience');
+          
+          // Crear skill con IDs válidos de la API
+          skills.add(DtoSendLabourSkill(
+            categoryId: categoryId,
+            subcategoryId: subcategoryId,
+            experienceLevelId: experienceLevelId,
+            yearsExperience: yearsExperience,
+            isPrimary: skills.isEmpty,
+          ));
+        }
+      }
+      
+      // ===== STEP 5: LICENSES =====
+      List<DtoSendLabourLicense> labourLicenses = [];
+      for (var license in this.licenses) {
+        if (license['uploaded'] == true && license['file'] != null) {
+          String fileName = license['file'].toString();
+          String licenseId = license['id'] ?? license['type'] ?? 'unknown';
+          
+          print('DEBUG - License: ${license['type']}');
+          print('DEBUG - License ID: $licenseId');
+          print('DEBUG - File: $fileName');
+          
+          labourLicenses.add(DtoSendLabourLicense(
+            licenseId: licenseId,
+            photoUrl: fileName,
+            issuedAt: DateTime.now().toIso8601String(),
+            expiresAt: DateTime.now().add(Duration(days: 365)).toIso8601String(),
+          ));
+        }
+      }
+      
+      print('DEBUG - Total licenses to send: ${labourLicenses.length}');
+      
+      // ===== CREAR PERFIL CON TODOS LOS DATOS =====
+      final result = await _labourUseCase.createLabourProfile(
+        firstName: firstName,
+        lastName: lastName,
+        location: location,
+        bio: bio,
+        avatarUrl: avatarFileName,
+        phone: phone,
+        skills: skills,
+        licenses: labourLicenses,
+      );
+      
+      if (result.isSuccess) {
+        Get.snackbar(
+          'Success',
+          'Profile created successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to create profile: ${result.message ?? 'Unknown error'}',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to create profile: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+      return false;
+    }
+  }
+
+  /// Convierte el valor de experiencia a años
+  double _convertExperienceToYears(int experienceValue) {
+    switch (experienceValue) {
+      case 0:
+        return 0.5; // Menos de 6 meses
+      case 1:
+        return 0.75; // 6-12 meses
+      case 2:
+        return 1.5; // 1-2 años
+      case 3:
+        return 3.5; // 2-5 años
+      case 5:
+        return 6.0; // Más de 5 años
+      default:
+        return 1.0;
+    }
+  }
+
+  /// Obtiene el ID del nivel de experiencia
+  String _getExperienceLevelId(int experienceValue) {
+    // Si tenemos datos de la API, usar el índice para obtener el ID
+    if (experienceLevelsFromApi.isNotEmpty) {
+      try {
+        // Usar el índice como posición en la lista
+        if (experienceValue >= 0 && experienceValue < experienceLevelsFromApi.length) {
+          return experienceLevelsFromApi[experienceValue].id;
+        } else {
+          return experienceLevelsFromApi.first.id;
+        }
+      } catch (e) {
+        return experienceLevelsFromApi.first.id;
+      }
+    }
+    
+    // Si no hay datos de API, retornar ID por defecto
+    return 'f057645b-b107-42c5-b4e9-03921430bb25'; // ID de "Less than 6 months"
+  }
   
   void filterSkills(String query) {
     if (query.isEmpty) {
-      filteredSkills.value = List.from(allSkills);
+      // Usar categorías de la API
+      if (allSkillsFromApi.isNotEmpty) {
+        filteredSkills.value = allSkillsFromApi.map((skill) => skill.name).toList();
+      }
     } else {
-      filteredSkills.value = allSkills
-          .where((skill) => skill.toLowerCase().contains(query.toLowerCase()))
+      // Filtrar categorías según los datos de la API
+      if (allSkillsFromApi.isNotEmpty) {
+        List<String> categoriesToFilter = allSkillsFromApi.map((skill) => skill.name).toList();
+        filteredSkills.value = categoriesToFilter
+          .where((category) => category.toLowerCase().contains(query.toLowerCase()))
           .toList();
+      }
     }
+  }
+
+  // Toggle para categorías (expandir/contraer) - permitir múltiples
+  void toggleCategory(String category) {
+    if (expandedCategories.contains(category)) {
+      // Si ya está expandida, contraerla
+      expandedCategories.remove(category);
+    } else {
+      // Si no está expandida, expandirla (mantener las otras expandidas)
+      expandedCategories.add(category);
+    }
+  }
+
+  // Toggle para subcategorías (seleccionar y abrir modal de experiencia)
+  void toggleSubcategory(String subcategory) {
+    // Crear ID único para la subcategoría
+    String uniqueId = getUniqueSubcategoryId(subcategory);
+    
+    if (selectedSkills.contains(uniqueId)) {
+      // Si ya está seleccionada, deseleccionarla
+      selectedSkills.remove(uniqueId);
+      // Limpiar experiencia y referencia cuando se deselecciona
+      skillExperience.remove(uniqueId);
+      skillReferences.remove(uniqueId);
+    } else {
+      // Si no está seleccionada, mostrar modal de experiencia
+      showExperienceModal(subcategory);
+    }
+  }
+
+  // Obtener ID único para una subcategoría
+  String getUniqueSubcategoryId(String subcategoryName) {
+    if (allSkillsFromApi.isNotEmpty) {
+      // Buscar solo en las categorías expandidas
+      for (var skill in allSkillsFromApi) {
+        if (expandedCategories.contains(skill.name)) {
+          for (var sub in skill.subcategories) {
+            if (sub.name == subcategoryName) {
+              return "${skill.id}_${sub.id}"; // ID único: categoryId_subcategoryId
+            }
+          }
+        }
+      }
+    }
+    return subcategoryName; // Fallback si no se encuentra
+  }
+
+  // Obtener nombre de skill desde ID único
+  String getSkillNameFromUniqueId(String uniqueId) {
+    List<String> parts = uniqueId.split('_');
+    if (parts.length >= 2) {
+      String categoryId = parts[0];
+      String subcategoryId = parts[1];
+      
+      if (allSkillsFromApi.isNotEmpty) {
+        for (var skill in allSkillsFromApi) {
+          if (skill.id == categoryId) {
+            for (var sub in skill.subcategories) {
+              if (sub.id == subcategoryId) {
+                return sub.name;
+              }
+            }
+          }
+        }
+      }
+    }
+    return uniqueId; // Fallback si no se encuentra
+  }
+
+  // Contrae la categoría padre de una subcategoría seleccionada
+  void _collapseParentCategory(String subcategory) {
+    // Obtener el ID único de la subcategoría
+    String uniqueId = getUniqueSubcategoryId(subcategory);
+    List<String> parts = uniqueId.split('_');
+    
+    if (parts.length >= 2) {
+      String categoryId = parts[0];
+      
+      // Buscar la categoría por ID y contraerla
+      if (allSkillsFromApi.isNotEmpty) {
+        for (var skill in allSkillsFromApi) {
+          if (skill.id == categoryId) {
+            expandedCategories.remove(skill.name);
+            return;
+          }
+        }
+      }
+    }
+  }
+
+  // Obtener subcategorías para una categoría específica desde la API
+  List<String> getSubcategoriesForCategory(String category) {
+    // Buscar la categoría en los datos de la API
+    if (allSkillsFromApi.isNotEmpty) {
+      try {
+        final skill = allSkillsFromApi.firstWhere((s) => s.name == category);
+        return skill.subcategories.map((sub) => sub.name).toList();
+      } catch (e) {
+        // Si no se encuentra la categoría, retornar lista vacía
+        return [];
+      }
+    }
+    
+    // Si no hay datos de API, retornar lista vacía
+    return [];
   }
 
   void toggleSkill(String skill) {
@@ -351,8 +849,8 @@ class CreateProfileController extends GetxController {
     final titleFontSize = screenWidth * 0.048;
     final buttonFontSize = screenWidth * 0.032;
     
-    // Variable para mantener la selección
-    String? selectedExperienceLevel;
+    // Variable reactiva para mantener la selección
+    final RxString selectedExperienceLevel = ''.obs;
 
     Get.bottomSheet(
       StatefulBuilder(
@@ -401,79 +899,26 @@ class CreateProfileController extends GetxController {
                     padding: EdgeInsets.all(modalPadding),
                     child: Column(
                       children: [
-                        // Grid de opciones de experiencia
-                        Column(
-                          children: [
-                            // Primera fila: 2 opciones
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildExperienceButton(
-                                    'Less than 6 months',
-                                    selectedExperienceLevel,
-                                    () => setModalState(() => selectedExperienceLevel = 'Less than 6 months'),
-                                    buttonFontSize,
-                                  ),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildExperienceButton(
-                                    '6-12 months',
-                                    selectedExperienceLevel,
-                                    () => setModalState(() => selectedExperienceLevel = '6-12 months'),
-                                    buttonFontSize,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 12),
-                            // Segunda fila: 2 opciones
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildExperienceButton(
-                                    '1-2 years',
-                                    selectedExperienceLevel,
-                                    () => setModalState(() => selectedExperienceLevel = '1-2 years'),
-                                    buttonFontSize,
-                                  ),
-                                ),
-                                SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildExperienceButton(
-                                    '2-5 years',
-                                    selectedExperienceLevel,
-                                    () => setModalState(() => selectedExperienceLevel = '2-5 years'),
-                                    buttonFontSize,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 12),
-                            // Tercera fila: 1 opción centrada
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: SizedBox(),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: _buildExperienceButton(
-                                    'More than 5 years',
-                                    selectedExperienceLevel,
-                                    () => setModalState(() => selectedExperienceLevel = 'More than 5 years'),
-                                    buttonFontSize,
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 1,
-                                  child: SizedBox(),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        // Grid de opciones de experiencia dinámicas
+                        Obx(() {
+                          if (isLoadingExperienceLevels.value) {
+                            return Center(
+                              child: CircularProgressIndicator(
+                                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                              ),
+                            );
+                          }
+                          
+                          // Usar niveles de la API
+                          List<String> experienceLevels = [];
+                          if (experienceLevelsFromApi.isNotEmpty) {
+                            experienceLevels = experienceLevelsFromApi.map((level) => level.name).toList();
+                          }
+                          
+                          return Column(
+                            children: _buildExperienceLevelsGridReactive(experienceLevels, selectedExperienceLevel, setModalState, buttonFontSize),
+                          );
+                        }),
                       
                       SizedBox(height: modalPadding),
                       
@@ -540,20 +985,32 @@ class CreateProfileController extends GetxController {
                       Spacer(),
                    
                       // Botón SAVE sin sombra
-                      Container(
+                      Obx(() => Container(
                         width: double.infinity,
                         height: 56,
                         decoration: BoxDecoration(
-                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          color: selectedExperienceLevel.value.isNotEmpty
+                              ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))
+                              : Colors.grey[400],
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: ElevatedButton(
-                          onPressed: selectedExperienceLevel != null 
+                              onPressed: selectedExperienceLevel.value.isNotEmpty 
                               ? () {
-                                  // Agregar la skill a selectedSkills solo cuando se guarda exitosamente
-                                  selectedSkills.add(selectedSkill);
-                                  // Guardar la experiencia seleccionada
-                                  skillExperience[selectedSkill] = _getExperienceValue(selectedExperienceLevel!);
+                                  // Guardar la experiencia seleccionada usando ID único
+                                  String uniqueId = getUniqueSubcategoryId(selectedSkill);
+                                  selectedSkills.add(uniqueId);
+                                  int experienceValue = _getExperienceValue(selectedExperienceLevel.value);
+                                  skillExperience[uniqueId] = experienceValue;
+                                  
+                                  print('DEBUG - Saving experience for skill: $selectedSkill');
+                                  print('DEBUG - Unique ID: $uniqueId');
+                                  print('DEBUG - Selected Level: ${selectedExperienceLevel.value}');
+                                  print('DEBUG - Experience Value: $experienceValue');
+                                  
+                                  // Contraer la categoría padre después de guardar
+                                  _collapseParentCategory(selectedSkill);
+                                  
                                   Get.back();
                                 }
                               : null,
@@ -577,7 +1034,7 @@ class CreateProfileController extends GetxController {
                             ),
                           ),
                         ),
-                      ),
+                      )),
                       
                       SizedBox(height: modalPadding * 0.5),
                       ],
@@ -593,26 +1050,74 @@ class CreateProfileController extends GetxController {
     );
   }
 
-  int _getExperienceValue(String level) {
-    switch (level) {
-      case 'Less than 6 months':
-        return 0;
-      case '6-12 months':
-        return 1;
-      case '1-2 years':
-        return 2;
-      case '2-5 years':
-        return 3;
-      case 'More than 5 years':
-        return 5;
-      default:
-        return 0;
+  /// Construye el grid de niveles de experiencia dinámicamente (método reactivo)
+  List<Widget> _buildExperienceLevelsGridReactive(
+    List<String> experienceLevels,
+    RxString selectedExperienceLevel,
+    StateSetter setModalState,
+    double buttonFontSize,
+  ) {
+    List<Widget> widgets = [];
+    
+    // Dividir en filas de 2 elementos
+    for (int i = 0; i < experienceLevels.length; i += 2) {
+      if (i > 0) {
+        widgets.add(SizedBox(height: 12));
+      }
+      
+      List<String> rowLevels = experienceLevels.skip(i).take(2).toList();
+      
+      widgets.add(
+        Row(
+          children: rowLevels.map((level) {
+            return Expanded(
+              child: Obx(() => _buildExperienceButtonReactive(
+                level,
+                selectedExperienceLevel.value,
+                () {
+                  selectedExperienceLevel.value = level;
+                },
+                buttonFontSize,
+              )),
+            );
+          }).toList()
+            ..addAll(
+              // Agregar espacios vacíos si la fila no está completa
+              List.generate(2 - rowLevels.length, (index) => Expanded(child: SizedBox())),
+            ),
+        ),
+      );
     }
+    
+    return widgets;
   }
 
-  Widget _buildExperienceButton(
+
+
+  int _getExperienceValue(String level) {
+    // Buscar el nivel de experiencia en los datos de la API
+    if (experienceLevelsFromApi.isNotEmpty) {
+      try {
+        final experienceLevel = experienceLevelsFromApi.firstWhere(
+          (levelData) => levelData.name == level,
+          orElse: () => experienceLevelsFromApi.first,
+        );
+        
+        // Usar el índice del nivel en la lista como valor
+        int index = experienceLevelsFromApi.indexOf(experienceLevel);
+        return index >= 0 ? index : 0;
+      } catch (e) {
+        return 0; // Default al primer nivel
+      }
+    }
+    
+    // Fallback si no hay datos de API
+    return 0;
+  }
+
+  Widget _buildExperienceButtonReactive(
     String level,
-    String? selectedLevel,
+    String selectedLevel,
     VoidCallback onTap,
     double buttonFontSize,
   ) {
@@ -674,8 +1179,11 @@ class CreateProfileController extends GetxController {
     );
   }
 
+
+
   void resetSelections() {
     selectedSkills.clear();
+    expandedCategories.clear();
     skillExperience.clear();
     skillReferences.clear();
   }
@@ -688,15 +1196,6 @@ class CreateProfileController extends GetxController {
     // Método mantenido para compatibilidad, pero ya no se usa
   }
 
-  // ===== LOCATION METHODS =====
-  
-  void toggleWillingToRelocate() {
-    willingToRelocate.value = !willingToRelocate.value;
-  }
-
-  void toggleHasCar() {
-    hasCar.value = !hasCar.value;
-  }
 
   // ===== IMAGE PICKER METHODS =====
   
@@ -1288,8 +1787,26 @@ class CreateProfileController extends GetxController {
 
   void addLicense() {
     if (selectedCredential?.value != null && selectedCredential!.value.isNotEmpty) {
+      // Buscar el ID real de la licencia desde la API
+      String licenseId = '';
+      String licenseName = selectedCredential!.value;
+      
+      if (licensesFromApi.isNotEmpty) {
+        try {
+          final license = licensesFromApi.firstWhere(
+            (l) => l.name == licenseName,
+            orElse: () => licensesFromApi.first,
+          );
+          licenseId = license.id;
+        } catch (e) {
+          // Si no se encuentra, usar el primer ID disponible
+          licenseId = licensesFromApi.first.id;
+        }
+      }
+      
       licenses.add({
-        'type': selectedCredential!.value,
+        'id': licenseId,
+        'type': licenseName,
         'number': '',
         'expiryDate': '',
         'uploaded': false,

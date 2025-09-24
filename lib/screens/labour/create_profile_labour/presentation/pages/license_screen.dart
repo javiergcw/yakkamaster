@@ -12,7 +12,7 @@ class LicenseScreen extends StatelessWidget {
   
   LicenseScreen({super.key});
 
-  final CreateProfileController controller = Get.put(CreateProfileController());
+  final CreateProfileController controller = Get.find<CreateProfileController>();
 
 
 

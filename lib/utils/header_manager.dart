@@ -10,14 +10,14 @@ class HeaderManager {
   final AuthStorage _authStorage = AuthStorage();
   final LicenseStorage _licenseStorage = LicenseStorage();
   
-  String? _jwtToken;
+  String? _bearerToken;
   String? _licenseKey;
   Map<String, String> _customHeaders = {};
 
-  /// Establece el token JWT
-  Future<void> setJwtToken(String token) async {
-    _jwtToken = token;
-    await _authStorage.setJwtToken(token);
+  /// Establece el Bearer token
+  Future<void> setBearerToken(String token) async {
+    _bearerToken = token;
+    await _authStorage.setBearerToken(token);
   }
 
   /// Establece la clave de licencia
@@ -48,8 +48,8 @@ class HeaderManager {
       'Accept': 'application/json',
     };
 
-    if (_jwtToken != null) {
-      headers['Authorization'] = 'Bearer $_jwtToken';
+    if (_bearerToken != null) {
+      headers['Authorization'] = 'Bearer $_bearerToken';
     }
 
     if (_licenseKey != null) {
@@ -60,10 +60,10 @@ class HeaderManager {
     return headers;
   }
 
-  /// Limpia el token JWT
-  Future<void> clearJwtToken() async {
-    _jwtToken = null;
-    await _authStorage.removeJwtToken();
+  /// Limpia el Bearer token
+  Future<void> clearBearerToken() async {
+    _bearerToken = null;
+    await _authStorage.removeBearerToken();
   }
 
   /// Limpia la clave de licencia
@@ -74,7 +74,7 @@ class HeaderManager {
 
   /// Limpia todos los headers
   Future<void> clearAll() async {
-    _jwtToken = null;
+    _bearerToken = null;
     _licenseKey = null;
     _customHeaders.clear();
     await _authStorage.clearAllTokens();
@@ -83,13 +83,13 @@ class HeaderManager {
 
   /// Carga los valores almacenados desde el storage
   Future<void> loadStoredValues() async {
-    _jwtToken = await _authStorage.getJwtToken();
+    _bearerToken = await _authStorage.getBearerToken();
     _licenseKey = await _licenseStorage.getLicenseKey();
   }
 
-  /// Carga solo el JWT token desde el storage
-  Future<void> loadJwtToken() async {
-    _jwtToken = await _authStorage.getJwtToken();
+  /// Carga solo el Bearer token desde el storage
+  Future<void> loadBearerToken() async {
+    _bearerToken = await _authStorage.getBearerToken();
   }
 
   /// Carga solo la licencia desde el storage
@@ -97,10 +97,10 @@ class HeaderManager {
     _licenseKey = await _licenseStorage.getLicenseKey();
   }
 
-  /// Verifica si existe un token JWT almacenado
-  Future<bool> hasJwtToken() async {
-    if (_jwtToken != null) return true;
-    return await _authStorage.hasJwtToken();
+  /// Verifica si existe un Bearer token almacenado
+  Future<bool> hasBearerToken() async {
+    if (_bearerToken != null) return true;
+    return await _authStorage.hasBearerToken();
   }
 
   /// Verifica si existe una licencia almacenada

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'header_manager.dart';
+import 'const_api.dart';
 
 /// Cliente HTTP base con configuración centralizada
 class HttpClient {
@@ -103,11 +104,10 @@ class HttpClient {
 
   /// Construye la URI completa
   Uri _buildUri(String endpoint, Map<String, String>? queryParams) {
-    if (_baseUrl == null) {
-      throw Exception('Base URL no configurada');
-    }
-
-    final uri = Uri.parse('$_baseUrl$endpoint');
+    // Usar la URL base configurada o la URL por defecto de ConstApi
+    final baseUrl = _baseUrl ?? ConstApi.devBaseUrl;
+    
+    final uri = Uri.parse('$baseUrl$endpoint');
     
     if (queryParams != null && queryParams.isNotEmpty) {
       return uri.replace(queryParameters: queryParams);

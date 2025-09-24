@@ -6,6 +6,7 @@ import '../models/receive/dto_receive_license.dart';
 import '../models/receive/dto_receive_skill_category.dart';
 import '../models/receive/dto_receive_skill_subcategory.dart';
 import '../models/receive/dto_receive_skill.dart';
+import '../models/receive/dto_receive_payment_constant.dart';
 
 /// Servicio para operaciones de masters del API
 class ServiceMaster {
@@ -170,6 +171,38 @@ class ServiceMaster {
     } catch (e) {
       return ApiResult<List<DtoReceiveSkillSubcategory>>.error(
         message: 'Error al obtener las subcategorías de la categoría $categoryId: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene las constantes de pago
+  Future<ApiResult<DtoReceivePaymentConstants>> getPaymentConstants({bool activeOnly = true}) async {
+    try {
+      // Asegurar que el header de licencia esté configurado
+      await _crudService.headerManager.loadLicenseKey();
+      
+      // Construir parámetros de consulta
+      final queryParams = <String, String>{
+        'active_only': activeOnly.toString(),
+      };
+      
+      // Realizar petición GET al endpoint /api/v1/payment-constants
+      final response = await _crudService.getAll(
+        ApiMasterConstants.paymentConstants,
+        filters: queryParams,
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceivePaymentConstants
+      final result = await _responseHandler.handleResponse<DtoReceivePaymentConstants>(
+        response,
+        fromJson: DtoReceivePaymentConstants.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceivePaymentConstants>.error(
+        message: 'Error al obtener las constantes de pago: $e',
         error: e,
       );
     }

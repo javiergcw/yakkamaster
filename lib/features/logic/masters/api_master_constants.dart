@@ -6,6 +6,7 @@ class ApiMasterConstants {
   static const String skillCategories = '/api/v1/skill-categories';
   static const String skillSubcategories = '/api/v1/skill-subcategories';
   static const String skills = '/api/v1/skills';
+  static const String paymentConstants = '/api/v1/payment-constants';
   
   // Método para construir endpoint de subcategorías por categoría
   static String skillSubcategoriesByCategory(String categoryId) {

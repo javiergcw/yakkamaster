@@ -1,6 +1,7 @@
 import '../../../../utils/response_handler.dart';
 import '../services/service_labour.dart';
 import '../models/send/dto_send_labour_profile.dart';
+import '../models/receive/dto_receive_create_labour_profile.dart';
 
 /// Caso de uso para operaciones de labour
 class LabourUseCase {
@@ -22,7 +23,7 @@ class LabourUseCase {
   /// [licenses] - Lista de licencias del trabajador
   /// Retorna un [ApiResult] con la respuesta del servidor
   /// o un error si la operación falla
-  Future<ApiResult<Map<String, dynamic>>> createLabourProfile({
+  Future<ApiResult<DtoReceiveCreateLabourProfile>> createLabourProfile({
     required String firstName,
     required String lastName,
     required String location,
@@ -50,7 +51,7 @@ class LabourUseCase {
       
       return result;
     } catch (e) {
-      return ApiResult<Map<String, dynamic>>.error(
+      return ApiResult<DtoReceiveCreateLabourProfile>.error(
         message: 'Error en el caso de uso al crear perfil de trabajador: $e',
         error: e,
       );

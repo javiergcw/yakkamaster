@@ -10,7 +10,7 @@ class DocumentsScreen extends StatelessWidget {
   
   DocumentsScreen({super.key});
 
-  final CreateProfileController controller = Get.put(CreateProfileController());
+  final CreateProfileController controller = Get.find<CreateProfileController>();
 
 
 

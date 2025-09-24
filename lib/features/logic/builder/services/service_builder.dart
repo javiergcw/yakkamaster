@@ -16,7 +16,7 @@ class ServiceBuilder {
   Future<ApiResult<Map<String, dynamic>>> createBuilderProfile(DtoSendBuilderProfile profileData) async {
     try {
       // Asegurar que el header de JWT esté configurado
-      await _crudService.headerManager.loadJwtToken();
+      await _crudService.headerManager.loadBearerToken();
       
       // Realizar petición POST al endpoint /api/v1/profiles/builder
       final response = await _crudService.create(

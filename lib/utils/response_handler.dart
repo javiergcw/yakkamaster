@@ -24,11 +24,55 @@ class ResponseHandler {
       if (fromJson != null && response.jsonBody != null) {
         final data = fromJson(response.jsonBody!);
         return ApiResult<T>.success(data);
-      } else if (fromJsonList != null && response.jsonListBody != null) {
-        final data = fromJsonList(response.jsonListBody!);
-        return ApiResult<T>.success(data);
+      } else if (fromJsonList != null) {
+        // Intentar obtener la lista desde diferentes estructuras posibles
+        List<dynamic>? jsonList;
+        
+        if (response.jsonListBody != null) {
+          // Si la respuesta es directamente un array
+          jsonList = response.jsonListBody;
+        } else if (response.jsonBody != null) {
+          // Si la respuesta es un objeto que contiene un array
+          final jsonBody = response.jsonBody!;
+          
+          // Buscar posibles claves que contengan arrays
+          if (jsonBody.containsKey('data') && jsonBody['data'] is List) {
+            jsonList = jsonBody['data'] as List<dynamic>;
+          } else if (jsonBody.containsKey('results') && jsonBody['results'] is List) {
+            jsonList = jsonBody['results'] as List<dynamic>;
+          } else if (jsonBody.containsKey('items') && jsonBody['items'] is List) {
+            jsonList = jsonBody['items'] as List<dynamic>;
+          } else if (jsonBody.containsKey('skills') && jsonBody['skills'] is List) {
+            jsonList = jsonBody['skills'] as List<dynamic>;
+          } else if (jsonBody.containsKey('experience_levels') && jsonBody['experience_levels'] is List) {
+            jsonList = jsonBody['experience_levels'] as List<dynamic>;
+          }
+        }
+        
+        if (jsonList != null) {
+          final data = fromJsonList(jsonList);
+          return ApiResult<T>.success(data);
+        } else {
+          return ApiResult<T>.error(
+            message: 'No se encontró un array válido en la respuesta JSON',
+            statusCode: response.statusCode,
+            error: 'No array found in JSON response',
+          );
+        }
       } else {
-        return ApiResult<T>.success(response.body as T);
+        // Si no hay parsers específicos, intentar parsear como JSON primero
+        if (response.jsonBody != null) {
+          return ApiResult<T>.success(response.jsonBody as T);
+        } else if (response.jsonListBody != null) {
+          return ApiResult<T>.success(response.jsonListBody as T);
+        } else {
+          // Si no es JSON válido, devolver error
+          return ApiResult<T>.error(
+            message: 'Respuesta no es un JSON válido: ${response.body}',
+            statusCode: response.statusCode,
+            error: 'Invalid JSON response',
+          );
+        }
       }
     } catch (e) {
       return ApiResult<T>.error(

@@ -5,6 +5,7 @@ import '../models/receive/dto_receive_license.dart';
 import '../models/receive/dto_receive_skill_category.dart';
 import '../models/receive/dto_receive_skill_subcategory.dart';
 import '../models/receive/dto_receive_skill.dart';
+import '../models/receive/dto_receive_payment_constant.dart';
 
 /// Caso de uso para operaciones de masters
 class MasterUseCase {
@@ -227,6 +228,25 @@ class MasterUseCase {
     } catch (e) {
       return ApiResult<List<DtoReceiveSkillSubcategory>>.error(
         message: 'Error al obtener subcategorías activas de la categoría $categoryId: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene las constantes de pago
+  /// 
+  /// [activeOnly] - Si solo se deben obtener las constantes activas
+  /// Retorna un [ApiResult] con las constantes de pago
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceivePaymentConstants>> getPaymentConstants({bool activeOnly = true}) async {
+    try {
+      // Llamar al servicio para obtener las constantes de pago
+      final result = await _serviceMaster.getPaymentConstants(activeOnly: activeOnly);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceivePaymentConstants>.error(
+        message: 'Error en el caso de uso al obtener constantes de pago: $e',
         error: e,
       );
     }
