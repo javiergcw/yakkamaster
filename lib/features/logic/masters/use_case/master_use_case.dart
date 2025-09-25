@@ -6,6 +6,8 @@ import '../models/receive/dto_receive_skill_category.dart';
 import '../models/receive/dto_receive_skill_subcategory.dart';
 import '../models/receive/dto_receive_skill.dart';
 import '../models/receive/dto_receive_payment_constant.dart';
+import '../models/receive/dto_receive_job_requirement.dart';
+import '../models/receive/dto_receive_job_type.dart';
 
 /// Caso de uso para operaciones de masters
 class MasterUseCase {
@@ -250,5 +252,237 @@ class MasterUseCase {
         error: e,
       );
     }
+  }
+
+  /// Obtiene los requisitos de trabajo
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos de trabajo
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceiveJobRequirements>> getJobRequirements({bool activeOnly = true}) async {
+    try {
+      // Llamar al servicio para obtener los requisitos de trabajo
+      final result = await _serviceMaster.getJobRequirements(activeOnly: activeOnly);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobRequirements>.error(
+        message: 'Error en el caso de uso al obtener requisitos de trabajo: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene solo los requisitos de trabajo activos (no eliminados)
+  /// 
+  /// Retorna un [ApiResult] con la lista filtrada de requisitos activos
+  Future<ApiResult<DtoReceiveJobRequirements>> getActiveJobRequirements() async {
+    try {
+      // Obtener todos los requisitos de trabajo activos
+      final result = await getJobRequirements(activeOnly: true);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobRequirements>.error(
+        message: 'Error al obtener requisitos de trabajo activos: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los requisitos de trabajo por tipo
+  /// 
+  /// [type] - Tipo de requisito (safety, certification, equipment, experience, other)
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos filtrados por tipo
+  Future<ApiResult<List<DtoReceiveJobRequirement>>> getJobRequirementsByType(
+    String type, {
+    bool activeOnly = true,
+  }) async {
+    try {
+      // Obtener todos los requisitos de trabajo
+      final result = await getJobRequirements(activeOnly: activeOnly);
+      
+      if (result.isSuccess && result.data != null) {
+        // Filtrar por tipo
+        final filteredRequirements = result.data!.getRequirementsByType(type);
+        
+        return ApiResult<List<DtoReceiveJobRequirement>>.success(filteredRequirements);
+      }
+      
+      return ApiResult<List<DtoReceiveJobRequirement>>.error(
+        message: result.message ?? 'Error desconocido al obtener requisitos de trabajo',
+        error: result.error,
+      );
+    } catch (e) {
+      return ApiResult<List<DtoReceiveJobRequirement>>.error(
+        message: 'Error al obtener requisitos de trabajo por tipo $type: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los requisitos de seguridad
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos de seguridad
+  Future<ApiResult<List<DtoReceiveJobRequirement>>> getSafetyRequirements({bool activeOnly = true}) async {
+    return getJobRequirementsByType('safety', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los requisitos de certificación
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos de certificación
+  Future<ApiResult<List<DtoReceiveJobRequirement>>> getCertificationRequirements({bool activeOnly = true}) async {
+    return getJobRequirementsByType('certification', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los requisitos de equipamiento
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos de equipamiento
+  Future<ApiResult<List<DtoReceiveJobRequirement>>> getEquipmentRequirements({bool activeOnly = true}) async {
+    return getJobRequirementsByType('equipment', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los requisitos de experiencia
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los requisitos activos
+  /// Retorna un [ApiResult] con los requisitos de experiencia
+  Future<ApiResult<List<DtoReceiveJobRequirement>>> getExperienceRequirements({bool activeOnly = true}) async {
+    return getJobRequirementsByType('experience', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos de trabajo
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceiveJobTypes>> getJobTypes({bool activeOnly = true}) async {
+    try {
+      // Llamar al servicio para obtener los tipos de trabajo
+      final result = await _serviceMaster.getJobTypes(activeOnly: activeOnly);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobTypes>.error(
+        message: 'Error in use case getting job types: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene solo los tipos de trabajo activos (no eliminados)
+  /// 
+  /// Retorna un [ApiResult] con la lista filtrada de tipos activos
+  Future<ApiResult<DtoReceiveJobTypes>> getActiveJobTypes() async {
+    try {
+      // Obtener todos los tipos de trabajo activos
+      final result = await getJobTypes(activeOnly: true);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobTypes>.error(
+        message: 'Error getting active job types: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los tipos de trabajo por tipo de empleo
+  /// 
+  /// [employmentType] - Tipo de empleo (full_time, part_time, casual, seasonal, fifo, agricultural, mining, working_holiday, other)
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos filtrados por tipo de empleo
+  Future<ApiResult<List<DtoReceiveJobType>>> getJobTypesByEmploymentType(
+    String employmentType, {
+    bool activeOnly = true,
+  }) async {
+    try {
+      // Obtener todos los tipos de trabajo
+      final result = await getJobTypes(activeOnly: activeOnly);
+      
+      if (result.isSuccess && result.data != null) {
+        // Filtrar por tipo de empleo
+        final filteredTypes = result.data!.getTypesByEmploymentType(employmentType);
+        
+        return ApiResult<List<DtoReceiveJobType>>.success(filteredTypes);
+      }
+      
+      return ApiResult<List<DtoReceiveJobType>>.error(
+        message: result.message ?? 'Unknown error getting job types',
+        error: result.error,
+      );
+    } catch (e) {
+      return ApiResult<List<DtoReceiveJobType>>.error(
+        message: 'Error getting job types by employment type $employmentType: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los tipos de trabajo de tiempo completo
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos de tiempo completo
+  Future<ApiResult<List<DtoReceiveJobType>>> getFullTimeJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('full_time', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo de tiempo parcial
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos de tiempo parcial
+  Future<ApiResult<List<DtoReceiveJobType>>> getPartTimeJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('part_time', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo casuales
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos casuales
+  Future<ApiResult<List<DtoReceiveJobType>>> getCasualJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('casual', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo estacionales
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos estacionales
+  Future<ApiResult<List<DtoReceiveJobType>>> getSeasonalJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('seasonal', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo FIFO
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos FIFO
+  Future<ApiResult<List<DtoReceiveJobType>>> getFIFOJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('fifo', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo agrícolas
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos agrícolas
+  Future<ApiResult<List<DtoReceiveJobType>>> getAgriculturalJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('agricultural', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo mineros
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos mineros
+  Future<ApiResult<List<DtoReceiveJobType>>> getMiningJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('mining', activeOnly: activeOnly);
+  }
+
+  /// Obtiene los tipos de trabajo para visa de trabajo y vacaciones
+  /// 
+  /// [activeOnly] - Si solo se deben obtener los tipos activos
+  /// Retorna un [ApiResult] con los tipos para visa de trabajo y vacaciones
+  Future<ApiResult<List<DtoReceiveJobType>>> getWorkingHolidayJobTypes({bool activeOnly = true}) async {
+    return getJobTypesByEmploymentType('working_holiday', activeOnly: activeOnly);
   }
 }

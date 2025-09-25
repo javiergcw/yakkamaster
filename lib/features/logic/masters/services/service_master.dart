@@ -7,6 +7,8 @@ import '../models/receive/dto_receive_skill_category.dart';
 import '../models/receive/dto_receive_skill_subcategory.dart';
 import '../models/receive/dto_receive_skill.dart';
 import '../models/receive/dto_receive_payment_constant.dart';
+import '../models/receive/dto_receive_job_requirement.dart';
+import '../models/receive/dto_receive_job_type.dart';
 
 /// Servicio para operaciones de masters del API
 class ServiceMaster {
@@ -37,7 +39,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveExperienceLevel>>.error(
-        message: 'Error al obtener los niveles de experiencia: $e',
+        message: 'Error getting experience levels: $e',
         error: e,
       );
     }
@@ -63,7 +65,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveLicense>>.error(
-        message: 'Error al obtener las licencias: $e',
+        message: 'Error getting licenses: $e',
         error: e,
       );
     }
@@ -89,7 +91,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveSkillCategory>>.error(
-        message: 'Error al obtener las categorías de habilidades: $e',
+        message: 'Error getting skill categories: $e',
         error: e,
       );
     }
@@ -115,7 +117,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveSkillSubcategory>>.error(
-        message: 'Error al obtener las subcategorías de habilidades: $e',
+        message: 'Error getting skill subcategories: $e',
         error: e,
       );
     }
@@ -141,7 +143,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveSkill>>.error(
-        message: 'Error al obtener las habilidades: $e',
+        message: 'Error getting skills: $e',
         error: e,
       );
     }
@@ -170,7 +172,7 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<List<DtoReceiveSkillSubcategory>>.error(
-        message: 'Error al obtener las subcategorías de la categoría $categoryId: $e',
+        message: 'Error getting subcategories for category $categoryId: $e',
         error: e,
       );
     }
@@ -202,7 +204,71 @@ class ServiceMaster {
       return result;
     } catch (e) {
       return ApiResult<DtoReceivePaymentConstants>.error(
-        message: 'Error al obtener las constantes de pago: $e',
+        message: 'Error getting payment constants: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los requisitos de trabajo
+  Future<ApiResult<DtoReceiveJobRequirements>> getJobRequirements({bool activeOnly = true}) async {
+    try {
+      // Asegurar que el header de licencia esté configurado
+      await _crudService.headerManager.loadLicenseKey();
+      
+      // Construir parámetros de consulta
+      final queryParams = <String, String>{
+        'active_only': activeOnly.toString(),
+      };
+      
+      // Realizar petición GET al endpoint /api/v1/job-requirements
+      final response = await _crudService.getAll(
+        ApiMasterConstants.jobRequirements,
+        filters: queryParams,
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceiveJobRequirements
+      final result = await _responseHandler.handleResponse<DtoReceiveJobRequirements>(
+        response,
+        fromJson: DtoReceiveJobRequirements.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobRequirements>.error(
+        message: 'Error getting job requirements: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los tipos de trabajo
+  Future<ApiResult<DtoReceiveJobTypes>> getJobTypes({bool activeOnly = true}) async {
+    try {
+      // Asegurar que el header de licencia esté configurado
+      await _crudService.headerManager.loadLicenseKey();
+      
+      // Construir parámetros de consulta
+      final queryParams = <String, String>{
+        'active_only': activeOnly.toString(),
+      };
+      
+      // Realizar petición GET al endpoint /api/v1/job-types
+      final response = await _crudService.getAll(
+        ApiMasterConstants.jobTypes,
+        filters: queryParams,
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceiveJobTypes
+      final result = await _responseHandler.handleResponse<DtoReceiveJobTypes>(
+        response,
+        fromJson: DtoReceiveJobTypes.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobTypes>.error(
+        message: 'Error getting job types: $e',
         error: e,
       );
     }
