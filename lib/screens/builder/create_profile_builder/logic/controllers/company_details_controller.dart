@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import 'builder_profile_controller.dart';
@@ -90,7 +90,7 @@ class CompanyDetailsController extends GetxController {
     }
     
     // Guardar el perfil usando el controlador
-    final success = await builderProfileController.saveProfile();
+    final success = await builderProfileController.createBuilderProfile();
     
     if (success) {
       // Navegar de vuelta a la pantalla principal
@@ -107,3 +107,4 @@ class CompanyDetailsController extends GetxController {
     super.onClose();
   }
 }
+ */

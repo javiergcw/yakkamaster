@@ -9,14 +9,19 @@ import '../../presentation/widgets/company_selection_dialog.dart';
 import '../../presentation/pages/register_new_company_screen.dart';
 import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
 import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
+import '../../../../../features/logic/builder/use_case/builder_use_case.dart';
+import '../../../../../features/logic/builder/models/send/dto_send_builder_profile.dart';
 
 class CreateProfileBuilderController extends GetxController {
+  // ===== CASOS DE USO =====
+  final BuilderUseCase _builderUseCase = BuilderUseCase();
+  
   // Controllers para los campos de texto
-  final TextEditingController firstNameController = TextEditingController(text: 'testing');
-  final TextEditingController lastNameController = TextEditingController(text: 'builder');
-  final TextEditingController companyNameController = TextEditingController(text: 'Test company by Yakka');
-  final TextEditingController phoneController = TextEditingController(text: '2222222');
-  final TextEditingController emailController = TextEditingController(text: 'testingbuilder@gmail.com');
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController companyNameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   
   // Variables para la imagen de perfil
@@ -33,6 +38,9 @@ class CreateProfileBuilderController extends GetxController {
   
   // Flavor actual
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
+  
+  // Estado de carga
+  final RxBool isLoading = false.obs;
 
   @override
   void onInit() {
@@ -597,6 +605,43 @@ class CreateProfileBuilderController extends GetxController {
     Get.toNamed('/builder/lets-be-clear', arguments: {'flavor': currentFlavor.value});
   }
 
+  /// Maneja la aceptación en Let's Be Clear
+  void handleAccept() async {
+    try {
+      // Mostrar indicador de carga
+      isLoading.value = true;
+      
+      // Crear el perfil de builder antes de navegar
+      bool profileCreated = await createBuilderProfile();
+      
+      // Solo navegar si el perfil se creó exitosamente
+      if (profileCreated) {
+        Get.offAllNamed('/builder/profile-created', arguments: {'flavor': currentFlavor.value});
+      } else {
+        // Si falló la creación, mostrar mensaje de error
+        Get.snackbar(
+          'Error',
+          'Failed to create builder profile. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      // Manejar errores inesperados
+      Get.snackbar(
+        'Error',
+        'An unexpected error occurred: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+    } finally {
+      // Ocultar indicador de carga
+      isLoading.value = false;
+    }
+  }
+
   // Métodos para la pantalla de perfil creado
   void handleStartUsingYakka() {
     // Navegar al BuilderHomeScreen usando GetX
@@ -785,6 +830,91 @@ class CreateProfileBuilderController extends GetxController {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  /// Crea el perfil de builder usando el BuilderUseCase
+  Future<bool> createBuilderProfile() async {
+    try {
+      // Validar campos requeridos
+      if (firstNameController.text.trim().isEmpty) {
+        Get.snackbar(
+          'Error',
+          'First name is required',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+      
+      // Validar teléfono (mínimo 10 caracteres)
+      if (phoneController.text.trim().length < 10) {
+        Get.snackbar(
+          'Error',
+          'Phone number must be at least 10 digits',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+      
+      // Preparar licencias
+      List<DtoSendBuilderLicense> builderLicenses = [];
+      for (var license in this.licenses) {
+        if (license['uploaded'] == true && license['file'] != null) {
+          String fileName = license['file'].toString();
+          String licenseId = license['id'] ?? license['type'] ?? 'unknown';
+          
+          builderLicenses.add(DtoSendBuilderLicense(
+            licenseId: licenseId,
+            photoUrl: fileName,
+            issuedAt: DateTime.now().toIso8601String(),
+            expiresAt: DateTime.now().add(Duration(days: 365)).toIso8601String(),
+          ));
+        }
+      }
+      
+      // Crear perfil usando el BuilderUseCase
+      final result = await _builderUseCase.createBuilderProfile(
+        companyName: '', // Enviar vacío como solicitado
+        displayName: '${firstNameController.text.trim()} ${lastNameController.text.trim()}'.trim(),
+        location: addressController.text.trim(),
+        bio: '', // Enviar vacío como solicitado
+        avatarUrl: profileImage.value?.path ?? '',
+        phone: phoneController.text.trim(),
+        licenses: builderLicenses,
+      );
+      
+      if (result.isSuccess) {
+        Get.snackbar(
+          'Success',
+          'Builder profile created successfully!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return true;
+      } else {
+        Get.snackbar(
+          'Error',
+          'Failed to create builder profile: ${result.message ?? 'Unknown error'}',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+        return false;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to create builder profile: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+      return false;
+    }
   }
 }
 

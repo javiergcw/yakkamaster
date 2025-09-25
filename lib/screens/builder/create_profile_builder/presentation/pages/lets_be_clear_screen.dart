@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
-import '../../logic/controllers/lets_be_clear_controller.dart';
+import '../../logic/controllers/create_profile_builder_controller.dart';
 
 class LetsBeClearScreen extends StatelessWidget {
   static const String id = '/builder/lets-be-clear';
@@ -17,7 +17,7 @@ class LetsBeClearScreen extends StatelessWidget {
     this.flavor,
   });
 
-  final LetsBeClearController controller = Get.put(LetsBeClearController());
+  final CreateProfileBuilderController controller = Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +48,7 @@ class LetsBeClearScreen extends StatelessWidget {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: controller.handleBackNavigation,
+                    onPressed: controller.handleRespectBackNavigation,
                     icon: Icon(
                       Icons.arrow_back,
                       color: Colors.grey[600],
@@ -170,12 +170,12 @@ class LetsBeClearScreen extends StatelessWidget {
                     SizedBox(height: verticalSpacing * 3),
                     
                     // Botón de aceptación usando CustomButton
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: "I understand and accept",
-                      onPressed: controller.handleAccept,
-                      isLoading: false,
+                      onPressed: controller.isLoading.value ? null : controller.handleAccept,
+                      isLoading: controller.isLoading.value,
                       showShadow: false,
-                    ),
+                    )),
                     
                     SizedBox(height: verticalSpacing * 2),
                   ],

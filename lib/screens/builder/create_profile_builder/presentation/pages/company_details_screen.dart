@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
@@ -21,7 +21,7 @@ class CompanyDetailsScreen extends StatelessWidget {
 
   // Sombras tipo tarjeta
   final List<BoxShadow> strongCardShadows = const [
-    BoxShadow(
+    BoxShadow(/*  */
       color: Color(0xFF000000),
       offset: Offset(6, 8),
       blurRadius: 0,
@@ -266,3 +266,4 @@ class CompanyDetailsScreen extends StatelessWidget {
     );
   }
 }
+ */

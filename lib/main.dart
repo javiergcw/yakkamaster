@@ -20,7 +20,7 @@ void main() async {
     ),
   );
   
-  // Inicializar la aplicación
+  // Inicializar la aplicación  
   await _initializeApp();
   
   runApp(const YakkaSportsApp());
