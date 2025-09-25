@@ -94,11 +94,11 @@ class JobSitesListScreen extends StatelessWidget {
             // Main Content
             Expanded(
               child: Obx(() {
-                if (controller.jobSiteController.isLoading) {
+                if (controller.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (controller.jobSiteController.errorMessage.isNotEmpty) {
+                if (controller.errorMessage.value.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -110,7 +110,7 @@ class JobSitesListScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         Text(
-                          controller.jobSiteController.errorMessage,
+                          controller.errorMessage.value,
                           style: GoogleFonts.poppins(
                             fontSize: descriptionFontSize,
                             color: Colors.grey[600],
@@ -119,7 +119,7 @@ class JobSitesListScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         ElevatedButton(
-                          onPressed: () => controller.jobSiteController.loadJobSites(),
+                          onPressed: () => controller.loadJobSites(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -127,7 +127,7 @@ class JobSitesListScreen extends StatelessWidget {
                   );
                 }
 
-                if (controller.jobSiteController.jobSites.isEmpty) {
+                if (controller.jobSites.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -157,7 +157,7 @@ class JobSitesListScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing * 2),
                         ElevatedButton.icon(
-                          onPressed: _handleCreateJobSite,
+                          onPressed: controller.handleCreateJobSite,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(
                               AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value),
@@ -191,10 +191,10 @@ class JobSitesListScreen extends StatelessWidget {
                     vertical: verticalSpacing * 0.5,
                   ),
                   itemCount:
-                      controller.jobSiteController.jobSites.length +
+                      controller.jobSites.length +
                       1, // +1 para el botón de crear
                   itemBuilder: (context, index) {
-                    if (index == controller.jobSiteController.jobSites.length) {
+                    if (index == controller.jobSites.length) {
                       // Botón para crear job site al final
                       return Container(
                         margin: EdgeInsets.only(top: verticalSpacing),
@@ -228,13 +228,14 @@ class JobSitesListScreen extends StatelessWidget {
                       );
                     }
 
-                    final jobSite = controller.jobSiteController.jobSites[index];
+                    final jobSite = controller.jobSites[index];
+                    final jobSiteDto = controller.convertToJobSiteDto(jobSite);
                     return GestureDetector(
                       onTap: () => controller.handleJobSiteDetail(jobSite),
                       child: Container(
                         margin: EdgeInsets.only(bottom: verticalSpacing),
                         child: JobSiteListCard(
-                          jobSite: jobSite,
+                          jobSite: jobSiteDto,
                           onTap: () => controller.handleJobSiteDetail(jobSite),
                           onEdit: () => controller.handleEditJobSite(jobSite),
                         ),
@@ -250,73 +251,4 @@ class JobSitesListScreen extends StatelessWidget {
     );
   }
 
-  void _handleJobSiteDetail(dynamic jobSite) {
-    controller.handleJobSiteDetail(jobSite);
-  }
-
-  void _showJobSiteDetailModal(BuildContext context, dynamic jobSite) {
-    controller.showJobSiteDetailModal(jobSite);
-  }
-
-  Widget _buildDetailSection({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color? iconColor,
-    bool isDescription = false,
-    bool isStatus = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: iconColor!.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                size: isStatus ? 12 : 16,
-                color: iconColor,
-              ),
-            ),
-            SizedBox(width: 12),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        Padding(
-          padding: EdgeInsets.only(left: 44),
-          child: Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: isDescription ? 14 : 16,
-              fontWeight: isDescription ? FontWeight.w400 : FontWeight.w600,
-              color: isStatus ? Colors.green[700] : Colors.black,
-              height: isDescription ? 1.4 : 1.2,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-    void _handleEditJobSite(dynamic jobSite) {
-    controller.handleEditJobSite(jobSite);
-  }
-
-  void _handleCreateJobSite() {
-    controller.handleCreateJobSite();
-  }
 }

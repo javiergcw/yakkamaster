@@ -2,12 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
-import '../../../post_job/logic/controllers/job_site_controller.dart';
+import '../../../../../features/logic/builder/use_case/jobsites_use_case.dart';
+import '../../../../../features/logic/builder/models/receive/dto_receive_jobsite.dart';
+import '../../../post_job/data/dto/job_site_dto.dart';
 import '../../../post_job/presentation/pages/create_edit_job_site_screen.dart';
 
 class JobSitesListController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
-  late JobSiteController jobSiteController;
+  
+  // Nuevo caso de uso para jobsites
+  final JobsitesUseCase _jobsitesUseCase = JobsitesUseCase();
+  
+  // Estados reactivos para jobsites
+  final RxList<DtoReceiveJobsite> jobSites = <DtoReceiveJobsite>[].obs;
+  final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
 
   @override
   void onInit() {
@@ -15,20 +24,55 @@ class JobSitesListController extends GetxController {
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
     }
-    jobSiteController = Get.put(JobSiteController());
+    loadJobSites();
+  }
+
+  /// Carga los jobsites desde el API
+  Future<void> loadJobSites() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      
+      final result = await _jobsitesUseCase.getJobsites();
+      
+      if (result.isSuccess && result.data != null) {
+        jobSites.value = result.data!.jobsites;
+      } else {
+        errorMessage.value = result.message ?? 'Error loading job sites';
+        jobSites.clear();
+      }
+    } catch (e) {
+      errorMessage.value = 'Error loading job sites: $e';
+      jobSites.clear();
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  /// Convierte DtoReceiveJobsite a JobSiteDto para compatibilidad con la UI
+  JobSiteDto convertToJobSiteDto(DtoReceiveJobsite jobsite) {
+    return JobSiteDto(
+      id: jobsite.id,
+      name: jobsite.description, // Usar description como nombre
+      address: jobsite.address,
+      city: jobsite.city,
+      code: jobsite.id.substring(0, 8), // Usar parte del ID como código
+      location: jobsite.fullLocation, // Usar fullLocation
+      description: jobsite.description,
+      status: JobSiteStatus.inProgress, // Por defecto en progreso
+    );
   }
 
   void navigateBack() {
     Get.back();
   }
 
-  void handleJobSiteDetail(dynamic jobSite) {
+  void handleJobSiteDetail(DtoReceiveJobsite jobSite) {
     showJobSiteDetailModal(jobSite);
   }
 
-  void showJobSiteDetailModal(dynamic jobSite) {
+  void showJobSiteDetailModal(DtoReceiveJobsite jobSite) {
     final mediaQuery = MediaQuery.of(Get.context!);
-    final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
     Get.bottomSheet(
@@ -129,7 +173,7 @@ class JobSitesListController extends GetxController {
                     buildDetailSection(
                       icon: Icons.business,
                       title: 'Name',
-                      value: jobSite.name,
+                      value: jobSite.description, // Usar description como nombre
                       iconColor: Colors.blue[600],
                     ),
                     
@@ -139,21 +183,47 @@ class JobSitesListController extends GetxController {
                     buildDetailSection(
                       icon: Icons.location_on,
                       title: 'Location',
-                      value: jobSite.location,
+                      value: jobSite.fullLocation, // Usar fullLocation del DTO
                       iconColor: Colors.red[600],
                     ),
                     
-                    // Description Section (if not empty)
-                    if (jobSite.description.isNotEmpty) ...[
+                    // Address Section
+                    const SizedBox(height: 24),
+                    buildDetailSection(
+                      icon: Icons.home,
+                      title: 'Address',
+                      value: jobSite.address,
+                      iconColor: Colors.purple[600],
+                    ),
+                    
+                    // Phone Section
+                    if (jobSite.phone.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       buildDetailSection(
-                        icon: Icons.description,
-                        title: 'Description',
-                        value: jobSite.description,
-                        iconColor: Colors.orange[600],
-                        isDescription: true,
+                        icon: Icons.phone,
+                        title: 'Phone',
+                        value: jobSite.formattedPhone,
+                        iconColor: Colors.teal[600],
                       ),
                     ],
+                    
+                    // Coordinates Section
+                    const SizedBox(height: 24),
+                    buildDetailSection(
+                      icon: Icons.my_location,
+                      title: 'Coordinates',
+                      value: jobSite.coordinatesString,
+                      iconColor: Colors.indigo[600],
+                    ),
+                    
+                    // City and Suburb Section
+                    const SizedBox(height: 24),
+                    buildDetailSection(
+                      icon: Icons.location_city,
+                      title: 'City & Suburb',
+                      value: '${jobSite.suburb}, ${jobSite.city}',
+                      iconColor: Colors.amber[600],
+                    ),
                     
                     const SizedBox(height: 24),
                     
@@ -295,7 +365,7 @@ class JobSitesListController extends GetxController {
     );
   }
 
-  void handleEditJobSite(dynamic jobSite) {
+  void handleEditJobSite(DtoReceiveJobsite jobSite) {
     Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
       'flavor': currentFlavor.value,
       'jobSite': jobSite,
