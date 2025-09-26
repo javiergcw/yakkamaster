@@ -180,7 +180,7 @@ class CustomButton extends StatelessWidget {
       case ButtonType.primary:
         return Colors.white;
       case ButtonType.secondary:
-        return Colors.black87;
+        return Colors.white;
       case ButtonType.outline:
         return Colors.black;
     }

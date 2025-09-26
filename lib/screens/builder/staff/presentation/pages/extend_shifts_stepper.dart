@@ -404,53 +404,53 @@ class ExtendShiftsStepper extends StatelessWidget {
               runSpacing: 12,
               children: controller.selectedWorkerIds.map((workerId) {
                 final worker = controller.allWorkers.firstWhere((w) => w.id == workerId);
-                return Stack(
+                return Column(
                   children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        image: DecorationImage(
-                          image: NetworkImage(worker.imageUrl),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 0,
-                      right: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          controller.toggleWorkerSelection(worker.id);
-                        },
-                        child: Container(
-                          width: 24,
-                          height: 24,
+                    Stack(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
                           decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.close,
-                            size: 16,
-                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(40),
+                            image: DecorationImage(
+                              image: NetworkImage(worker.imageUrl),
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
-                      ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: () {
+                              controller.toggleWorkerSelection(worker.id);
+                            },
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.close,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Text(
-                        worker.name.split(' ').take(2).join('\n'),
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),
+                    SizedBox(height: 8),
+                    Text(
+                      worker.name.split(' ').take(2).join(' '),
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black,
                       ),
                     ),
                   ],
@@ -488,53 +488,53 @@ class ExtendShiftsStepper extends StatelessWidget {
                   runSpacing: 12,
                   children: controller.selectedWorkerIds.map((workerId) {
                     final worker = controller.allWorkers.firstWhere((w) => w.id == workerId);
-                    return Stack(
+                    return Column(
                       children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            image: DecorationImage(
-                              image: NetworkImage(worker.imageUrl),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: () {
-                              controller.toggleWorkerSelection(worker.id);
-                            },
-                            child: Container(
-                              width: 24,
-                              height: 24,
+                        Stack(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
                               decoration: BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                size: 16,
-                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(40),
+                                image: DecorationImage(
+                                  image: NetworkImage(worker.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                          ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: () {
+                                  controller.toggleWorkerSelection(worker.id);
+                                },
+                                child: Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Text(
-                            worker.name.split(' ').take(2).join('\n'),
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.poppins(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
+                        SizedBox(height: 8),
+                        Text(
+                          worker.name.split(' ').take(2).join(' '),
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
                           ),
                         ),
                       ],

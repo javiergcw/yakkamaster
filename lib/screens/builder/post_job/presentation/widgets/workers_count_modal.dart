@@ -65,7 +65,7 @@ class _WorkersCountModalState extends State<WorkersCountModal> {
               children: [
                 Expanded(
                   child: Text(
-                    "How many labourers?",
+                    "How many workers?",
                     style: GoogleFonts.poppins(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
@@ -88,7 +88,7 @@ class _WorkersCountModalState extends State<WorkersCountModal> {
             
             // Instruction
             Text(
-              "Enter the number of labourers that you need.",
+              "Enter the number of workers that you need.",
               style: GoogleFonts.poppins(
                 fontSize: instructionFontSize,
                 color: Colors.black87,

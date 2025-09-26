@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_skill.dart';
 import '../../data/dto/post_job_dto.dart';
 import '../../presentation/pages/post_job_stepper_screen.dart';
 import '../../presentation/pages/post_job_stepper_step2_screen.dart';
@@ -27,33 +30,18 @@ class UnifiedPostJobController extends GetxController {
   final TextEditingController searchController = TextEditingController();
   final RxList<String> filteredSkills = <String>[].obs;
   
-  // Lista completa de habilidades
-  final List<String> allSkills = [
-    'General Labourer',
-    'Carpenter',
-    'Electrician',
-    'Plumber',
-    'Bricklayer',
-    'Concreter',
-    'Painter',
-    'Excavator Operator',
-    'Truck Driver',
-    'Forklift Driver',
-    'Paver Operator',
-    'Truck LR Driver',
-    'Asbestos Remover',
-    'Elevator operator',
-    'Foreman',
-    'Tow Truck Driver',
-    'Lawn mower',
-    'Construction Foreman',
-    'Bulldozer Operator',
-    'Heavy Rigid Truck Driver',
-    'Traffic Controller',
-    'Bartender',
-    'Gardener',
-    'Truck HC Driver',
-  ];
+  // Variables para datos dinámicos de la API
+  final RxList<DtoReceiveSkill> allSkillsFromApi = <DtoReceiveSkill>[].obs;
+  final RxBool isLoadingSkills = false.obs;
+  
+  // Habilidades seleccionadas (usando ID único: "categoryId_subcategoryId")
+  final RxSet<String> selectedSkills = <String>{}.obs;
+  
+  // Categorías expandidas
+  final RxSet<String> expandedCategories = <String>{}.obs;
+  
+  // Mapa de categorías y sus subcategorías
+  final RxMap<String, List<String>> categorySubcategories = <String, List<String>>{}.obs;
 
   // ===== STEP 8 - SUPERVISOR SIGNATURE =====
   final RxString selectedOption = ''.obs;
@@ -71,47 +59,25 @@ class UnifiedPostJobController extends GetxController {
   final Rx<TimeOfDay?> selectedEndTime = Rx<TimeOfDay?>(null);
   final RxString selectedJobType = ''.obs;
 
-  final List<String> jobTypes = [
-    'Casual Job',
-    'Part time',
-    'Full time',
-    'Farms Job',
-    'Mining Job',
-    'FIFO',
-    'Seasonal job',
-    'W&H visa',
-    'Other',
-  ];
+  // Variables para datos dinámicos de la API
+  final RxList<dynamic> jobTypesFromApi = <dynamic>[].obs;
+  final RxBool isLoadingJobTypes = false.obs;
 
   // ===== STEP 6 - REQUIREMENTS =====
   final RxList<String> selectedRequirements = <String>[].obs;
   final RxString selectedCredential = ''.obs;
   final RxList<String> selectedCredentials = <String>[].obs;
+
+  // Variables para datos dinámicos de la API
+  final RxList<dynamic> jobRequirementsFromApi = <dynamic>[].obs;
+  final RxBool isLoadingJobRequirements = false.obs;
   final RxString description = ''.obs;
 
-  final List<String> jobRequirements = [
-    'White Card',
-    'First Aid',
-    'Driver License',
-    'Own Tools',
-    'Safety Boots',
-    'Hard Hat',
-    'High Vis Vest',
-    'Experience Required',
-  ];
 
-  final List<String> credentials = [
-    'White Card',
-    'First Aid Certificate',
-    'Driver License',
-    'Forklift License',
-    'Crane License',
-    'Excavator License',
-    'Working at Heights',
-    'Confined Space',
-    'Asbestos Awareness',
-    'Traffic Control',
-  ];
+  final MasterUseCase _masterUseCase = MasterUseCase();
+  final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
+  final RxList<String> credentials = <String>[].obs;
+  final RxBool isLoadingCredentials = false.obs;
 
   // ===== REVIEW SCREEN =====
   final RxBool isPublic = true.obs;
@@ -135,11 +101,23 @@ class UnifiedPostJobController extends GetxController {
       currentFlavor.value = Get.arguments['flavor'];
     }
     
-    // Inicializar habilidades filtradas
-    filteredSkills.assignAll(allSkills);
+    // Inicializar estado de carga
+    isLoadingSkills.value = true;
+    
+    // Cargar habilidades desde el backend
+    loadSkillsFromApi();
     
     // Inicializar estado público/privado
     isPublic.value = _postJobData.value.isPublic ?? true;
+    
+    // Cargar credenciales desde el backend
+    loadCredentialsFromApi();
+    
+    // Cargar tipos de trabajo desde el backend
+    loadJobTypesFromApi();
+    
+    // Cargar requisitos de trabajo desde el backend
+    loadJobRequirementsFromApi();
     
     // Inicializar datos existentes
     _initializeExistingData();
@@ -194,6 +172,217 @@ class UnifiedPostJobController extends GetxController {
     //   print('🔍 supervisorNameController listener triggered with: "${supervisorNameController.text}"');
     //   updateSupervisorName(supervisorNameController.text);
     // });
+  }
+
+  Future<void> loadCredentialsFromApi({bool showSnackbar = true}) async {
+    try {
+      isLoadingCredentials.value = true;
+      
+      final result = await _masterUseCase.getLicenses();
+      
+      if (result.isSuccess && result.data != null) {
+        licensesFromApi.value = result.data!;
+        credentials.value = result.data!.map((license) => license.name).toList();
+      }
+    } catch (e) {
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load credentials: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoadingCredentials.value = false;
+    }
+  }
+
+  Future<void> loadSkillsFromApi({bool showSnackbar = true}) async {
+    try {
+      print('🔄 Loading skills from API...');
+      isLoadingSkills.value = true;
+      
+      final result = await _masterUseCase.getSkills();
+      
+      if (result.isSuccess && result.data != null) {
+        print('✅ Skills loaded successfully: ${result.data!.length} items');
+        allSkillsFromApi.value = result.data!;
+        _processSkillsData();
+        print('✅ Skills processed: ${filteredSkills.length} categories');
+      } else {
+        print('❌ Failed to load skills: ${result.message}');
+      }
+    } catch (e) {
+      print('❌ Error loading skills: $e');
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load skills: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoadingSkills.value = false;
+      print('🔄 Skills loading completed');
+    }
+  }
+
+  void _processSkillsData() {
+    print('🔄 Processing skills data...');
+    // Procesar datos de la API para crear categorías y subcategorías
+    final Map<String, List<String>> categories = {};
+    
+    for (final skill in allSkillsFromApi) {
+      final categoryName = skill.name;
+      final subcategories = skill.subcategories.map((sub) => sub.name).toList();
+      
+      print('📁 Category: $categoryName with ${subcategories.length} subcategories');
+      categories[categoryName] = subcategories;
+    }
+    
+    categorySubcategories.value = categories;
+    filteredSkills.value = categories.keys.toList();
+    print('✅ Skills data processed: ${categories.length} categories');
+  }
+
+  void toggleCategory(String category) {
+    if (expandedCategories.contains(category)) {
+      expandedCategories.remove(category);
+    } else {
+      expandedCategories.add(category);
+    }
+  }
+
+  void toggleSubcategory(String subcategory, String category) {
+    final uniqueId = "${category}_$subcategory";
+    if (selectedSkills.contains(uniqueId)) {
+      selectedSkills.remove(uniqueId);
+    } else {
+      // Remover todas las subskills de esta categoría específica
+      final subcategories = getSubcategoriesForCategory(category);
+      for (final sub in subcategories) {
+        final subId = "${category}_$sub";
+        selectedSkills.remove(subId);
+      }
+      // Agregar la nueva subskill seleccionada
+      selectedSkills.add(uniqueId);
+      // Cerrar la sección de subcategorías
+      expandedCategories.remove(category);
+    }
+  }
+
+  String getUniqueSubcategoryId(String subcategory) {
+    // Buscar la categoría padre de esta subcategoría
+    for (final entry in categorySubcategories.entries) {
+      if (entry.value.contains(subcategory)) {
+        return "${entry.key}_$subcategory";
+      }
+    }
+    return subcategory;
+  }
+
+  String getSkillNameFromUniqueId(String uniqueId) {
+    final parts = uniqueId.split('_');
+    if (parts.length >= 2) {
+      return parts.sublist(1).join('_');
+    }
+    return uniqueId;
+  }
+
+  List<String> getSubcategoriesForCategory(String category) {
+    return categorySubcategories[category] ?? [];
+  }
+
+  String? getCategoryFromSubcategory(String subcategory) {
+    // Buscar la categoría padre de esta subcategoría
+    for (final entry in categorySubcategories.entries) {
+      if (entry.value.contains(subcategory)) {
+        return entry.key;
+      }
+    }
+    return null;
+  }
+
+  String? getCategoryFromUniqueId(String uniqueId) {
+    // Extraer la categoría del ID único
+    final parts = uniqueId.split('_');
+    if (parts.length >= 2) {
+      return parts[0];
+    }
+    return null;
+  }
+
+  void resetSelections() {
+    selectedSkills.clear();
+    expandedCategories.clear();
+  }
+
+  Future<void> loadJobTypesFromApi({bool showSnackbar = true}) async {
+    try {
+      print('🔄 Loading job types from API...');
+      isLoadingJobTypes.value = true;
+      
+      final result = await _masterUseCase.getJobTypes();
+      
+      if (result.isSuccess && result.data != null) {
+        print('✅ Job types loaded successfully: ${result.data!.types.length} items');
+        // Mapear los tipos de trabajo a una lista simple de nombres
+        jobTypesFromApi.value = result.data!.types.map((jobType) => jobType.name).toList();
+        print('✅ Job types processed: ${jobTypesFromApi.length} types');
+      } else {
+        print('❌ Failed to load job types: ${result.message}');
+      }
+    } catch (e) {
+      print('❌ Error loading job types: $e');
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load job types: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoadingJobTypes.value = false;
+      print('🔄 Job types loading completed');
+    }
+  }
+
+  Future<void> loadJobRequirementsFromApi({bool showSnackbar = true}) async {
+    try {
+      print('🔄 Loading job requirements from API...');
+      isLoadingJobRequirements.value = true;
+      
+      final result = await _masterUseCase.getJobRequirements();
+      
+      if (result.isSuccess && result.data != null) {
+        print('✅ Job requirements loaded successfully: ${result.data!.requirements.length} items');
+        // Mapear los requisitos de trabajo a una lista simple de nombres
+        jobRequirementsFromApi.value = result.data!.requirements.map((requirement) => requirement.name).toList();
+        print('✅ Job requirements processed: ${jobRequirementsFromApi.length} requirements');
+      } else {
+        print('❌ Failed to load job requirements: ${result.message}');
+      }
+    } catch (e) {
+      print('❌ Error loading job requirements: $e');
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load job requirements: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoadingJobRequirements.value = false;
+      print('🔄 Job requirements loading completed');
+    }
   }
 
   // ===== STEP MANAGEMENT =====
@@ -260,17 +449,33 @@ class UnifiedPostJobController extends GetxController {
     final query = searchController.text.toLowerCase().trim();
     
     if (query.isEmpty) {
-      filteredSkills.assignAll(allSkills);
+      filteredSkills.assignAll(categorySubcategories.keys.toList());
     } else {
-      filteredSkills.assignAll(
-        allSkills.where((skill) => skill.toLowerCase().contains(query)).toList()
-      );
+      // Buscar en categorías y subcategorías
+      final matchingCategories = <String>[];
+      
+      for (final entry in categorySubcategories.entries) {
+        final category = entry.key;
+        final subcategories = entry.value;
+        
+        // Buscar en el nombre de la categoría
+        if (category.toLowerCase().contains(query)) {
+          matchingCategories.add(category);
+        } else {
+          // Buscar en las subcategorías
+          final hasMatchingSubcategory = subcategories.any(
+            (subcategory) => subcategory.toLowerCase().contains(query)
+          );
+          if (hasMatchingSubcategory) {
+            matchingCategories.add(category);
+          }
+        }
+      }
+      
+      filteredSkills.assignAll(matchingCategories);
     }
   }
 
-  void updateSelectedSkill(String skill) {
-    _postJobData.value = _postJobData.value.copyWith(selectedSkill: skill);
-  }
 
   // ===== STEP 2 - WORKERS COUNT =====
   void updateWorkersNeeded(int workers) {
@@ -508,8 +713,7 @@ class UnifiedPostJobController extends GetxController {
 
   // ===== VALIDATION =====
   bool isStep1Valid() {
-    return _postJobData.value.selectedSkill != null && 
-           _postJobData.value.selectedSkill!.isNotEmpty;
+    return selectedSkills.isNotEmpty;
   }
 
   bool isStep2Valid() {

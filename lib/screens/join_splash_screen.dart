@@ -69,28 +69,19 @@ class JoinSplashScreen extends StatelessWidget {
                             style: GoogleFonts.poppins(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Colors.white,
                               letterSpacing: 1,
                             ),
                             textAlign: TextAlign.center,
                           )),
                           const SizedBox(height: 8),
-                          Obx(() => Text(
-                            controller.getJoinSubtitle(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                            textAlign: TextAlign.center,
-                          )),
-                          const SizedBox(height: 30),
+                         
                           Obx(() => Text(
                             controller.getJoinDescription(),
                             style: GoogleFonts.poppins(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Colors.white,
                               height: 1.2,
                             ),
                             textAlign: TextAlign.center,
@@ -110,7 +101,7 @@ class JoinSplashScreen extends StatelessWidget {
               child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.black87.withOpacity(0.8),
+                  Colors.white.withOpacity(0.8),
                 ),
               ),
             ),

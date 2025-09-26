@@ -73,7 +73,7 @@ class SearchButtonBar extends StatelessWidget {
                     icon: Icon(
                       Icons.search,
                       size: iconSize,
-                      color: Colors.black87,
+                      color: Colors.white,
                     ),
                     padding: EdgeInsets.zero,
                     constraints: BoxConstraints(

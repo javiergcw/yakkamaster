@@ -111,7 +111,7 @@ class _CostEditModalState extends State<CostEditModal> {
                children: [
                  Expanded(
                    child: Text(
-                     "Add cost",
+                     widget.title,
                      style: GoogleFonts.poppins(
                        fontSize: titleFontSize,
                        fontWeight: FontWeight.bold,
@@ -160,7 +160,7 @@ class _CostEditModalState extends State<CostEditModal> {
                     ),
                     child: Icon(
                       Icons.remove,
-                      color: Colors.black,
+                      color: Colors.white,
                       size: buttonSize * 0.4,
                     ),
                   ),
@@ -204,7 +204,7 @@ class _CostEditModalState extends State<CostEditModal> {
                     ),
                     child: Icon(
                       Icons.add,
-                      color: Colors.black,
+                      color: Colors.white,
                       size: buttonSize * 0.4,
                     ),
                   ),

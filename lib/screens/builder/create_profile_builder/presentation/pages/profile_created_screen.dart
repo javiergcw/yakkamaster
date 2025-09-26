@@ -77,7 +77,7 @@ class ProfileCreatedScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: titleFontSize,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -90,7 +90,7 @@ class ProfileCreatedScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: subtitleFontSize,
                     fontWeight: FontWeight.w400,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -132,7 +132,7 @@ class ProfileCreatedScreen extends StatelessWidget {
                     style: GoogleFonts.poppins(
                       fontSize: subtitleFontSize,
                       fontWeight: FontWeight.w400,
-                      color: Colors.black,
+                      color: Colors.white,
                       decoration: TextDecoration.underline,
                     ),
                   ),

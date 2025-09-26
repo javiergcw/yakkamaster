@@ -61,7 +61,7 @@ class StepperSelectionScreen extends StatelessWidget {
               // Opción WORK
               Obx(() => StepperSelectionCard(
                 title: "WORK",
-                subtitle: "Looking for a job",
+                subtitle: "Looking for Sport Jobs",
                 icon: Icons.work,
                 onTap: controller.handleWorkSelection,
                 iconSize: iconSize,
@@ -75,7 +75,7 @@ class StepperSelectionScreen extends StatelessWidget {
               // Opción HIRE
               Obx(() => StepperSelectionCard(
                 title: "HIRE",
-                subtitle: "Connect with sport proffesionals ",
+                subtitle: "Looking for Sport Professionals",
                 icon: Icons.person_add,
                 onTap: controller.handleHireSelection,
                 iconSize: iconSize,

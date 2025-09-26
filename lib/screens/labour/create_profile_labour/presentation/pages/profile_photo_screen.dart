@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
 import '../../logic/controllers/create_profile_controller.dart';
@@ -114,103 +115,41 @@ class ProfilePhotoScreen extends StatelessWidget {
                     
                     SizedBox(height: verticalSpacing * 2),
                     
-                    // Modal de opciones de foto
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(horizontalPadding),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: const Color(0xFFE5E7EB),
-                          width: 1,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "Take a photo or upload one?",
-                            style: GoogleFonts.poppins(
-                              fontSize: modalFontSize,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
+                    // Botón para abrir modal de opciones
+                    Center(
+                      child: SizedBox(
+                        width: screenWidth * 0.7, // Reducir ancho al 70%
+                        child: ElevatedButton(
+                          onPressed: () => controller.showPhotoOptions(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.8), // Reducir altura
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            textAlign: TextAlign.center,
+                            elevation: 0,
                           ),
-                          
-                          SizedBox(height: verticalSpacing),
-                          
-                          // Botones de cámara y galería
-                          Row(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => controller.showPhotoOptions(),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black, // Negro
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.camera_alt,
-                                          color: Colors.white,
-                                          size: buttonFontSize * 1.2,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          "Camera",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: buttonFontSize,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
+                              Icon(
+                                Icons.camera_alt,
+                                size: buttonFontSize * 1.0, // Reducir tamaño del icono
+                                color: Colors.white,
                               ),
-                              
-                              SizedBox(width: 16),
-                              
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: () => controller.showPhotoOptions(),
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black, // Negro
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.photo_library,
-                                          color: Colors.white,
-                                          size: buttonFontSize * 1.2,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          "Gallery",
-                                          style: GoogleFonts.poppins(
-                                            fontSize: buttonFontSize,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Take a photo or upload one?",
+                                style: GoogleFonts.poppins(
+                                  fontSize: buttonFontSize * 0.9, // Reducir tamaño del texto
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
                                 ),
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                     

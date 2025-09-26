@@ -34,7 +34,6 @@ class PostJobStepperStep5Screen extends StatelessWidget {
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
     final questionFontSize = screenWidth * 0.075;
-    final subtitleFontSize = screenWidth * 0.045;
     final iconSize = screenWidth * 0.06;
     
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
@@ -194,10 +193,8 @@ class PostJobStepperStep5Screen extends StatelessWidget {
   Widget _buildTimeInputFields(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
     
     final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
     return Row(
@@ -250,51 +247,91 @@ class PostJobStepperStep5Screen extends StatelessWidget {
     
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
-    final chipHeight = screenHeight * 0.045; // Reducido de 0.06 a 0.045
-    final chipFontSize = screenWidth * 0.03; // Reducido de 0.035 a 0.03
+    final chipHeight = screenHeight * 0.045;
+    final chipFontSize = screenWidth * 0.03;
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
-    return Wrap(
-      spacing: horizontalPadding * 0.5,
-      runSpacing: verticalSpacing * 0.8,
-      children: controller.jobTypes.map((jobType) {
-        return Obx(() {
-          final isSelected = controller.selectedJobType.value == jobType;
-          
-          return GestureDetector(
-            onTap: () {
-              controller.updateJobType(jobType);
-            },
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: horizontalPadding * 0.8,
-              vertical: verticalSpacing * 0.6,
+    return Obx(() {
+      if (controller.isLoadingJobTypes.value) {
+        return Container(
+          padding: EdgeInsets.all(verticalSpacing * 2),
+          child: Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                ),
+                SizedBox(height: verticalSpacing),
+                Text(
+                  'Loading job types...',
+                  style: GoogleFonts.poppins(
+                    fontSize: screenWidth * 0.035,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
-            decoration: BoxDecoration(
-              color: isSelected 
-                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(chipHeight * 0.5),
-              border: Border.all(
-                color: isSelected
-                    ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
-                    : Colors.grey[300]!,
-                width: 1,
-              ),
-            ),
+          ),
+        );
+      }
+      
+      if (controller.jobTypesFromApi.isEmpty) {
+        return Container(
+          padding: EdgeInsets.all(verticalSpacing * 2),
+          child: Center(
             child: Text(
-              jobType,
+              'No job types available',
               style: GoogleFonts.poppins(
-                fontSize: chipFontSize,
-                fontWeight: FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.black,
+                fontSize: screenWidth * 0.035,
+                color: Colors.grey[600],
               ),
             ),
           ),
         );
-        });
-      }).toList(),
-    );
+      }
+      
+      return Wrap(
+        spacing: horizontalPadding * 0.5,
+        runSpacing: verticalSpacing * 0.8,
+        children: controller.jobTypesFromApi.map((jobType) {
+          return Obx(() {
+            final isSelected = controller.selectedJobType.value == jobType;
+            
+            return GestureDetector(
+              onTap: () {
+                controller.updateJobType(jobType);
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding * 0.8,
+                  vertical: verticalSpacing * 0.6,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(chipHeight * 0.5),
+                  border: Border.all(
+                    color: isSelected
+                        ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
+                        : Colors.grey[300]!,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  jobType,
+                  style: GoogleFonts.poppins(
+                    fontSize: chipFontSize,
+                    fontWeight: FontWeight.w500,
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+              ),
+            );
+          });
+        }).toList(),
+      );
+    });
   }
 
   void _showTimePicker(BuildContext context, bool isStartTime) {

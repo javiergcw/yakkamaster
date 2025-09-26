@@ -81,7 +81,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return "Login with your phone number.";
       case AppFlavor.sport:
-        return "Join the game with your phone.";
+        return "Login with your phone number";
       case AppFlavor.hospitality:
         return "Access your account.";
     }
@@ -228,7 +228,7 @@ class AppFlavorConfig {
       case AppFlavor.labour:
         return 'No worries.';
       case AppFlavor.sport:
-        return 'No limits.';
+        return '';
       case AppFlavor.hospitality:
         return 'No boundaries.';
     }

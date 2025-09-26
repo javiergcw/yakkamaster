@@ -74,7 +74,7 @@ class LicenseBuilderScreen extends StatelessWidget {
                   // Título principal centrado
                   Center(
                     child: Text(
-                      "Finally, add one licence",
+                      "Finally, add at least one credential",
                       style: GoogleFonts.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,
@@ -98,7 +98,7 @@ class LicenseBuilderScreen extends StatelessWidget {
                   
                   SizedBox(height: verticalSpacing * 0.8),
                   
-                  // Dropdown y botón Add License
+                  // Dropdown y botón Add Credential
                   Row(
                     children: [
                       Expanded(
@@ -155,16 +155,16 @@ class LicenseBuilderScreen extends StatelessWidget {
                               children: [
                                 Icon(
                                   Icons.add,
-                                  color: Colors.black,
+                                  color: Colors.white,
                                   size: screenWidth * 0.04,
                                 ),
                                 SizedBox(height: verticalSpacing * 0.1),
                                 Text(
-                                  "Add License",
+                                  "Add Credential",
                                   style: GoogleFonts.poppins(
                                     fontSize: buttonFontSize * 0.6,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.black,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ],
@@ -300,7 +300,7 @@ class LicenseBuilderScreen extends StatelessWidget {
                     if (controller.licenses.isEmpty) {
                       return Center(
                         child: Text(
-                          "*To avoid scammers we require minimum 1 licence to verify your Identity",
+                          "*To avoid scammers we require minimum 1 credential to verify your Identity",
                           style: GoogleFonts.poppins(
                             fontSize: sectionFontSize,
                             fontWeight: FontWeight.bold,

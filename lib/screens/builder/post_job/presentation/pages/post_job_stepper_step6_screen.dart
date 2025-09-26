@@ -213,7 +213,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
                                ),
                               child: Icon(
                                 Icons.add,
-                                color: Colors.black,
+                                color: Colors.white,
                                 size: screenWidth * 0.06,
                               ),
                             ),
@@ -250,7 +250,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
                                    credential,
                                    style: GoogleFonts.poppins(
                                      fontSize: screenWidth * 0.03,
-                                     color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                                     color: Colors.white,
                                    ),
                                  ),
                                  SizedBox(width: horizontalPadding * 0.3),
@@ -261,7 +261,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
                                    child: Icon(
                                      Icons.close,
                                      size: screenWidth * 0.035,
-                                     color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                                     color: Colors.white,
                                    ),
                                  ),
                                ],
@@ -362,17 +362,57 @@ class PostJobStepperStep6Screen extends StatelessWidget {
     final chipFontSize = screenWidth * 0.03;
     final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
 
-    return Column(
-      children: [
-        for (int i = 0; i < controller.jobRequirements.length; i += 2)
-          Padding(
-            padding: EdgeInsets.only(bottom: verticalSpacing * 0.8),
-            child: Row(
-              children: _buildRequirementRow(i, horizontalPadding, verticalSpacing, chipHeight, chipFontSize, currentFlavor),
+    return Obx(() {
+      if (controller.isLoadingJobRequirements.value) {
+        return Container(
+          padding: EdgeInsets.all(verticalSpacing * 2),
+          child: Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(
+                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor)),
+                ),
+                SizedBox(height: verticalSpacing),
+                Text(
+                  'Loading job requirements...',
+                  style: GoogleFonts.poppins(
+                    fontSize: screenWidth * 0.035,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
           ),
-      ],
-    );
+        );
+      }
+      
+      if (controller.jobRequirementsFromApi.isEmpty) {
+        return Container(
+          padding: EdgeInsets.all(verticalSpacing * 2),
+          child: Center(
+            child: Text(
+              'No job requirements available',
+              style: GoogleFonts.poppins(
+                fontSize: screenWidth * 0.035,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+        );
+      }
+      
+      return Column(
+        children: [
+          for (int i = 0; i < controller.jobRequirementsFromApi.length; i += 2)
+            Padding(
+              padding: EdgeInsets.only(bottom: verticalSpacing * 0.8),
+              child: Row(
+                children: _buildRequirementRow(i, horizontalPadding, verticalSpacing, chipHeight, chipFontSize, currentFlavor),
+              ),
+            ),
+        ],
+      );
+    });
   }
 
   List<Widget> _buildRequirementRow(int i, double horizontalPadding, double verticalSpacing, double chipHeight, double chipFontSize, AppFlavor currentFlavor) {
@@ -381,7 +421,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
       Expanded(
         child: Obx(() => GestureDetector(
           onTap: () {
-            controller.toggleRequirement(controller.jobRequirements[i]);
+            controller.toggleRequirement(controller.jobRequirementsFromApi[i]);
           },
           child: Container(
             padding: EdgeInsets.symmetric(
@@ -389,23 +429,23 @@ class PostJobStepperStep6Screen extends StatelessWidget {
               vertical: verticalSpacing * 0.6,
             ),
             decoration: BoxDecoration(
-              color: controller.selectedRequirements.contains(controller.jobRequirements[i])
+              color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i])
                   ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                   : Colors.white,
               borderRadius: BorderRadius.circular(chipHeight * 0.5),
               border: Border.all(
-                color: controller.selectedRequirements.contains(controller.jobRequirements[i])
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i])
                     ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                     : Colors.grey[300]!,
                 width: 1,
               ),
             ),
             child: Text(
-              controller.jobRequirements[i],
+              controller.jobRequirementsFromApi[i],
               style: GoogleFonts.poppins(
                 fontSize: chipFontSize,
                 fontWeight: FontWeight.w500,
-                color: controller.selectedRequirements.contains(controller.jobRequirements[i]) ? Colors.white : Colors.black,
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i]) ? Colors.white : Colors.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -417,11 +457,11 @@ class PostJobStepperStep6Screen extends StatelessWidget {
       SizedBox(width: horizontalPadding * 0.5),
       
       // Second column (if exists)
-      if (i + 1 < controller.jobRequirements.length)
+      if (i + 1 < controller.jobRequirementsFromApi.length)
         Expanded(
           child: Obx(() => GestureDetector(
             onTap: () {
-              controller.toggleRequirement(controller.jobRequirements[i + 1]);
+              controller.toggleRequirement(controller.jobRequirementsFromApi[i + 1]);
             },
             child: Container(
               padding: EdgeInsets.symmetric(
@@ -429,23 +469,23 @@ class PostJobStepperStep6Screen extends StatelessWidget {
                 vertical: verticalSpacing * 0.6,
               ),
               decoration: BoxDecoration(
-                color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1])
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1])
                     ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                     : Colors.white,
                 borderRadius: BorderRadius.circular(chipHeight * 0.5),
                 border: Border.all(
-                  color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1])
+                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1])
                       ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                       : Colors.grey[300]!,
                   width: 1,
                 ),
               ),
               child: Text(
-                controller.jobRequirements[i + 1],
+                controller.jobRequirementsFromApi[i + 1],
                 style: GoogleFonts.poppins(
                   fontSize: chipFontSize,
                   fontWeight: FontWeight.w500,
-                  color: controller.selectedRequirements.contains(controller.jobRequirements[i + 1]) ? Colors.white : Colors.black,
+                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1]) ? Colors.white : Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -502,25 +542,47 @@ class PostJobStepperStep6Screen extends StatelessWidget {
               ),
             ),
             Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: controller.credentials.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      controller.credentials[index],
+              child: Obx(() {
+                if (controller.isLoadingCredentials.value) {
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    child: const CircularProgressIndicator(),
+                  );
+                }
+                
+                if (controller.credentials.isEmpty) {
+                  return Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'No credentials available',
                       style: GoogleFonts.poppins(
                         fontSize: itemFontSize,
-                        color: Colors.black87,
+                        color: Colors.grey[600],
                       ),
                     ),
-                    onTap: () {
-                      controller.setSelectedCredential(controller.credentials[index]);
-                      Navigator.pop(context);
-                    },
                   );
-                },
-              ),
+                }
+                
+                return ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: controller.credentials.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        controller.credentials[index],
+                        style: GoogleFonts.poppins(
+                          fontSize: itemFontSize,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      onTap: () {
+                        controller.setSelectedCredential(controller.credentials[index]);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                );
+              }),
             ),
           ],
         ),

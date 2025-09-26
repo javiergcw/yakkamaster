@@ -2,8 +2,13 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
 
 class EditDocumentsController extends GetxController {
+  // Instancia del caso de uso
+  final MasterUseCase _masterUseCase = MasterUseCase();
+  
   // Variables observables para el estado
   final RxString selectedCredential = ''.obs;
   final RxBool isUploading = false.obs;
@@ -11,20 +16,45 @@ class EditDocumentsController extends GetxController {
   final RxString uploadingFileName = ''.obs;
   final RxList<DocumentModel> documents = <DocumentModel>[].obs;
   
-  final List<String> credentials = [
-    'Driver License',
-    'White Card',
-    'First Aid Certificate',
-    'Forklift License',
-    'Crane License',
-    'Scaffolding License',
-    'Working at Heights',
-    'Confined Spaces',
-    'Asbestos Awareness',
-    'Other'
-  ];
+  // Variables para datos dinámicos de la API
+  final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
+  final RxList<String> credentials = <String>[].obs;
+  final RxBool isLoadingCredentials = false.obs;
 
   int get uploadedDocumentsCount => documents.where((doc) => isDocumentReallyUploaded(doc)).length;
+
+  @override
+  void onInit() {
+    super.onInit();
+    // Cargar credenciales desde la API
+    loadCredentialsFromApi();
+  }
+
+  /// Carga las credenciales desde la API
+  Future<void> loadCredentialsFromApi({bool showSnackbar = true}) async {
+    try {
+      isLoadingCredentials.value = true;
+      
+      final result = await _masterUseCase.getLicenses();
+      
+      if (result.isSuccess && result.data != null) {
+        licensesFromApi.value = result.data!;
+        credentials.value = result.data!.map((license) => license.name).toList();
+      }
+    } catch (e) {
+      if (showSnackbar) {
+        Get.snackbar(
+          'Error',
+          'Failed to load credentials: $e',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } finally {
+      isLoadingCredentials.value = false;
+    }
+  }
 
   void setSelectedCredential(String credential) {
     selectedCredential.value = credential;
@@ -171,27 +201,49 @@ class EditDocumentsController extends GetxController {
                 ),
               ),
             ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: credentials.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      credentials[index],
-                      style: GoogleFonts.poppins(
-                        fontSize: itemFontSize,
-                        color: Colors.black87,
-                      ),
+            Obx(() {
+              if (isLoadingCredentials.value) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  child: const CircularProgressIndicator(),
+                );
+              }
+              
+              if (credentials.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Text(
+                    'No credentials available',
+                    style: GoogleFonts.poppins(
+                      fontSize: itemFontSize,
+                      color: Colors.grey[600],
                     ),
-                    onTap: () {
-                      setSelectedCredential(credentials[index]);
-                      Get.back();
-                    },
-                  );
-                },
-              ),
-            ),
+                  ),
+                );
+              }
+              
+              return Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: credentials.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        credentials[index],
+                        style: GoogleFonts.poppins(
+                          fontSize: itemFontSize,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      onTap: () {
+                        setSelectedCredential(credentials[index]);
+                        Get.back();
+                      },
+                    );
+                  },
+                ),
+              );
+            }),
           ],
         ),
       ),

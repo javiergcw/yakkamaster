@@ -111,7 +111,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             Obx(() => Text(
               controller.whatQuery.value.isNotEmpty 
                   ? controller.whatQuery.value 
-                  : 'All Jobs',
+                  : 'Available Jobs',
               style: GoogleFonts.poppins(
                 fontSize: bodyFontSize * 1.1,
                 fontWeight: FontWeight.bold,
@@ -172,7 +172,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
               ),
               child: Center(
                 child: Obx(() => Text(
-                  'All ${controller.jobCount.value} Jobs',
+                  'Available ${controller.jobCount.value} Jobs',
                   style: GoogleFonts.poppins(
                     fontSize: bodyFontSize,
                     fontWeight: FontWeight.bold,

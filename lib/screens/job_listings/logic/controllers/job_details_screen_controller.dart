@@ -9,6 +9,7 @@ class JobDetailsScreenController extends GetxController {
   final RxBool showSuccessModal = false.obs;
   final Rx<JobDetailsDto?> jobDetails = Rx<JobDetailsDto?>(null);
   final RxBool isFromAppliedJobs = false.obs;
+  final RxBool isFromBuilder = false.obs;
 
   // Variable para activar/desactivar la verificación bancaria
   static const bool enableBankVerification = false; // Cambiar a false para desactivar
@@ -29,6 +30,9 @@ class JobDetailsScreenController extends GetxController {
         isFromAppliedJobs.value = arguments['isFromAppliedJobs'];
         // Si viene de trabajos aplicados, marcar como ya aplicado
         hasApplied.value = arguments['isFromAppliedJobs'];
+      }
+      if (arguments['isFromBuilder'] != null) {
+        isFromBuilder.value = arguments['isFromBuilder'];
       }
     }
   }

@@ -246,7 +246,7 @@ class BuilderHomeScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.add_circle_outline, color: Colors.black, size: 38),
+            Icon(Icons.add_circle_outline, color: Colors.white, size: 38),
             SizedBox(width: horizontalPadding * 0.4),
             Expanded(
               child: Text(
@@ -254,13 +254,13 @@ class BuilderHomeScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: bodyFontSize,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
               ),
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.black,
+              color: Colors.white,
               size: bodyFontSize * 1.1,
             ),
           ],

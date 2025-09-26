@@ -66,7 +66,7 @@ class CreateEditJobSiteScreen extends StatelessWidget {
                   // Title
                   Expanded(
                     child: Text(
-                      "Where do you need labourers?",
+                      "Where do you need workers?",
                       style: GoogleFonts.poppins(
                         fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,

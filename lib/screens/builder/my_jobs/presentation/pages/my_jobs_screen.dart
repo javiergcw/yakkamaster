@@ -292,6 +292,7 @@ class MyJobsScreen extends StatelessWidget {
       'jobDetails': jobDetails,
       'flavor': flavor,
       'isFromAppliedJobs': false,
+      'isFromBuilder': true, // Indicar que viene del builder
     });
   }
 

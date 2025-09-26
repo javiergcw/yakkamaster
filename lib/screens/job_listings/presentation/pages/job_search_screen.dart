@@ -383,7 +383,7 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
             style: GoogleFonts.poppins(
               fontSize: bodyFontSize * 1.1,
               fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              color: Colors.white,
             ),
           ),
         ),
@@ -443,7 +443,7 @@ class _JobSearchScreenState extends State<JobSearchScreen> {
                   style: GoogleFonts.poppins(
                     fontSize: bodyFontSize * 0.8,
                     fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+                    color: Colors.white,
                   ),
                 ),
               ),

@@ -166,7 +166,7 @@ class NotificationsScreen extends StatelessWidget {
           style: GoogleFonts.poppins(
             fontSize: fontSize,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? Colors.black87 : Colors.grey[600],
+            color: isSelected ? Colors.white : Colors.grey[600],
           ),
         ),
       ),

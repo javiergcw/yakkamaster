@@ -352,37 +352,9 @@ class CreateProfileController extends GetxController {
       if (result.isSuccess && result.data != null) {
         allSkillsFromApi.value = result.data!;
         filteredSkills.value = result.data!.map((skill) => skill.name).toList();
-        
-        if (showSnackbar) {
-          Get.snackbar(
-            'Success',
-            'Skills loaded successfully (${result.data!.length} skills)',
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
-          );
-        }
-      } else {
-        if (showSnackbar) {
-          Get.snackbar(
-            'Error',
-            'Failed to load skills: ${result.message ?? 'Unknown error'}',
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        }
       }
     } catch (e) {
-      if (showSnackbar) {
-        Get.snackbar(
-          'Error',
-          'Failed to load skills: $e',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-        );
-      }
+      // Error handling without snackbar
     } finally {
       isLoadingSkills.value = false;
     }
@@ -397,37 +369,9 @@ class CreateProfileController extends GetxController {
       
       if (result.isSuccess && result.data != null) {
         experienceLevelsFromApi.value = result.data!;
-        
-        if (showSnackbar) {
-          Get.snackbar(
-            'Success',
-            'Experience levels loaded successfully (${result.data!.length} levels)',
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 2),
-          );
-        }
-      } else {
-        if (showSnackbar) {
-          Get.snackbar(
-            'Error',
-            'Failed to load experience levels: ${result.message ?? 'Unknown error'}',
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: const Duration(seconds: 3),
-          );
-        }
       }
     } catch (e) {
-      if (showSnackbar) {
-        Get.snackbar(
-          'Error',
-          'Failed to load experience levels: $e',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: const Duration(seconds: 3),
-        );
-      }
+      // Error handling without snackbar
     } finally {
       isLoadingExperienceLevels.value = false;
     }
@@ -443,40 +387,9 @@ class CreateProfileController extends GetxController {
         licensesFromApi.value = result.data!;
         credentials.value = result.data!.map((license) => license.name).toList();
         licenseTypes.value = result.data!.map((license) => license.name).toList();
-        
-        if (showSnackbar) {
-          Get.snackbar(
-            'Success', 
-            'Licenses loaded successfully (${result.data!.length} licenses)', 
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.green,
-            colorText: Colors.white,
-            duration: Duration(seconds: 2),
-          );
-        }
-      } else {
-        if (showSnackbar) {
-          Get.snackbar(
-            'Error', 
-            'Failed to load licenses: ${result.message ?? 'Unknown error'}', 
-            snackPosition: SnackPosition.TOP,
-            backgroundColor: Colors.red,
-            colorText: Colors.white,
-            duration: Duration(seconds: 3),
-          );
-        }
       }
     } catch (e) {
-      if (showSnackbar) {
-        Get.snackbar(
-          'Error', 
-          'Failed to load licenses: $e', 
-          snackPosition: SnackPosition.TOP,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: Duration(seconds: 3),
-        );
-      }
+      // Error handling without snackbar
     } finally {
       isLoadingLicenses.value = false;
     }
@@ -1339,7 +1252,7 @@ class CreateProfileController extends GetxController {
                       child: InkWell(
                         onTap: () {
                           Get.back();
-                          _openCameraWithOverlay();
+                          openCameraWithOverlay();
                         },
                         borderRadius: BorderRadius.circular(16),
                         child: Padding(
@@ -1493,7 +1406,7 @@ class CreateProfileController extends GetxController {
   }
 
   // Función para abrir la cámara con overlay
-  Future<void> _openCameraWithOverlay() async {
+  Future<void> openCameraWithOverlay() async {
     try {
       // Verificar permisos de cámara
       PermissionStatus status = await Permission.camera.request();
@@ -1668,6 +1581,35 @@ class CreateProfileController extends GetxController {
       );
       
       print('Error al seleccionar imagen: $e');
+    }
+  }
+
+  // Método específico para galería sin manejo complejo de errores
+  Future<void> pickImageFromGallery() async {
+    try {
+      final PermissionStatus status = await Permission.photos.request();
+      if (!status.isGranted) {
+        Get.snackbar(
+          'Permisos requeridos',
+          'Se necesita acceso a las fotos para seleccionar una imagen',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        profileImage.value = File(image.path);
+      }
+    } catch (e) {
+      print('Error al seleccionar imagen de galería: $e');
     }
   }
 

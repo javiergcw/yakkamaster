@@ -129,7 +129,7 @@ class EditDocumentsScreen extends StatelessWidget {
                   
                   SizedBox(height: verticalSpacing * 2),
                   
-                  // Dropdown y botón Add License
+                  // Dropdown y botón Add Credential
                   Row(
                     children: [
                       Expanded(
@@ -190,16 +190,16 @@ class EditDocumentsScreen extends StatelessWidget {
                               children: [
                                 Icon(
                                   Icons.add,
-                                  color: Colors.black,
+                                  color: Colors.white,
                                   size: screenWidth * 0.04,
                                 ),
                                 SizedBox(height: verticalSpacing * 0.1),
                                 Text(
-                                  "Add License",
+                                  "Add Credential",
                                   style: GoogleFonts.poppins(
                                     fontSize: buttonFontSize * 0.6,
                                     fontWeight: FontWeight.w600,
-                                    color: Colors.black,
+                                    color: Colors.white,
                                   ),
                                 ),
                               ],
@@ -351,16 +351,6 @@ class EditDocumentsScreen extends StatelessWidget {
                     onPressed: controller.saveDocuments,
                     isLoading: false,
                     showShadow: false,
-                    customBorder: Border(
-                      bottom: BorderSide(
-                        color: Colors.black,
-                        width: 4,
-                      ),
-                      right: BorderSide(
-                        color: Colors.black,
-                        width: 4,
-                      ),
-                    ),
                   ),
                   
                   SizedBox(height: verticalSpacing * 2),

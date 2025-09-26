@@ -11,10 +11,13 @@ import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
 import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
 import '../../../../../features/logic/builder/use_case/builder_use_case.dart';
 import '../../../../../features/logic/builder/models/send/dto_send_builder_profile.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
 
 class CreateProfileBuilderController extends GetxController {
   // ===== CASOS DE USO =====
   final BuilderUseCase _builderUseCase = BuilderUseCase();
+  final MasterUseCase _masterUseCase = MasterUseCase();
   
   // Controllers para los campos de texto
   final TextEditingController firstNameController = TextEditingController();
@@ -35,6 +38,10 @@ class CreateProfileBuilderController extends GetxController {
   final RxList<Map<String, dynamic>> licenses = <Map<String, dynamic>>[].obs;
   final RxString? selectedCredential = RxString('');
   
+  // Variables para datos dinámicos de la API
+  final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
+  final RxBool isLoadingLicenses = false.obs;
+  
   
   // Flavor actual
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -48,6 +55,9 @@ class CreateProfileBuilderController extends GetxController {
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
     }
+    
+    // Cargar licencias desde la API
+    loadLicensesFromApi();
   }
 
   @override
@@ -565,25 +575,10 @@ class CreateProfileBuilderController extends GetxController {
       return;
     }
     
-    // Navegar a la pantalla de ubicación
-    Get.toNamed('/location-builder', arguments: {'flavor': currentFlavor.value});
-  }
-
-  void handleLocationContinue() {
-    // Validar campo de dirección
-    if (addressController.text.isEmpty) {
-      Get.snackbar(
-        'Error',
-        'Please fill in your address',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
-    
-    // Navegar a la pantalla de foto de perfil
+    // Navegar directamente a la pantalla de foto de perfil (saltando location)
     Get.toNamed('/profile-photo-builder', arguments: {'flavor': currentFlavor.value});
   }
+
 
   void handleProfilePhotoContinue() {
     // Navegar a la pantalla de licencias
@@ -704,8 +699,26 @@ class CreateProfileBuilderController extends GetxController {
   // Métodos para manejar licencias
   void addLicense() {
     if (selectedCredential?.value != null && selectedCredential!.value.isNotEmpty) {
+      // Buscar el ID real de la licencia desde la API
+      String licenseId = '';
+      String licenseName = selectedCredential!.value;
+      
+      if (licensesFromApi.isNotEmpty) {
+        try {
+          final license = licensesFromApi.firstWhere(
+            (l) => l.name == licenseName,
+            orElse: () => licensesFromApi.first,
+          );
+          licenseId = license.id;
+        } catch (e) {
+          // Si no se encuentra, usar el primer ID disponible
+          licenseId = licensesFromApi.first.id;
+        }
+      }
+      
       licenses.add({
-        'type': selectedCredential!.value,
+        'id': licenseId,
+        'type': licenseName,
         'uploaded': false,
         'file': '',
         'path': '',
@@ -757,20 +770,33 @@ class CreateProfileBuilderController extends GetxController {
     }
   }
 
+  /// Carga las licencias desde la API
+  Future<void> loadLicensesFromApi() async {
+    try {
+      isLoadingLicenses.value = true;
+      final result = await _masterUseCase.getLicenses();
+      
+      if (result.isSuccess && result.data != null) {
+        licensesFromApi.value = result.data!;
+      }
+    } catch (e) {
+      // Error handling without snackbar
+    } finally {
+      isLoadingLicenses.value = false;
+    }
+  }
+
   void showCredentialDropdown() {
-    final List<String> credentials = [
-      'Driver License',
-      'Passport',
-      'Birth Certificate',
-      'Work Visa',
-      'Trade Certificate',
-      'White Card',
-      'First Aid Certificate',
-      'Forklift License',
-      'Crane License',
-      'Excavator License',
-      'Other',
-    ];
+    // Usar licencias de la API en lugar de lista hardcodeada
+    if (licensesFromApi.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'No credentials available. Please try again.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return;
+    }
 
     Get.bottomSheet(
       Container(
@@ -805,13 +831,13 @@ class CreateProfileBuilderController extends GetxController {
             ),
             Expanded(
               child: ListView.builder(
-                itemCount: credentials.length,
+                itemCount: licensesFromApi.length,
                 itemBuilder: (context, index) {
-                  final credential = credentials[index];
+                  final license = licensesFromApi[index];
                   return ListTile(
-                    title: Text(credential),
+                    title: Text(license.name),
                     onTap: () {
-                      selectedCredential?.value = credential;
+                      selectedCredential?.value = license.name;
                       Get.back();
                     },
                   );
@@ -879,7 +905,7 @@ class CreateProfileBuilderController extends GetxController {
       final result = await _builderUseCase.createBuilderProfile(
         companyName: '', // Enviar vacío como solicitado
         displayName: '${firstNameController.text.trim()} ${lastNameController.text.trim()}'.trim(),
-        location: addressController.text.trim(),
+        location: '', // Enviar vacío ya que no se requiere location
         bio: '', // Enviar vacío como solicitado
         avatarUrl: profileImage.value?.path ?? '',
         phone: phoneController.text.trim(),

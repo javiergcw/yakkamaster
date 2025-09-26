@@ -59,7 +59,7 @@ class SearchInputField extends StatelessWidget {
               ),
               child: Icon(
                 Icons.search,
-                color: Colors.black,
+                color: Colors.white,
                 size: 20,
               ),
             ),

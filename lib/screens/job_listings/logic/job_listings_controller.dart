@@ -174,6 +174,7 @@ class JobListingsController {
       'jobDetails': jobDetails,
       'flavor': _flavor,
       'isFromAppliedJobs': false,
+      'isFromBuilder': false,
     });
   }
 

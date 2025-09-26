@@ -171,10 +171,10 @@ class ApplicantCard extends StatelessWidget {
                   ElevatedButton(
                     onPressed: onDecline,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[600],
+                      backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
                       elevation: 2,
-                      shadowColor: Colors.red[600]!.withOpacity(0.3),
+                      shadowColor: Colors.black.withOpacity(0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

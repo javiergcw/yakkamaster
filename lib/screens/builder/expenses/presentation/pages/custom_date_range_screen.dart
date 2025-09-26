@@ -150,7 +150,7 @@ class CustomDateRangeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Date Custom",
+              "Custom",
               style: GoogleFonts.poppins(
                 fontSize: bodyFontSize * 1.2,
                 fontWeight: FontWeight.bold,

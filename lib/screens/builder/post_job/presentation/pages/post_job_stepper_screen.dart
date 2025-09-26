@@ -38,7 +38,6 @@ class PostJobStepperScreen extends StatelessWidget {
     final verticalSpacing = screenHeight * 0.025;
     final titleFontSize =
         screenWidth * 0.055; // Tamaño normal para el título del appbar
-    final instructionFontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
 
     return Scaffold(
@@ -120,72 +119,278 @@ class PostJobStepperScreen extends StatelessWidget {
 
             // Main Content
             Expanded(
-              child: SingleChildScrollView(
+              child: Padding(
                 padding: EdgeInsets.all(horizontalPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: verticalSpacing * 1.0,
-                    ), // Reducido el espacio después del progreso
-                    // Main Question
-                    Text(
-                      "What kind of worker do you need?",
-                      style: GoogleFonts.poppins(
-                        fontSize:
-                            screenWidth * 0.075, // Título principal más grande
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-
-                    SizedBox(
-                      height: verticalSpacing * 0.5,
-                    ), // Reducido el espacio entre pregunta y descripción
-                    // Instruction
+                    SizedBox(height: verticalSpacing * 1.0),
+                    
+                    // Título principal centrado
                     Center(
-                      child: Text(
-                        "You can only choose 1 skill",
+                      child: Obx(() => Text(
+                        controller.selectedSkills.isEmpty 
+                            ? "What kind of worker do you need?"
+                            : "Selected skills",
                         style: GoogleFonts.poppins(
-                          fontSize: instructionFontSize,
-                          color: Colors.grey[600],
+                          fontSize: screenWidth * 0.075,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
                         ),
                         textAlign: TextAlign.center,
-                      ),
+                      )),
                     ),
 
-                    SizedBox(
-                      height: verticalSpacing * 1.0,
-                    ), // Reducido el espacio antes del input
-                    // Search Bar
+                    SizedBox(height: verticalSpacing * 0.5),
+
+                    // Reset selection y skills seleccionadas
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Skills seleccionadas
+                        Expanded(
+                          child: Obx(() {
+                            if (controller.selectedSkills.isNotEmpty) {
+                              return Wrap(
+                                spacing: 4.0,
+                                runSpacing: 4.0,
+                                children: controller.selectedSkills.map((uniqueId) {
+                                  // Obtener el nombre de la skill desde el ID único
+                                  String skillName = controller.getSkillNameFromUniqueId(uniqueId);
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      skillName,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: screenWidth * 0.032,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }
+                            return SizedBox.shrink();
+                          }),
+                        ),
+                        
+                        // Reset button
+                        Obx(() => GestureDetector(
+                          onTap: controller.resetSelections,
+                          child: Text(
+                            controller.selectedSkills.isEmpty 
+                                ? "Reset selection"
+                                : "Reset (${controller.selectedSkills.length})",
+                            style: GoogleFonts.poppins(
+                              fontSize: screenWidth * 0.04,
+                              color: Colors.black,
+                              decoration: TextDecoration.underline,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                        )),
+                      ],
+                    ),
+
+                    SizedBox(height: verticalSpacing * 1.5),
+
+                    // Campo de búsqueda
                     SearchInputField(
                       controller: controller.searchController,
                       hintText: "Search for a type of labour",
                       flavor: controller.currentFlavor.value,
                       onChanged: (value) {
-                        controller.performSearch(); // Búsqueda en tiempo real
+                        controller.performSearch();
                       },
                       onSearch: controller.performSearch,
                     ),
 
-                    SizedBox(height: verticalSpacing * 2),
+                    SizedBox(height: verticalSpacing * 0.8),
 
-                    // Skills Grid
-                    Obx(
-                      () => Wrap(
-                        spacing:
-                            horizontalPadding *
-                            0.3, // Reducido el espaciado horizontal
-                        runSpacing:
-                            verticalSpacing *
-                            0.5, // Reducido el espaciado vertical
-                        children: controller.filteredSkills
-                            .map((skill) => _buildSkillChip(skill))
-                            .toList(),
-                      ),
+                    // Lista de categorías y subcategorías
+                    Expanded(
+                      child: Obx(() {
+                        if (controller.isLoadingSkills.value) {
+                          return Container(
+                            padding: EdgeInsets.all(verticalSpacing * 2),
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CircularProgressIndicator(
+                                    color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                  ),
+                                  SizedBox(height: verticalSpacing),
+                                  Text(
+                                    'Loading skills...',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: screenWidth * 0.035,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        
+                        if (controller.filteredSkills.isEmpty) {
+                          return Container(
+                            padding: EdgeInsets.all(verticalSpacing * 2),
+                            child: Center(
+                              child: Text(
+                                'No skills available',
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.035,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        
+                        return SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Lista de categorías principales
+                              Wrap(
+                                spacing: 8.0,
+                                runSpacing: 8.0,
+                                children: controller.filteredSkills.map((skill) {
+                                  final isSelected = controller.selectedSkills.contains(skill);
+                                  final isExpanded = controller.expandedCategories.contains(skill);
+                                  
+                                  return GestureDetector(
+                                    onTap: () => controller.toggleCategory(skill),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected || isExpanded
+                                            ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                            : Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: isExpanded ? Border.all(
+                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                          width: 2,
+                                        ) : null,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            skill,
+                                            style: GoogleFonts.poppins(
+                                              fontSize: screenWidth * 0.035,
+                                              color: isSelected || isExpanded ? Colors.white : Colors.black87,
+                                              fontWeight: isSelected || isExpanded ? FontWeight.w600 : FontWeight.w500,
+                                            ),
+                                          ),
+                                          if (isExpanded) ...[
+                                            SizedBox(width: 4),
+                                            Icon(
+                                              Icons.keyboard_arrow_down,
+                                              size: 16,
+                                              color: Colors.white,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              
+                              // Mostrar subcategorías de todas las categorías expandidas
+                              if (controller.expandedCategories.isNotEmpty) ...[
+                                SizedBox(height: verticalSpacing),
+                                Text(
+                                  "Select specific skills:",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.035 * 1.1,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: verticalSpacing * 0.5),
+                                
+                                // Mostrar todas las categorías expandidas
+                                ...controller.expandedCategories.map((category) {
+                                  return Container(
+                                    margin: EdgeInsets.only(bottom: verticalSpacing * 0.8),
+                                    padding: EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey[300]!),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          category,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: screenWidth * 0.035 * 1.05,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 6.0,
+                                          runSpacing: 6.0,
+                                          children: controller.getSubcategoriesForCategory(category).map((subcategory) {
+                                            final uniqueId = "${category}_$subcategory";
+                                            final isSelected = controller.selectedSkills.contains(uniqueId);
+                                            
+                                            return GestureDetector(
+                                              onTap: () => controller.toggleSubcategory(subcategory, category),
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 10,
+                                                  vertical: 6,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isSelected 
+                                                      ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                                      : Colors.white,
+                                                  borderRadius: BorderRadius.circular(16),
+                                                  border: Border.all(
+                                                    color: isSelected 
+                                                        ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                                        : Colors.grey[300]!,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  subcategory,
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: screenWidth * 0.035 * 0.9,
+                                                    color: isSelected ? Colors.white : Colors.black87,
+                                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ],
+                          ),
+                        );
+                      }),
                     ),
-
-                    SizedBox(height: verticalSpacing * 3),
                   ],
                 ),
               ),
@@ -211,62 +416,4 @@ class PostJobStepperScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSkillChip(String skill) {
-    final mediaQuery = MediaQuery.of(Get.context!);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final chipFontSize = screenWidth * 0.03; // Reducido para chips más pequeños
-
-    return Obx(() {
-      final isSelected =
-          controller.postJobData.selectedSkill == skill;
-
-      return GestureDetector(
-        onTap: () {
-          controller.updateSelectedSkill(skill);
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal:
-                horizontalPadding * 0.5, // Reducido el padding horizontal
-            vertical: verticalSpacing * 0.4, // Reducido el padding vertical
-          ),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Color(
-                    AppFlavorConfig.getPrimaryColor(
-                      controller.currentFlavor.value,
-                    ),
-                  )
-                : Colors.grey[100],
-            borderRadius: BorderRadius.circular(
-              15,
-            ), // Reducido el border radius
-            border: Border.all(
-              color: isSelected
-                  ? Color(
-                      AppFlavorConfig.getPrimaryColor(
-                        controller.currentFlavor.value,
-                      ),
-                    )
-                  : Colors.grey[300]!,
-              width: 1,
-            ),
-          ),
-          child: Text(
-            skill,
-            style: GoogleFonts.poppins(
-              fontSize: chipFontSize,
-              fontWeight: FontWeight.w500,
-              color: isSelected ? Colors.black : Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    });
-  }
 }

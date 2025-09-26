@@ -275,7 +275,7 @@ class ChatScreen extends StatelessWidget {
                       },
                       icon: Icon(
                         Icons.camera_alt,
-                        color: Colors.black,
+                        color: Colors.white,
                         size: screenWidth * 0.04,
                       ),
                     ),
@@ -300,7 +300,7 @@ class ChatScreen extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: inputFontSize * 0.7,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -366,7 +366,7 @@ class ChatScreen extends StatelessWidget {
               message['text'],
               style: GoogleFonts.poppins(
                 fontSize: fontSize,
-                color: isMe ? Colors.black : Colors.black87,
+                color: isMe ? Colors.white : Colors.black87,
               ),
             ),
           ),

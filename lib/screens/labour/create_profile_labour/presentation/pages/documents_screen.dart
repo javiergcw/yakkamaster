@@ -105,7 +105,7 @@ class DocumentsScreen extends StatelessWidget {
                   
                   SizedBox(height: verticalSpacing * 0.8),
                   
-                  // Dropdown y botón Add License
+                  // Dropdown y botón Add Credential
                   Row(
                     children: [
                                              Expanded(
@@ -162,16 +162,16 @@ class DocumentsScreen extends StatelessWidget {
                                children: [
                                  Icon(
                                    Icons.add,
-                                   color: Colors.black,
+                                   color: Colors.white,
                                    size: screenWidth * 0.04,
                                  ),
                                  SizedBox(height: verticalSpacing * 0.1),
                                  Text(
-                                   "Add License",
+                                   "Add Credential",
                                    style: GoogleFonts.poppins(
                                      fontSize: buttonFontSize * 0.6,
                                      fontWeight: FontWeight.w600,
-                                     color: Colors.black,
+                                     color: Colors.white,
                                    ),
                                  ),
                                ],

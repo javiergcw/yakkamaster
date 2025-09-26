@@ -70,7 +70,7 @@ class SkillsExperienceScreen extends StatelessWidget {
               Center(
                 child: Obx(() => Text(
                   controller.selectedSkills.isEmpty 
-                      ? "Choose at least one skill"
+                      ? "What are your sport skills / role?"
                       : "Your skills and experience?",
                   style: GoogleFonts.poppins(
                     fontSize: titleFontSize,

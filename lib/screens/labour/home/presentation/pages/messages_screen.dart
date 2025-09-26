@@ -206,7 +206,7 @@ class MessagesScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: timestampFontSize * 0.8,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
               ),

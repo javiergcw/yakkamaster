@@ -152,7 +152,7 @@ class HomeScreen extends StatelessWidget {
           if (controller.isShiftsModalOpen.value) _buildShiftsModal(),
 
           // Floating Action Buttons (over AppBar) - con animación suave
-          if (controller.selectedIndex.value == 0 && !controller.isShiftsModalOpen.value)
+          if (controller.selectedIndex.value == 0 && !controller.isShiftsModalOpen.value && !controller.isSidebarOpen.value)
             Positioned(
               top: verticalSpacing * 9.5, // Position below search bar
               left: horizontalPadding,
@@ -515,7 +515,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: screenWidth * 0.06, color: Colors.black87),
+            Icon(icon, size: screenWidth * 0.06, color: Colors.white),
             SizedBox(height: verticalSpacing * 0.3),
             Text(
               title,
@@ -890,7 +890,7 @@ class HomeScreen extends StatelessWidget {
                       style: GoogleFonts.poppins(
                         fontSize: subtitleFontSize * 0.9,
                         fontWeight: FontWeight.w500,
-                        color: isSelected ? Colors.black : Colors.black87,
+                        color: isSelected ? Colors.white : Colors.black87,
                         decoration: TextDecoration.none,
                       ),
                     ),

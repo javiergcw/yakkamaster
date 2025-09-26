@@ -1,4 +1,3 @@
-
 enum AssetType {
   logo,
   joinLogo,
@@ -14,17 +13,13 @@ enum AssetType {
   emailIcon,
 }
 
-enum AppFlavor {
-  labour,
-  sport,
-  hospitality,
-}
+enum AppFlavor { labour, sport, hospitality }
 
 class AssetsConfig {
   static const Map<AppFlavor, Map<AssetType, String>> _assets = {
     AppFlavor.labour: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_SPLASH.png',
       AssetType.icon: 'assets/icons/labour_icon.png',
       AssetType.background: 'assets/backgrounds/labour_bg.png',
       AssetType.respect: 'assets/respect.png',
@@ -38,7 +33,7 @@ class AssetsConfig {
     },
     AppFlavor.sport: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_SPLASH.png',
       AssetType.icon: 'assets/icons/sport_icon.png',
       AssetType.background: 'assets/backgrounds/sport_bg.png',
       AssetType.respect: 'assets/respect.png',
@@ -52,7 +47,7 @@ class AssetsConfig {
     },
     AppFlavor.hospitality: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
-      AssetType.joinLogo: 'assets/YAKKA_SPORT_LOGO.png',
+      AssetType.joinLogo: 'assets/YAKKA_SPORT_SPLASH.png',
       AssetType.icon: 'assets/icons/hospitality_icon.png',
       AssetType.background: 'assets/backgrounds/hospitality_bg.png',
       AssetType.respect: 'assets/respect.png',

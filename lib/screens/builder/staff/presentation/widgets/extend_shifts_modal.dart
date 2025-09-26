@@ -48,7 +48,7 @@ class _ExtendShiftsModalState extends State<ExtendShiftsModal> {
             Row(
               children: [
                 Text(
-                  'Add Shifts to Job',
+                  'Add Shifts to the job',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

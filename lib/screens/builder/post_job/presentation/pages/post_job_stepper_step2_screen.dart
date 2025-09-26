@@ -127,7 +127,7 @@ class PostJobStepperStep2Screen extends StatelessWidget {
                     
                     // Main Question
                     Text(
-                      "How many labourers do you need?",
+                      "How many workers do you need?",
                       style: GoogleFonts.poppins(
                         fontSize: questionFontSize,
                         fontWeight: FontWeight.bold,
@@ -261,7 +261,7 @@ class PostJobStepperStep2Screen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? Colors.black : Colors.black87,
+                color: isSelected ? Colors.white : Colors.black87,
               ),
             ),
           ),

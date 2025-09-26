@@ -25,12 +25,14 @@ class JobDetailsScreen extends StatelessWidget {
   final JobDetailsDto jobDetails;
   final AppFlavor? flavor;
   final bool isFromAppliedJobs;
+  final bool isFromBuilder;
 
   JobDetailsScreen({
     super.key,
     required this.jobDetails,
     this.flavor,
     this.isFromAppliedJobs = false,
+    this.isFromBuilder = false,
   });
 
   final JobDetailsScreenController controller = Get.put(JobDetailsScreenController());
@@ -148,36 +150,20 @@ class JobDetailsScreen extends StatelessWidget {
                               
                               _buildDetailRow(
                                 icon: Icons.location_on,
-                                label: 'Address',
-                                value: jobDetails.address,
+                                label: 'Suburb',
+                                value: jobDetails.suburb,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
                               
-                              SizedBox(height: verticalSpacing * 0.5),
+                              SizedBox(height: verticalSpacing),
                               
-                              Padding(
-                                padding: EdgeInsets.only(left: iconSize + horizontalPadding * 0.5),
-                                child: Text(
-                                  'Suburb: ${jobDetails.suburb}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: bodyFontSize,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                              
-                              SizedBox(height: verticalSpacing * 0.5),
-                              
-                              Padding(
-                                padding: EdgeInsets.only(left: iconSize + horizontalPadding * 0.5),
-                                child: Text(
-                                  'City: ${jobDetails.city}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: bodyFontSize,
-                                    color: Colors.black87,
-                                  ),
-                                ),
+                              _buildDetailRow(
+                                icon: Icons.location_city,
+                                label: 'City',
+                                value: jobDetails.city,
+                                iconSize: iconSize,
+                                bodyFontSize: bodyFontSize,
                               ),
                               
                               SizedBox(height: verticalSpacing),
@@ -381,84 +367,88 @@ class JobDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       
-                      // Botones fijos en la parte inferior
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                          vertical: verticalSpacing * 0.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              offset: const Offset(0, -2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            // Botón Apply o indicador de ya aplicado
-                            SizedBox(
-                              width: double.infinity,
-                              child: Obx(() => controller.hasApplied.value
-                                  ? Container(
-                                      padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.5),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green[50],
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: Colors.green[300]!,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green[600],
-                                            size: iconSize * 0.8,
-                                          ),
-                                          SizedBox(width: horizontalPadding * 0.3),
-                                          Text(
-                                            'Applied Successfully',
-                                            style: GoogleFonts.poppins(
-                                              fontSize: bodyFontSize,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green[700],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : ElevatedButton(
-                                      onPressed: controller.handleApply,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                                        foregroundColor: Colors.black87,
-                                        padding: EdgeInsets.symmetric(vertical: verticalSpacing * 1.2),
-                                        shape: RoundedRectangleBorder(
+                      // Botones fijos en la parte inferior (solo si no viene del builder)
+                      Obx(() {
+                        if (controller.isFromBuilder.value) {
+                          return const SizedBox.shrink();
+                        }
+                        return Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                            vertical: verticalSpacing * 0.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                offset: const Offset(0, -2),
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // Botón Apply o indicador de ya aplicado
+                              SizedBox(
+                                width: double.infinity,
+                                child: Obx(() => controller.hasApplied.value
+                                    ? Container(
+                                        padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.green[50],
                                           borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: Colors.green[300]!,
+                                            width: 1,
+                                          ),
                                         ),
-                                        elevation: 0,
-                                      ),
-                                      child: Text(
-                                        'Apply',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: bodyFontSize,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.check_circle,
+                                              color: Colors.green[600],
+                                              size: iconSize * 0.8,
+                                            ),
+                                            SizedBox(width: horizontalPadding * 0.3),
+                                            Text(
+                                              'Applied Successfully',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: bodyFontSize,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.green[700],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ),
-                                    )),
-                            ),
-                            
-                            SizedBox(height: verticalSpacing * 0.2),
-                          ],
-                        ),
-                      ),
+                                      )
+                                    : ElevatedButton(
+                                        onPressed: controller.handleApply,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                          foregroundColor: Colors.black87,
+                                          padding: EdgeInsets.symmetric(vertical: verticalSpacing * 1.2),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        child: Text(
+                                          'Apply',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: bodyFontSize,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                      )),
+                              ),
+                              SizedBox(height: verticalSpacing * 0.2),
+                            ],
+                          ),
+                        );
+                      }),
                     ],
                   ),
                 ),

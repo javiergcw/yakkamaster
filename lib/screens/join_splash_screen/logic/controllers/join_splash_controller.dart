@@ -80,7 +80,7 @@ class JoinSplashController extends GetxController with GetTickerProviderStateMix
       case AppFlavor.labour:
         return 'No worries.';
       case AppFlavor.sport:
-        return 'No limits.';
+        return '';
       case AppFlavor.hospitality:
         return 'No boundaries.';
     }

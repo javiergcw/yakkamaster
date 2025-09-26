@@ -692,8 +692,8 @@ class CreateInvoiceScreen extends StatelessWidget {
      final DateTime? picked = await showDatePicker(
        context: Get.context!,
        initialDate: DateTime.now(),
-       firstDate: DateTime.now(),
-       lastDate: DateTime.now().add(Duration(days: 365)),
+       firstDate: DateTime.now().subtract(Duration(days: 365)), // Permite fechas hasta 1 año atrás
+       lastDate: DateTime.now().add(Duration(days: 365)), // Permite fechas hasta 1 año adelante
        builder: (context, child) {
          return Theme(
            data: Theme.of(context).copyWith(
