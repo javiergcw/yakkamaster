@@ -75,6 +75,9 @@ class ResponseHandler {
         }
       }
     } catch (e) {
+      print('ResponseHandler Error: $e');
+      print('Response body: ${response.body}');
+      print('Response jsonBody: ${response.jsonBody}');
       return ApiResult<T>.error(
         message: 'Error al procesar la respuesta: $e',
         statusCode: response.statusCode,

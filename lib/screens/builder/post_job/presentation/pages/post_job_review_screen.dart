@@ -187,10 +187,9 @@ class PostJobReviewScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  controller
-                                          .postJobData
-                                          .selectedSkill ??
-                                      "Truck Driver",
+                                  controller.postJobData.jobTitle ?? 
+                                  controller.postJobData.selectedSkill ?? 
+                                  "Job Title",
                                   style: GoogleFonts.poppins(
                                     fontSize: subtitleFontSize,
                                     fontWeight: FontWeight.bold,
@@ -199,7 +198,7 @@ class PostJobReviewScreen extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                "\$${(controller.postJobData.hourlyRate ?? 28.0).toStringAsFixed(1)}/hr",
+                                "\$${(controller.postJobData.hourlyRate ?? 0.0).toStringAsFixed(1)}/hr",
                                 style: GoogleFonts.poppins(
                                   fontSize: subtitleFontSize,
                                   fontWeight: FontWeight.bold,
@@ -211,13 +210,25 @@ class PostJobReviewScreen extends StatelessWidget {
 
                           SizedBox(height: verticalSpacing),
 
-                          // Job Details
-                          _buildJobDetail(
-                            Icons.location_on,
-                            "Address: 1 test ridge",
-                            "Suburb: Sydney",
-                            "City: Sydney, New South Wales",
-                          ),
+                          // Job Details - Jobsite Information
+                          Obx(() {
+                            final selectedJobSite = controller.selectedJobSites.isNotEmpty 
+                                ? controller.selectedJobSites.first 
+                                : null;
+                            
+                            return _buildJobDetail(
+                              Icons.location_on,
+                              selectedJobSite != null 
+                                  ? "Address: ${selectedJobSite.address ?? 'No address'}"
+                                  : "Address: No job site selected",
+                              selectedJobSite != null 
+                                  ? "Suburb: ${selectedJobSite.city ?? 'No suburb'}"
+                                  : "Suburb: No job site selected",
+                              selectedJobSite != null 
+                                  ? "Location: ${selectedJobSite.location ?? 'No location'}"
+                                  : "Location: No job site selected",
+                            );
+                          }),
 
                           SizedBox(height: verticalSpacing * 0.8),
 
@@ -278,16 +289,47 @@ class PostJobReviewScreen extends StatelessWidget {
                   SizedBox(height: verticalSpacing),
 
                   // Confirm Button
-                  SizedBox(
+                  Obx(() => SizedBox(
                     width: double.infinity,
                     child: CustomButton(
-                      text: "Confirm",
-                      onPressed: controller.handleConfirm,
+                      text: controller.isLoading ? "Creating Job..." : "Confirm",
+                      onPressed: controller.isLoading ? null : controller.handleConfirm,
                       type: ButtonType.primary,
                       flavor: controller.currentFlavor.value,
                       showShadow: false,
                     ),
-                  ),
+                  )),
+
+                  // Error Message
+                  Obx(() {
+                    if (controller.errorMessage.isNotEmpty) {
+                      return Container(
+                        margin: EdgeInsets.only(top: verticalSpacing),
+                        padding: EdgeInsets.all(horizontalPadding * 0.5),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.red[300]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.error_outline, color: Colors.red[600], size: iconSize * 0.8),
+                            SizedBox(width: horizontalPadding * 0.5),
+                            Expanded(
+                              child: Text(
+                                controller.errorMessage,
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.032,
+                                  color: Colors.red[600],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return SizedBox.shrink();
+                  }),
                 ],
               ),
             ),

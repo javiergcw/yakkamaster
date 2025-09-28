@@ -29,34 +29,6 @@ class JobsitesUseCase {
     }
   }
 
-  /// Obtiene los jobsites por ciudad
-  /// 
-  /// [city] - Ciudad para filtrar los jobsites
-  /// Retorna un [ApiResult] con los jobsites filtrados por ciudad
-  Future<ApiResult<List<DtoReceiveJobsite>>> getJobsitesByCity(String city) async {
-    try {
-      // Obtener todos los jobsites
-      final result = await getJobsites();
-      
-      if (result.isSuccess && result.data != null) {
-        // Filtrar por ciudad
-        final filteredJobsites = result.data!.getJobsitesByCity(city);
-        
-        return ApiResult<List<DtoReceiveJobsite>>.success(filteredJobsites);
-      }
-      
-      return ApiResult<List<DtoReceiveJobsite>>.error(
-        message: result.message ?? 'Unknown error getting jobsites',
-        error: result.error,
-      );
-    } catch (e) {
-      return ApiResult<List<DtoReceiveJobsite>>.error(
-        message: 'Error getting jobsites by city $city: $e',
-        error: e,
-      );
-    }
-  }
-
   /// Obtiene los jobsites por suburbio
   /// 
   /// [suburb] - Suburbio para filtrar los jobsites
@@ -117,28 +89,28 @@ class JobsitesUseCase {
   /// 
   /// Retorna un [ApiResult] con los jobsites de Sydney
   Future<ApiResult<List<DtoReceiveJobsite>>> getSydneyJobsites() async {
-    return getJobsitesByCity('Sydney');
+    return getJobsitesBySuburb('Sydney');
   }
 
   /// Obtiene los jobsites de Melbourne
   /// 
   /// Retorna un [ApiResult] con los jobsites de Melbourne
   Future<ApiResult<List<DtoReceiveJobsite>>> getMelbourneJobsites() async {
-    return getJobsitesByCity('Melbourne');
+    return getJobsitesBySuburb('Melbourne');
   }
 
   /// Obtiene los jobsites de Brisbane
   /// 
   /// Retorna un [ApiResult] con los jobsites de Brisbane
   Future<ApiResult<List<DtoReceiveJobsite>>> getBrisbaneJobsites() async {
-    return getJobsitesByCity('Brisbane');
+    return getJobsitesBySuburb('Brisbane');
   }
 
   /// Obtiene los jobsites de Perth
   /// 
   /// Retorna un [ApiResult] con los jobsites de Perth
   Future<ApiResult<List<DtoReceiveJobsite>>> getPerthJobsites() async {
-    return getJobsitesByCity('Perth');
+    return getJobsitesBySuburb('Perth');
   }
 
   /// Obtiene un jobsite específico por ID

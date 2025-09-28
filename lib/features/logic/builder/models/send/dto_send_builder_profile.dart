@@ -69,18 +69,18 @@ class DtoSendBuilderLicense {
 
 /// DTO para el request del endpoint /api/v1/profiles/builder
 class DtoSendBuilderProfile {
-  final String companyName;
+ 
   final String displayName;
-  final String location;
+
   final String bio;
   final String avatarUrl;
   final String phone;
   final List<DtoSendBuilderLicense> licenses;
 
   DtoSendBuilderProfile({
-    required this.companyName,
+   
     required this.displayName,
-    required this.location,
+  
     required this.bio,
     required this.avatarUrl,
     required this.phone,
@@ -90,9 +90,9 @@ class DtoSendBuilderProfile {
   /// Constructor desde JSON
   factory DtoSendBuilderProfile.fromJson(Map<String, dynamic> json) {
     return DtoSendBuilderProfile(
-      companyName: json['company_name'] as String,
+    
       displayName: json['display_name'] as String,
-      location: json['location'] as String,
+
       bio: json['bio'] as String,
       avatarUrl: json['avatar_url'] as String,
       phone: json['phone'] as String,
@@ -105,9 +105,9 @@ class DtoSendBuilderProfile {
   /// Convierte a JSON
   Map<String, dynamic> toJson() {
     return {
-      'company_name': companyName,
+ 
       'display_name': displayName,
-      'location': location,
+   
       'bio': bio,
       'avatar_url': avatarUrl,
       'phone': phone,
@@ -135,6 +135,6 @@ class DtoSendBuilderProfile {
 
   @override
   String toString() {
-    return 'DtoSendBuilderProfile(companyName: $companyName, displayName: $displayName, location: $location, phone: $phone, licensesCount: $licensesCount)';
+    return 'DtoSendBuilderProfile(displayName: $displayName, bio: $bio, avatarUrl: $avatarUrl, phone: $phone, licensesCount: $licensesCount)';
   }
 }

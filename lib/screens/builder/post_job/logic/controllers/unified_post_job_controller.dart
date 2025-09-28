@@ -4,6 +4,9 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/logic/masters/use_case/master_use_case.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_skill.dart';
+import '../../../../../features/logic/builder/use_case/jobs_use_case.dart';
+import '../../../../../features/logic/builder/models/send/dto_send_job.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_job_type.dart';
 import '../../data/dto/post_job_dto.dart';
 import '../../presentation/pages/post_job_stepper_screen.dart';
 import '../../presentation/pages/post_job_stepper_step2_screen.dart';
@@ -60,7 +63,7 @@ class UnifiedPostJobController extends GetxController {
   final RxString selectedJobType = ''.obs;
 
   // Variables para datos dinámicos de la API
-  final RxList<dynamic> jobTypesFromApi = <dynamic>[].obs;
+  final RxList<DtoReceiveJobType> jobTypesFromApi = <DtoReceiveJobType>[].obs;
   final RxBool isLoadingJobTypes = false.obs;
 
   // ===== STEP 6 - REQUIREMENTS =====
@@ -75,9 +78,14 @@ class UnifiedPostJobController extends GetxController {
 
 
   final MasterUseCase _masterUseCase = MasterUseCase();
+  final JobsUseCase _jobsUseCase = JobsUseCase();
   final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
   final RxList<String> credentials = <String>[].obs;
   final RxBool isLoadingCredentials = false.obs;
+
+  // ===== JOBSITE SELECTION =====
+  final RxList<dynamic> selectedJobSites = <dynamic>[].obs;
+  final RxString selectedJobSiteId = ''.obs;
 
   // ===== REVIEW SCREEN =====
   final RxBool isPublic = true.obs;
@@ -91,7 +99,6 @@ class UnifiedPostJobController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('🔄 UnifiedPostJobController onInit - Instance: ${this.hashCode}');
     initializeController();
   }
 
@@ -99,6 +106,19 @@ class UnifiedPostJobController extends GetxController {
     // Establecer flavor si viene en los argumentos
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
+    }
+    
+    // Inicializar jobsites seleccionados si vienen en los argumentos
+    if (Get.arguments != null && Get.arguments['selectedJobSites'] != null) {
+      selectedJobSites.value = Get.arguments['selectedJobSites'];
+      if (selectedJobSites.isNotEmpty) {
+        // Usar el primer jobsite seleccionado como el principal
+        final firstJobSite = selectedJobSites.first;
+        if (firstJobSite != null && firstJobSite.id != null) {
+          selectedJobSiteId.value = firstJobSite.id;
+          _postJobData.value = _postJobData.value.copyWith(jobSiteId: firstJobSite.id);
+        }
+      }
     }
     
     // Inicializar estado de carga
@@ -201,21 +221,15 @@ class UnifiedPostJobController extends GetxController {
 
   Future<void> loadSkillsFromApi({bool showSnackbar = true}) async {
     try {
-      print('🔄 Loading skills from API...');
       isLoadingSkills.value = true;
       
       final result = await _masterUseCase.getSkills();
       
       if (result.isSuccess && result.data != null) {
-        print('✅ Skills loaded successfully: ${result.data!.length} items');
         allSkillsFromApi.value = result.data!;
         _processSkillsData();
-        print('✅ Skills processed: ${filteredSkills.length} categories');
-      } else {
-        print('❌ Failed to load skills: ${result.message}');
       }
     } catch (e) {
-      print('❌ Error loading skills: $e');
       if (showSnackbar) {
         Get.snackbar(
           'Error',
@@ -227,12 +241,10 @@ class UnifiedPostJobController extends GetxController {
       }
     } finally {
       isLoadingSkills.value = false;
-      print('🔄 Skills loading completed');
     }
   }
 
   void _processSkillsData() {
-    print('🔄 Processing skills data...');
     // Procesar datos de la API para crear categorías y subcategorías
     final Map<String, List<String>> categories = {};
     
@@ -240,13 +252,11 @@ class UnifiedPostJobController extends GetxController {
       final categoryName = skill.name;
       final subcategories = skill.subcategories.map((sub) => sub.name).toList();
       
-      print('📁 Category: $categoryName with ${subcategories.length} subcategories');
       categories[categoryName] = subcategories;
     }
     
     categorySubcategories.value = categories;
     filteredSkills.value = categories.keys.toList();
-    print('✅ Skills data processed: ${categories.length} categories');
   }
 
   void toggleCategory(String category) {
@@ -323,21 +333,15 @@ class UnifiedPostJobController extends GetxController {
 
   Future<void> loadJobTypesFromApi({bool showSnackbar = true}) async {
     try {
-      print('🔄 Loading job types from API...');
       isLoadingJobTypes.value = true;
       
       final result = await _masterUseCase.getJobTypes();
       
       if (result.isSuccess && result.data != null) {
-        print('✅ Job types loaded successfully: ${result.data!.types.length} items');
         // Mapear los tipos de trabajo a una lista simple de nombres
-        jobTypesFromApi.value = result.data!.types.map((jobType) => jobType.name).toList();
-        print('✅ Job types processed: ${jobTypesFromApi.length} types');
-      } else {
-        print('❌ Failed to load job types: ${result.message}');
+        jobTypesFromApi.value = result.data!.types;
       }
     } catch (e) {
-      print('❌ Error loading job types: $e');
       if (showSnackbar) {
         Get.snackbar(
           'Error',
@@ -349,27 +353,20 @@ class UnifiedPostJobController extends GetxController {
       }
     } finally {
       isLoadingJobTypes.value = false;
-      print('🔄 Job types loading completed');
     }
   }
 
   Future<void> loadJobRequirementsFromApi({bool showSnackbar = true}) async {
     try {
-      print('🔄 Loading job requirements from API...');
       isLoadingJobRequirements.value = true;
       
       final result = await _masterUseCase.getJobRequirements();
       
       if (result.isSuccess && result.data != null) {
-        print('✅ Job requirements loaded successfully: ${result.data!.requirements.length} items');
         // Mapear los requisitos de trabajo a una lista simple de nombres
         jobRequirementsFromApi.value = result.data!.requirements.map((requirement) => requirement.name).toList();
-        print('✅ Job requirements processed: ${jobRequirementsFromApi.length} requirements');
-      } else {
-        print('❌ Failed to load job requirements: ${result.message}');
       }
     } catch (e) {
-      print('❌ Error loading job requirements: $e');
       if (showSnackbar) {
         Get.snackbar(
           'Error',
@@ -381,7 +378,6 @@ class UnifiedPostJobController extends GetxController {
       }
     } finally {
       isLoadingJobRequirements.value = false;
-      print('🔄 Job requirements loading completed');
     }
   }
 
@@ -440,7 +436,7 @@ class UnifiedPostJobController extends GetxController {
         Get.toNamed(PostJobStepperStep8Screen.id, arguments: {'flavor': currentFlavor.value});
         break;
       default:
-        print('No navigation defined for step ${_currentStep.value}');
+        break;
     }
   }
 
@@ -479,9 +475,7 @@ class UnifiedPostJobController extends GetxController {
 
   // ===== STEP 2 - WORKERS COUNT =====
   void updateWorkersNeeded(int workers) {
-    print('🔍 updateWorkersNeeded called with: $workers');
     _postJobData.value = _postJobData.value.copyWith(workersNeeded: workers);
-    print('🔍 PostJobDto workersNeeded: ${_postJobData.value.workersNeeded}');
   }
 
   // ===== STEP 3 - COSTS =====
@@ -642,31 +636,24 @@ class UnifiedPostJobController extends GetxController {
 
   // ===== STEP 8 - SUPERVISOR SIGNATURE =====
   void selectOption(String option) {
-    print('🔍 selectOption called with: "$option"');
     selectedOption.value = option;
     if (option == "yes") {
       _postJobData.value = _postJobData.value.copyWith(requiresSupervisorSignature: true);
     } else {
       _postJobData.value = _postJobData.value.copyWith(requiresSupervisorSignature: false);
     }
-    print('🔍 PostJobDto requiresSupervisorSignature: ${_postJobData.value.requiresSupervisorSignature}');
-    print('🔍 isStep8Valid: ${isStep8Valid()}');
   }
 
   void updateSupervisorName(String name) {
-    print('🔍 updateSupervisorName called with: "$name"');
     supervisorName.value = name;
     
     // Usar copyWith con un valor no-null para forzar la actualización
     final trimmedName = name.trim();
-    print('🔍 Trimmed name: "$trimmedName"');
     
     _postJobData.value = _postJobData.value.copyWith(supervisorName: trimmedName);
-    print('🔍 PostJobDto supervisorName after copyWith: "${_postJobData.value.supervisorName}"');
     
     // Verificar si el valor se guardó correctamente
     if (_postJobData.value.supervisorName != trimmedName) {
-      print('🔍 ERROR: supervisorName not updated correctly!');
       // Intentar una segunda vez con un enfoque diferente
       final currentDto = _postJobData.value;
       _postJobData.value = PostJobDto(
@@ -697,12 +684,7 @@ class UnifiedPostJobController extends GetxController {
         supervisorName: trimmedName,
         isPublic: currentDto.isPublic,
       );
-      print('🔍 PostJobDto supervisorName after manual creation: "${_postJobData.value.supervisorName}"');
     }
-    
-    print('🔍 selectedOption.value: "${selectedOption.value}"');
-    print('🔍 isStep8Valid: ${isStep8Valid()}');
-    print('🔍 canProceedToNextStep: ${canProceedToNextStep()}');
   }
 
   // ===== REVIEW SCREEN =====
@@ -751,13 +733,8 @@ class UnifiedPostJobController extends GetxController {
   }
 
   bool isStep8Valid() {
-    print('🔍 isStep8Valid - requiresSupervisorSignature: ${_postJobData.value.requiresSupervisorSignature}');
-    print('🔍 isStep8Valid - supervisorName: "${_postJobData.value.supervisorName}"');
-    print('🔍 isStep8Valid - selectedOption: "${selectedOption.value}"');
-    
     // Si no se ha seleccionado ninguna opción, no es válido
     if (selectedOption.value.isEmpty) {
-      print('🔍 isStep8Valid - returning false (no option selected)');
       return false;
     }
     
@@ -770,18 +747,14 @@ class UnifiedPostJobController extends GetxController {
       final isValid = (dtoName != null && dtoName.trim().isNotEmpty) || 
                      (localName.trim().isNotEmpty);
       
-      print('🔍 isStep8Valid - dtoName: "$dtoName", localName: "$localName"');
-      print('🔍 isStep8Valid - returning $isValid (supervisor required)');
       return isValid;
     }
     
     // Si se seleccionó "no", es válido
-    print('🔍 isStep8Valid - returning true (supervisor not required)');
     return true;
   }
 
   bool canProceedToNextStep() {
-    print('🔍 canProceedToNextStep called for step: ${_currentStep.value}');
     bool result = false;
     switch (_currentStep.value) {
       case 1:
@@ -808,10 +781,14 @@ class UnifiedPostJobController extends GetxController {
       case 8:
         result = isStep8Valid();
         break;
+      case 9:
+        // En el paso 9 (review), solo validamos campos absolutamente esenciales
+        // para poder proceder con la confirmación
+        result = selectedJobSiteId.value.isNotEmpty;
+        break;
       default:
         result = false;
     }
-    print('🔍 canProceedToNextStep result: $result');
     return result;
   }
 
@@ -863,10 +840,30 @@ class UnifiedPostJobController extends GetxController {
     }
   }
 
+  // ===== JOBSITE SELECTION =====
+  void setSelectedJobSite(String jobSiteId) {
+    selectedJobSiteId.value = jobSiteId;
+    _postJobData.value = _postJobData.value.copyWith(jobSiteId: jobSiteId);
+  }
+
+  void addSelectedJobSite(dynamic jobSite) {
+    if (!selectedJobSites.any((js) => js.id == jobSite.id)) {
+      selectedJobSites.add(jobSite);
+    }
+  }
+
+  void removeSelectedJobSite(String jobSiteId) {
+    selectedJobSites.removeWhere((js) => js.id == jobSiteId);
+    if (selectedJobSiteId.value == jobSiteId) {
+      selectedJobSiteId.value = '';
+      _postJobData.value = _postJobData.value.copyWith(jobSiteId: null);
+    }
+  }
+
   // ===== JOB POSTING =====
   Future<void> postJob() async {
     if (!canProceedToNextStep()) {
-      _errorMessage.value = 'Please complete all required fields';
+      _errorMessage.value = 'Please all required fields';
       return;
     }
 
@@ -874,16 +871,187 @@ class UnifiedPostJobController extends GetxController {
     _errorMessage.value = '';
 
     try {
-      // TODO: Implement actual API call to post job
-      await Future.delayed(Duration(seconds: 2)); // Simulate API call
+      // Crear el DTO para enviar al API usando el caso de uso
+      final jobData = _createJobData();
       
-      // Success - reset data
-      reset();
+      // Debug: Imprimir el JSON que se va a enviar
+      print('🔍 JSON que se va a enviar:');
+      print(jobData.toJson());
+      
+      // Validar datos antes de enviar usando el caso de uso
+      if (!_jobsUseCase.validateJobData(jobData)) {
+        final missingFields = _jobsUseCase.getMissingJobFields(jobData);
+        _errorMessage.value = 'Missing required fields: ${missingFields.join(', ')}';
+        return;
+      }
+
+      // Crear el job usando el caso de uso
+      final result = await _jobsUseCase.createJob(jobData);
+      
+      if (result.isSuccess && result.data != null) {
+        // Success - job created successfully
+        // Note: reset() will be called in handleConfirm() after success
+      } else {
+        _errorMessage.value = result.message ?? 'Error creating job';
+      }
       
     } catch (e) {
       _errorMessage.value = 'Error posting job: ${e.toString()}';
     } finally {
       _isLoading.value = false;
+    }
+  }
+
+  /// Crea el DTO de job con los datos del formulario
+  DtoSendJob _createJobData() {
+    final data = _postJobData.value;
+    
+      // Convertir fechas a formato ISO sin milisegundos
+      final startDateWork = data.startDate != null 
+          ? '${data.startDate!.toIso8601String().split('.')[0]}Z'
+          : null;
+      final endDateWork = data.endDate != null 
+          ? '${data.endDate!.toIso8601String().split('.')[0]}Z'
+          : null;
+
+    // Convertir tiempos a formato HH:mm:ss
+    final startTime = data.startTime != null 
+        ? '${data.startTime!.hour.toString().padLeft(2, '0')}:${data.startTime!.minute.toString().padLeft(2, '0')}:00'
+        : null;
+    
+    final endTime = data.endTime != null 
+        ? '${data.endTime!.hour.toString().padLeft(2, '0')}:${data.endTime!.minute.toString().padLeft(2, '0')}:00'
+        : null;
+
+    // Obtener IDs de licencias seleccionadas
+    final licenseIds = selectedCredentials.map((cred) {
+      final license = licensesFromApi.firstWhereOrNull((l) => l.name == cred);
+      return license?.id ?? '';
+    }).where((id) => id.isNotEmpty).toList();
+
+    // Obtener IDs de categorías y subcategorías de habilidades
+    final skillCategoryIds = <String>[];
+    final skillSubcategoryIds = <String>[];
+    
+    for (final skillId in selectedSkills) {
+      final category = getCategoryFromUniqueId(skillId);
+      final subcategory = getSkillNameFromUniqueId(skillId);
+      
+      if (category != null) {
+        final categorySkill = allSkillsFromApi.firstWhereOrNull((s) => s.name == category);
+        if (categorySkill != null) {
+          skillCategoryIds.add(categorySkill.id);
+          
+          final subcategoryObj = categorySkill.subcategories.firstWhereOrNull((sub) => sub.name == subcategory);
+          if (subcategoryObj != null) {
+            skillSubcategoryIds.add(subcategoryObj.id);
+          }
+        }
+      }
+    }
+
+    // Validar solo los campos absolutamente requeridos
+    if (data.workersNeeded == null) throw Exception('Workers needed is required');
+    if (data.workersNeeded! < 1) throw Exception('Workers needed must be at least 1');
+    
+    // Validar supervisor name solo si requiresSupervisorSignature es true
+    if (data.requiresSupervisorSignature == true && (data.supervisorName == null || data.supervisorName!.trim().isEmpty)) {
+      throw Exception('Supervisor name is required when supervisor signature is required');
+    }
+
+    // Crear DtoSendJob con valores del formulario y fallbacks apropiados
+    return DtoSendJob(
+      jobsiteId: selectedJobSiteId.value,
+      jobTypeId: _getJobTypeIdFromSelection(),
+      manyLabours: data.workersNeeded!,
+      ongoingWork: data.isOngoingWork ?? false,
+      wageSiteAllowance: data.siteAllowance ?? 0.0,
+      wageLeadingHandAllowance: data.leadingHandAllowance ?? 0.0,
+      wageProductivityAllowance: data.productivityAllowance ?? 0.0,
+      extrasOvertimeRate: data.overtimeRate ?? 0.0,
+      startDateWork: startDateWork ?? _formatDateForApi(DateTime.now()),
+      endDateWork: endDateWork ?? _formatDateForApi(DateTime.now().add(Duration(days: 30))),
+      workSaturday: data.workOnSaturdays ?? false,
+      workSunday: data.workOnSundays ?? false,
+      startTime: startTime ?? '08:00:00',
+      endTime: endTime ?? '17:00:00',
+      description: description.value.isNotEmpty ? description.value : (data.jobDescription ?? 'Job description'),
+      paymentDay: data.payDay?.day ?? 1,
+      requiresSupervisorSignature: data.requiresSupervisorSignature ?? false,
+      supervisorName: data.supervisorName ?? 'Supervisor',
+      visibility: isPublic.value ? 'PUBLIC' : 'PRIVATE',
+      paymentType: _getValidPaymentType(data.paymentFrequency),
+      licenseIds: licenseIds,
+      skillCategoryIds: skillCategoryIds,
+      skillSubcategoryIds: skillSubcategoryIds,
+    );
+  }
+
+  /// Formatea una fecha para la API sin milisegundos
+  String _formatDateForApi(DateTime date) {
+    return '${date.toIso8601String().split('.')[0]}Z';
+  }
+
+  /// Obtiene un tipo de pago válido según la API
+  String _getValidPaymentType(String? paymentFrequency) {
+    if (paymentFrequency == null) return 'WEEKLY';
+    
+    switch (paymentFrequency.toUpperCase()) {
+      case 'WEEKLY':
+        return 'WEEKLY';
+      case 'FORTNIGHTLY':
+        return 'FORTNIGHTLY';
+      case 'FIXED_DAY':
+        return 'FIXED_DAY';
+      case 'CHOOSE_PAY_DAY':
+        return 'FIXED_DAY'; // Mapear a FIXED_DAY
+      default:
+        return 'WEEKLY';
+    }
+  }
+
+  /// Obtiene el ID del tipo de trabajo seleccionado
+  String _getJobTypeIdFromSelection() {
+    final selectedJobTypeName = _postJobData.value.jobType;
+    if (selectedJobTypeName != null && selectedJobTypeName.isNotEmpty) {
+      // Buscar el ID del tipo de trabajo en los datos cargados del API
+      final jobType = jobTypesFromApi.firstWhereOrNull(
+        (jt) => jt.name == selectedJobTypeName
+      );
+      if (jobType != null) {
+        return jobType.id;
+      }
+    }
+    // Si no se encuentra, retornar el primer job type disponible como fallback
+    if (jobTypesFromApi.isNotEmpty) {
+      return jobTypesFromApi.first.id;
+    }
+    return 'default-job-type-id';
+  }
+
+  /// Método de utilidad para obtener información del job creado
+  Future<void> getJobInfo(String jobId) async {
+    try {
+      final result = await _jobsUseCase.getJobById(jobId);
+      
+      if (result.isSuccess && result.data != null) {
+        // Job info retrieved successfully
+      }
+    } catch (e) {
+      // Error getting job info
+    }
+  }
+
+  /// Método de utilidad para obtener todos los jobs del builder
+  Future<void> getAllJobs() async {
+    try {
+      final result = await _jobsUseCase.getJobs();
+      
+      if (result.isSuccess && result.data != null) {
+        // Jobs retrieved successfully
+      }
+    } catch (e) {
+      // Error getting jobs
     }
   }
 
@@ -922,7 +1090,7 @@ class UnifiedPostJobController extends GetxController {
         Get.toNamed(PostJobReviewScreen.id, arguments: {'flavor': currentFlavor.value});
         break;
       default:
-        print('No navigation defined for step ${_currentStep.value}');
+        break;
     }
   }
 
@@ -933,28 +1101,42 @@ class UnifiedPostJobController extends GetxController {
   }
 
   void handleConfirm() async {
-    print('🎯 handleConfirm called - Instance: ${this.hashCode}');
+    // Limpiar errores previos antes de intentar crear el job
+    _errorMessage.value = '';
+    
+    // Crear el job usando el caso de uso
     await postJob();
     
-    // Mostrar mensaje de éxito
-    Get.snackbar(
-      'Success',
-      'Job posted successfully!',
-      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-      colorText: Colors.white,
-      duration: Duration(seconds: 2),
-    );
-    
-    // Resetear todos los estados de las variables de las vistas
-    await reset();
-    
-    // Navegar al home del builder
-    Get.offAllNamed('/builder/home');
+    // Verificar si la creación fue exitosa
+    if (_errorMessage.value.isEmpty) {
+      // Mostrar mensaje de éxito solo si no hay errores
+      Get.snackbar(
+        'Success',
+        'Job posted successfully!',
+        backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
+      
+      // Resetear todos los estados de las variables de las vistas
+      await reset();
+      
+      // Navegar al home del builder
+      Get.offAllNamed('/builder/home');
+    } else {
+      // Mostrar error si la creación falló
+      Get.snackbar(
+        'Error',
+        _errorMessage.value,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: Duration(seconds: 3),
+      );
+    }
   }
 
   // ===== UTILITY METHODS =====
   Future<void> reset() async {
-    print('🧹 UnifiedPostJobController reset - Instance: ${this.hashCode}');
     _postJobData.value = PostJobDto(
       requiresSupervisorSignature: false,
       supervisorName: null,
@@ -979,7 +1161,6 @@ class UnifiedPostJobController extends GetxController {
     selectedPaymentOption.value = '';
     selectedPayDay.value = null;
     isPublic.value = true;
-    print('✅ Reset completed');
   }
 
   void clearError() {

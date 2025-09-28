@@ -118,6 +118,7 @@ class FilterJobSitesController extends GetxController {
   }
 
   void handleBackNavigation() {
+    // Asegurar que regrese a la pantalla correcta
     Get.back();
   }
 

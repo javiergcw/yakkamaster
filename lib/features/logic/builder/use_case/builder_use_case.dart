@@ -33,9 +33,7 @@ class BuilderUseCase {
     try {
       // Crear el DTO del perfil de constructor
       final profileData = DtoSendBuilderProfile(
-        companyName: companyName,
         displayName: displayName,
-        location: location,
         bio: bio,
         avatarUrl: avatarUrl,
         phone: phone,

@@ -873,17 +873,6 @@ class CreateProfileBuilderController extends GetxController {
         return false;
       }
       
-      // Validar teléfono (mínimo 10 caracteres)
-      if (phoneController.text.trim().length < 10) {
-        Get.snackbar(
-          'Error',
-          'Phone number must be at least 10 digits',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          duration: Duration(seconds: 3),
-        );
-        return false;
-      }
       
       // Preparar licencias
       List<DtoSendBuilderLicense> builderLicenses = [];

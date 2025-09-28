@@ -227,7 +227,7 @@ class PostJobController extends GetxController {
   // Job posting
   Future<void> postJob() async {
     if (!canProceedToNextStep()) {
-      _errorMessage.value = 'Please complete all required fields';
+      _errorMessage.value = ' all required fields';
       return;
     }
 

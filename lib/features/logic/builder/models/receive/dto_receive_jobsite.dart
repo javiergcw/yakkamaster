@@ -5,12 +5,10 @@ class DtoReceiveJobsite {
   final String id;
   final String builderId;
   final String address;
-  final String city;
   final String suburb;
   final String description;
   final double latitude;
   final double longitude;
-  final String phone;
   final String createdAt;
   final String updatedAt;
 
@@ -18,31 +16,56 @@ class DtoReceiveJobsite {
     required this.id,
     required this.builderId,
     required this.address,
-    required this.city,
     required this.suburb,
     required this.description,
     required this.latitude,
     required this.longitude,
-    required this.phone,
     required this.createdAt,
     required this.updatedAt,
   });
 
   /// Constructor desde JSON
   factory DtoReceiveJobsite.fromJson(Map<String, dynamic> json) {
-    return DtoReceiveJobsite(
-      id: json['id'] as String,
-      builderId: json['builder_id'] as String,
-      address: json['address'] as String,
-      city: json['city'] as String,
-      suburb: json['suburb'] as String,
-      description: json['description'] as String,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      phone: json['phone'] as String,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String,
-    );
+    try {
+      print('DtoReceiveJobsite.fromJson - JSON recibido: $json');
+      
+      final id = json['id']?.toString() ?? '';
+      final builderId = json['builder_id']?.toString() ?? '';
+      final address = json['address']?.toString() ?? '';
+      final suburb = json['suburb']?.toString() ?? '';
+      final description = json['description']?.toString() ?? '';
+      final latitude = (json['latitude'] as num?)?.toDouble() ?? 0.0;
+      final longitude = (json['longitude'] as num?)?.toDouble() ?? 0.0;
+      final createdAt = json['created_at']?.toString() ?? '';
+      final updatedAt = json['updated_at']?.toString() ?? '';
+      
+      print('DtoReceiveJobsite.fromJson - Valores procesados:');
+      print('  id: $id');
+      print('  builderId: $builderId');
+      print('  address: $address');
+      print('  suburb: $suburb');
+      print('  description: $description');
+      print('  latitude: $latitude');
+      print('  longitude: $longitude');
+      print('  createdAt: $createdAt');
+      print('  updatedAt: $updatedAt');
+      
+      return DtoReceiveJobsite(
+        id: id,
+        builderId: builderId,
+        address: address,
+        suburb: suburb,
+        description: description,
+        latitude: latitude,
+        longitude: longitude,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
+    } catch (e) {
+      print('Error en DtoReceiveJobsite.fromJson: $e');
+      print('JSON que causó el error: $json');
+      rethrow;
+    }
   }
 
   /// Convierte a JSON
@@ -51,12 +74,10 @@ class DtoReceiveJobsite {
       'id': id,
       'builder_id': builderId,
       'address': address,
-      'city': city,
       'suburb': suburb,
       'description': description,
       'latitude': latitude,
       'longitude': longitude,
-      'phone': phone,
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -82,12 +103,12 @@ class DtoReceiveJobsite {
 
   /// Obtiene la ubicación completa formateada
   String get fullLocation {
-    return '$address, $suburb, $city';
+    return '$address, $suburb';
   }
 
-  /// Obtiene la ubicación corta (solo suburb y city)
+  /// Obtiene la ubicación corta (solo suburb)
   String get shortLocation {
-    return '$suburb, $city';
+    return suburb;
   }
 
   /// Obtiene las coordenadas como string
@@ -103,24 +124,24 @@ class DtoReceiveJobsite {
     };
   }
 
-  /// Verifica si el jobsite está en Sydney
+  /// Verifica si el jobsite está en Sydney (basado en suburb)
   bool get isInSydney {
-    return city.toLowerCase().contains('sydney');
+    return suburb.toLowerCase().contains('sydney');
   }
 
-  /// Verifica si el jobsite está en Melbourne
+  /// Verifica si el jobsite está en Melbourne (basado en suburb)
   bool get isInMelbourne {
-    return city.toLowerCase().contains('melbourne');
+    return suburb.toLowerCase().contains('melbourne');
   }
 
-  /// Verifica si el jobsite está en Brisbane
+  /// Verifica si el jobsite está en Brisbane (basado en suburb)
   bool get isInBrisbane {
-    return city.toLowerCase().contains('brisbane');
+    return suburb.toLowerCase().contains('brisbane');
   }
 
-  /// Verifica si el jobsite está en Perth
+  /// Verifica si el jobsite está en Perth (basado en suburb)
   bool get isInPerth {
-    return city.toLowerCase().contains('perth');
+    return suburb.toLowerCase().contains('perth');
   }
 
   /// Obtiene el estado basado en la ciudad
@@ -154,17 +175,9 @@ class DtoReceiveJobsite {
     return '${description.substring(0, 47)}...';
   }
 
-  /// Obtiene el teléfono formateado
+  /// Obtiene el teléfono formateado (no disponible en el API actual)
   String get formattedPhone {
-    // Formato australiano: +61 2 1234 5678
-    if (phone.startsWith('+61')) {
-      return phone;
-    }
-    // Si no tiene formato internacional, agregarlo
-    if (phone.startsWith('0')) {
-      return '+61 ${phone.substring(1)}';
-    }
-    return phone;
+    return 'No phone available';
   }
 
   /// Obtiene la distancia aproximada desde el centro de la ciudad (en km)
@@ -177,7 +190,7 @@ class DtoReceiveJobsite {
       'perth': {'lat': -31.9505, 'lng': 115.8605},
     };
 
-    final cityKey = city.toLowerCase();
+    final cityKey = suburb.toLowerCase();
     if (cityCenters.containsKey(cityKey)) {
       final center = cityCenters[cityKey]!;
       return _calculateDistance(
@@ -226,7 +239,7 @@ class DtoReceiveJobsite {
 
   @override
   String toString() {
-    return 'DtoReceiveJobsite(id: $id, address: $address, city: $city, suburb: $suburb)';
+    return 'DtoReceiveJobsite(id: $id, address: $address, suburb: $suburb)';
   }
 
   @override
@@ -252,10 +265,10 @@ class DtoReceiveJobsites {
   /// Constructor desde JSON
   factory DtoReceiveJobsites.fromJson(Map<String, dynamic> json) {
     return DtoReceiveJobsites(
-      jobsites: (json['jobsites'] as List<dynamic>)
-          .map((item) => DtoReceiveJobsite.fromJson(item as Map<String, dynamic>))
-          .toList(),
-      total: json['total'] as int,
+      jobsites: (json['jobsites'] as List<dynamic>?)
+          ?.map((item) => DtoReceiveJobsite.fromJson(item as Map<String, dynamic>))
+          .toList() ?? [],
+      total: json['total'] as int? ?? 0,
     );
   }
 
@@ -270,12 +283,6 @@ class DtoReceiveJobsites {
   /// Obtiene el número de jobsites
   int get jobsitesCount => jobsites.length;
 
-  /// Obtiene los jobsites por ciudad
-  List<DtoReceiveJobsite> getJobsitesByCity(String city) {
-    return jobsites.where((jobsite) => 
-      jobsite.city.toLowerCase() == city.toLowerCase()).toList();
-  }
-
   /// Obtiene los jobsites por suburbio
   List<DtoReceiveJobsite> getJobsitesBySuburb(String suburb) {
     return jobsites.where((jobsite) => 
@@ -284,22 +291,22 @@ class DtoReceiveJobsites {
 
   /// Obtiene los jobsites de Sydney
   List<DtoReceiveJobsite> get sydneyJobsites {
-    return getJobsitesByCity('Sydney');
+    return getJobsitesBySuburb('Sydney');
   }
 
   /// Obtiene los jobsites de Melbourne
   List<DtoReceiveJobsite> get melbourneJobsites {
-    return getJobsitesByCity('Melbourne');
+    return getJobsitesBySuburb('Melbourne');
   }
 
   /// Obtiene los jobsites de Brisbane
   List<DtoReceiveJobsite> get brisbaneJobsites {
-    return getJobsitesByCity('Brisbane');
+    return getJobsitesBySuburb('Brisbane');
   }
 
   /// Obtiene los jobsites de Perth
   List<DtoReceiveJobsite> get perthJobsites {
-    return getJobsitesByCity('Perth');
+    return getJobsitesBySuburb('Perth');
   }
 
   /// Busca un jobsite por ID
@@ -316,12 +323,12 @@ class DtoReceiveJobsites {
     return jobsites.where((jobsite) => jobsite.builderId == builderId).toList();
   }
 
-  /// Obtiene un resumen por ciudad
-  Map<String, int> get citiesSummary {
+  /// Obtiene un resumen por suburbio
+  Map<String, int> get suburbsSummary {
     final summary = <String, int>{};
     for (final jobsite in jobsites) {
-      final city = jobsite.city;
-      summary[city] = (summary[city] ?? 0) + 1;
+      final suburb = jobsite.suburb;
+      summary[suburb] = (summary[suburb] ?? 0) + 1;
     }
     return summary;
   }
@@ -343,10 +350,10 @@ class DtoReceiveJobsites {
     return sortedJobsites;
   }
 
-  /// Obtiene los jobsites ordenados por ciudad
-  List<DtoReceiveJobsite> get jobsitesByCity {
+  /// Obtiene los jobsites ordenados por suburbio
+  List<DtoReceiveJobsite> get jobsitesBySuburb {
     final sortedJobsites = List<DtoReceiveJobsite>.from(jobsites);
-    sortedJobsites.sort((a, b) => a.city.compareTo(b.city));
+    sortedJobsites.sort((a, b) => a.suburb.compareTo(b.suburb));
     return sortedJobsites;
   }
 

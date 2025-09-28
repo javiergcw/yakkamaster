@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../data/dto/job_details_dto.dart';
+import '../../../../features/logic/builder/models/receive/dto_receive_job.dart';
 import '../widgets/job_map.dart';
 import '../widgets/application_success_modal.dart';
 import '../../logic/controllers/job_details_screen_controller.dart';
@@ -22,14 +23,16 @@ import '../../logic/controllers/job_details_screen_controller.dart';
 class JobDetailsScreen extends StatelessWidget {
   static const String id = '/job-details';
   
-  final JobDetailsDto jobDetails;
+  final JobDetailsDto? jobDetails;
+  final DtoReceiveJob? realJob;
   final AppFlavor? flavor;
   final bool isFromAppliedJobs;
   final bool isFromBuilder;
 
   JobDetailsScreen({
     super.key,
-    required this.jobDetails,
+    this.jobDetails,
+    this.realJob,
     this.flavor,
     this.isFromAppliedJobs = false,
     this.isFromBuilder = false,
@@ -37,10 +40,75 @@ class JobDetailsScreen extends StatelessWidget {
 
   final JobDetailsScreenController controller = Get.put(JobDetailsScreenController());
 
+  // Método para obtener los datos del job (mock o real)
+  JobDetailsDto getJobData() {
+    if (realJob != null) {
+      // Convertir DtoReceiveJob a JobDetailsDto con datos reales
+      return JobDetailsDto(
+        id: realJob!.id,
+        title: realJob!.description.isNotEmpty ? realJob!.description : 'Job Description',
+        hourlyRate: realJob!.wageSiteAllowance,
+        location: realJob!.jobsiteId,
+        dateRange: '${_formatDateFromString(realJob!.startDateWork)} - ${_formatDateFromString(realJob!.endDateWork)}',
+        jobType: realJob!.paymentType,
+        source: 'Builder',
+        postedDate: _formatDateFromString(realJob!.createdAt),
+        company: 'Builder',
+        address: realJob!.jobsiteId,
+        suburb: 'Job Site', // Usar jobsiteId como suburb
+        city: 'Sydney', // Ciudad por defecto
+        startDate: _formatDateFromString(realJob!.startDateWork),
+        time: '${realJob!.startTime} - ${realJob!.endTime}',
+        paymentExpected: realJob!.paymentType,
+        aboutJob: realJob!.description.isNotEmpty ? realJob!.description : 'Construction work position',
+        requirements: [
+          'Workers needed: ${realJob!.manyLabours}',
+          'Supervisor required: ${realJob!.requiresSupervisorSignature ? 'Yes' : 'No'}',
+          if (realJob!.supervisorName.isNotEmpty) 'Supervisor: ${realJob!.supervisorName}',
+          'Work Saturday: ${realJob!.workSaturday ? 'Yes' : 'No'}',
+          'Work Sunday: ${realJob!.workSunday ? 'Yes' : 'No'}',
+          'Payment type: ${realJob!.paymentType}',
+          'Ongoing work: ${realJob!.ongoingWork ? 'Yes' : 'No'}',
+          if (realJob!.wageLeadingHandAllowance > 0) 'Leading hand allowance: \$${realJob!.wageLeadingHandAllowance}',
+          if (realJob!.wageProductivityAllowance > 0) 'Productivity allowance: \$${realJob!.wageProductivityAllowance}',
+          if (realJob!.extrasOvertimeRate > 0) 'Overtime rate: ${realJob!.extrasOvertimeRate}x',
+        ],
+        latitude: -33.8688, // Sydney coordinates as default
+        longitude: 151.2093,
+      );
+    } else if (jobDetails != null) {
+      return jobDetails!;
+    } else {
+      throw Exception('No job data provided');
+    }
+  }
+
+  String _formatDateFromString(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return dateString; // Retornar el string original si no se puede parsear
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Debug: Verificar si se está recibiendo realJob
+    print('JobDetailsScreen - realJob: ${realJob?.id}');
+    print('JobDetailsScreen - jobDetails: ${jobDetails?.id}');
+    print('JobDetailsScreen - isFromBuilder: $isFromBuilder');
+    
+    // Obtener datos del job (mock o real)
+    final jobData = getJobData();
+    
+    // Debug: Verificar datos mapeados
+    print('JobDetailsScreen - jobData.title: ${jobData.title}');
+    print('JobDetailsScreen - jobData.hourlyRate: ${jobData.hourlyRate}');
+    print('JobDetailsScreen - jobData.location: ${jobData.location}');
+    
     // Establecer datos en el controlador
-    controller.jobDetails.value = jobDetails;
+    controller.jobDetails.value = jobData;
     if (flavor != null) {
       controller.currentFlavor.value = flavor!;
     }
@@ -116,7 +184,7 @@ class JobDetailsScreen extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      jobDetails.title,
+                                      jobData.title,
                                       style: GoogleFonts.poppins(
                                         fontSize: titleFontSize * 0.85,
                                         fontWeight: FontWeight.bold,
@@ -125,7 +193,7 @@ class JobDetailsScreen extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    '\$${jobDetails.hourlyRate.toStringAsFixed(1)}/hr',
+                                    '\$${jobData.hourlyRate.toStringAsFixed(1)}/hr',
                                     style: GoogleFonts.poppins(
                                       fontSize: titleFontSize * 0.7,
                                       fontWeight: FontWeight.bold,
@@ -141,7 +209,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.business,
                                 label: 'Company',
-                                value: jobDetails.company,
+                                value: jobData.company,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -151,7 +219,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.location_on,
                                 label: 'Suburb',
-                                value: jobDetails.suburb,
+                                value: jobData.suburb,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -161,7 +229,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.location_city,
                                 label: 'City',
-                                value: jobDetails.city,
+                                value: jobData.city,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -171,7 +239,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.calendar_today,
                                 label: 'Start date',
-                                value: jobDetails.startDate,
+                                value: jobData.startDate,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -181,7 +249,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.access_time,
                                 label: 'Time',
-                                value: jobDetails.time,
+                                value: jobData.time,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -191,7 +259,7 @@ class JobDetailsScreen extends StatelessWidget {
                               _buildDetailRow(
                                 icon: Icons.description,
                                 label: 'Payment is expected',
-                                value: jobDetails.paymentExpected,
+                                value: jobData.paymentExpected,
                                 iconSize: iconSize,
                                 bodyFontSize: bodyFontSize,
                               ),
@@ -219,7 +287,7 @@ class JobDetailsScreen extends StatelessWidget {
                               SizedBox(height: verticalSpacing),
                               
                               Text(
-                                jobDetails.aboutJob,
+                                jobData.aboutJob,
                                 style: GoogleFonts.poppins(
                                   fontSize: bodyFontSize,
                                   color: Colors.black87,
@@ -241,7 +309,7 @@ class JobDetailsScreen extends StatelessWidget {
                               
                               SizedBox(height: verticalSpacing),
                               
-                              ...jobDetails.requirements.map((requirement) => 
+                              ...jobData.requirements.map((requirement) => 
                                 Padding(
                                   padding: EdgeInsets.only(bottom: verticalSpacing * 0.5),
                                   child: Row(
@@ -276,9 +344,9 @@ class JobDetailsScreen extends StatelessWidget {
                               
                               // Mapa
                               JobMap(
-                                latitude: jobDetails.latitude,
-                                longitude: jobDetails.longitude,
-                                address: jobDetails.address,
+                                latitude: jobData.latitude,
+                                longitude: jobData.longitude,
+                                address: jobData.address,
                                 height: mapHeight,
                               ),
                               
@@ -317,7 +385,7 @@ class JobDetailsScreen extends StatelessWidget {
                                       ),
                                     ),
                                     Text(
-                                      '\$${jobDetails.hourlyRate.toStringAsFixed(2)}',
+                                      '\$${jobData.hourlyRate.toStringAsFixed(2)}',
                                       style: GoogleFonts.poppins(
                                         fontSize: bodyFontSize,
                                         fontWeight: FontWeight.w600,
@@ -465,7 +533,7 @@ class JobDetailsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ApplicationSuccessModal(
-                      jobDetails: jobDetails,
+                      jobDetails: jobData,
                       flavor: controller.currentFlavor.value,
                       onClose: controller.handleCloseModal,
                       onViewAppliedJobs: controller.handleViewAppliedJobs,

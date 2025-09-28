@@ -36,6 +36,7 @@ class JobSitesListController extends GetxController {
       final result = await _jobsitesUseCase.getJobsites();
       
       if (result.isSuccess && result.data != null) {
+        // Asignar jobsites directamente ya que el modelo maneja nulls
         jobSites.value = result.data!.jobsites;
       } else {
         errorMessage.value = result.message ?? 'Error loading job sites';
@@ -44,6 +45,7 @@ class JobSitesListController extends GetxController {
     } catch (e) {
       errorMessage.value = 'Error loading job sites: $e';
       jobSites.clear();
+      print('Error details: $e'); // Para debugging
     } finally {
       isLoading.value = false;
     }
@@ -52,13 +54,13 @@ class JobSitesListController extends GetxController {
   /// Convierte DtoReceiveJobsite a JobSiteDto para compatibilidad con la UI
   JobSiteDto convertToJobSiteDto(DtoReceiveJobsite jobsite) {
     return JobSiteDto(
-      id: jobsite.id,
-      name: jobsite.description, // Usar description como nombre
-      address: jobsite.address,
-      city: jobsite.city,
-      code: jobsite.id.substring(0, 8), // Usar parte del ID como código
-      location: jobsite.fullLocation, // Usar fullLocation
-      description: jobsite.description,
+      id: jobsite.id.isNotEmpty ? jobsite.id : 'unknown',
+      name: jobsite.description.isNotEmpty ? jobsite.description : 'No description',
+      address: jobsite.address.isNotEmpty ? jobsite.address : 'No address',
+      city: jobsite.suburb.isNotEmpty ? jobsite.suburb : 'Unknown suburb', // Usar suburb como city
+      code: jobsite.id.length >= 8 ? jobsite.id.substring(0, 8) : jobsite.id,
+      location: jobsite.fullLocation.isNotEmpty ? jobsite.fullLocation : 'Unknown location',
+      description: jobsite.description.isNotEmpty ? jobsite.description : 'No description',
       status: JobSiteStatus.inProgress, // Por defecto en progreso
     );
   }
@@ -196,16 +198,8 @@ class JobSitesListController extends GetxController {
                       iconColor: Colors.purple[600],
                     ),
                     
-                    // Phone Section
-                    if (jobSite.phone.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      buildDetailSection(
-                        icon: Icons.phone,
-                        title: 'Phone',
-                        value: jobSite.formattedPhone,
-                        iconColor: Colors.teal[600],
-                      ),
-                    ],
+                    // Phone Section (no disponible en el API actual)
+                    // Removido porque el campo phone no existe en la respuesta del API
                     
                     // Coordinates Section
                     const SizedBox(height: 24),
@@ -216,12 +210,12 @@ class JobSitesListController extends GetxController {
                       iconColor: Colors.indigo[600],
                     ),
                     
-                    // City and Suburb Section
+                    // Suburb Section
                     const SizedBox(height: 24),
                     buildDetailSection(
                       icon: Icons.location_city,
-                      title: 'City & Suburb',
-                      value: '${jobSite.suburb}, ${jobSite.city}',
+                      title: 'Suburb',
+                      value: jobSite.suburb,
                       iconColor: Colors.amber[600],
                     ),
                     
@@ -365,16 +359,28 @@ class JobSitesListController extends GetxController {
     );
   }
 
-  void handleEditJobSite(DtoReceiveJobsite jobSite) {
-    Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
+  void handleEditJobSite(DtoReceiveJobsite jobSite) async {
+    final result = await Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
       'flavor': currentFlavor.value,
       'jobSite': jobSite,
+      'sourceScreen': 'job_sites_list',
     });
+    
+    // Si se creó o editó un jobsite exitosamente, recargar la lista
+    if (result != null && result['success'] == true) {
+      loadJobSites();
+    }
   }
 
-  void handleCreateJobSite() {
-    Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
+  void handleCreateJobSite() async {
+    final result = await Get.toNamed(CreateEditJobSiteScreen.id, arguments: {
       'flavor': currentFlavor.value,
+      'sourceScreen': 'job_sites_list',
     });
+    
+    // Si se creó o editó un jobsite exitosamente, recargar la lista
+    if (result != null && result['success'] == true) {
+      loadJobSites();
+    }
   }
 }

@@ -20,6 +20,9 @@ class CreateEditJobSiteScreenController extends GetxController {
   
   final RxBool isLoading = false.obs;
   final Rx<JobSiteDto?> editingJobSite = Rx<JobSiteDto?>(null);
+  
+  // Variable para rastrear desde qué pantalla se está creando el jobsite
+  String? sourceScreen;
 
   @override
   void onInit() {
@@ -34,6 +37,11 @@ class CreateEditJobSiteScreenController extends GetxController {
     // Establecer flavor si se proporciona
     if (arguments != null && arguments['flavor'] != null) {
       currentFlavor.value = arguments['flavor'];
+    }
+    
+    // Obtener la pantalla de origen si se proporciona
+    if (arguments != null && arguments['sourceScreen'] != null) {
+      sourceScreen = arguments['sourceScreen'];
     }
   }
 
@@ -55,6 +63,12 @@ class CreateEditJobSiteScreenController extends GetxController {
 
   void handleClose() {
     Get.back();
+  }
+
+  /// Navega a la pantalla correcta después de crear/editar un jobsite
+  void _navigateAfterSave() {
+    // Forzar la navegación de regreso con un resultado para indicar que se completó la operación
+    Get.back(result: {'success': true, 'action': editingJobSite.value != null ? 'updated' : 'created'});
   }
 
   Future<void> handleSave() async {
@@ -83,17 +97,21 @@ class CreateEditJobSiteScreenController extends GetxController {
           'Job site updated successfully!',
           backgroundColor: Colors.green,
           colorText: Colors.white,
+          duration: Duration(seconds: 2),
         );
+        
+        // Esperar un poco para que el usuario vea el snackbar
+        await Future.delayed(Duration(milliseconds: 500));
+        // Navegar a la pantalla correcta después de editar
+        _navigateAfterSave();
       } else {
         // Crear nuevo job site usando el nuevo servicio
         final jobsiteData = DtoSendJobsite.create(
           address: addressController.text.trim(),
-          city: suburbController.text.trim(),
           suburb: suburbController.text.trim(), // Usar suburb como suburb
           description: descriptionController.text.trim(),
-          latitude: 0.0, // Valor por defecto
-          longitude: 0.0, // Valor por defecto
-          phone: '', // Valor por defecto
+          latitude: -33.8688, // Latitud hardcodeada para Sydney
+          longitude: 151.2093, // Longitud hardcodeada para Sydney
         );
 
         final result = await _jobsitesUseCase.createJobsite(jobsiteData);
@@ -104,13 +122,17 @@ class CreateEditJobSiteScreenController extends GetxController {
             'Job site created successfully!',
             backgroundColor: Colors.green,
             colorText: Colors.white,
+            duration: Duration(seconds: 2),
           );
+          
+          // Esperar un poco para que el usuario vea el snackbar
+          await Future.delayed(Duration(milliseconds: 500));
+          // Navegar a la pantalla correcta después de crear
+          _navigateAfterSave();
         } else {
           throw Exception(result.message ?? 'Error creating job site');
         }
       }
-
-      Get.back();
     } catch (e) {
       Get.snackbar(
         'Error',

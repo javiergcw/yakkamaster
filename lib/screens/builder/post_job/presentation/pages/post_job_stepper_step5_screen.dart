@@ -295,11 +295,11 @@ class PostJobStepperStep5Screen extends StatelessWidget {
         runSpacing: verticalSpacing * 0.8,
         children: controller.jobTypesFromApi.map((jobType) {
           return Obx(() {
-            final isSelected = controller.selectedJobType.value == jobType;
+            final isSelected = controller.selectedJobType.value == jobType.name;
             
             return GestureDetector(
               onTap: () {
-                controller.updateJobType(jobType);
+                controller.updateJobType(jobType.name);
               },
               child: Container(
                 padding: EdgeInsets.symmetric(
@@ -319,7 +319,7 @@ class PostJobStepperStep5Screen extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  jobType,
+                  jobType.name,
                   style: GoogleFonts.poppins(
                     fontSize: chipFontSize,
                     fontWeight: FontWeight.w500,

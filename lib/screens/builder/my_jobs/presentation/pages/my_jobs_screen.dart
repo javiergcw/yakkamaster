@@ -256,44 +256,99 @@ class MyJobsScreen extends StatelessWidget {
     );
   }
 
-  void _handleShowMore(String jobId) {
-    // Buscar el trabajo en la lista para obtener los detalles
-    final job = controller.jobs.firstWhere((job) => job.id == jobId);
-    
-    // Crear JobDetailsDto con los datos del trabajo
-    final jobDetails = JobDetailsDto(
-      id: job.id,
-      title: job.title,
-      hourlyRate: job.rate,
-      location: job.location,
-      dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
-      jobType: job.jobType,
-      source: job.source,
-      postedDate: _formatDate(job.postedDate),
-      company: job.source,
-      address: job.location,
-      suburb: job.location.split(', ').length > 1 ? job.location.split(', ')[1] : '',
-      city: job.location.split(', ').length > 2 ? job.location.split(', ')[2] : '',
-      startDate: _formatDate(job.startDate),
-      time: '${_formatTime(job.startDate)} - ${_formatTime(job.endDate)}',
-      paymentExpected: job.jobType,
-      aboutJob: 'This is a ${job.jobType.toLowerCase()} position for ${job.title}.',
-      requirements: [
-        'Experience in ${job.title.toLowerCase()}',
-        'Valid work permit',
-        'Good communication skills',
-        'Reliable and punctual',
-      ],
-      latitude: -33.8688, // Sydney coordinates as default
-      longitude: 151.2093,
-    );
-    
-    Get.toNamed(JobDetailsScreen.id, arguments: {
-      'jobDetails': jobDetails,
-      'flavor': flavor,
-      'isFromAppliedJobs': false,
-      'isFromBuilder': true, // Indicar que viene del builder
-    });
+  void _handleShowMore(String jobId) async {
+    print('_handleShowMore called with jobId: $jobId');
+    try {
+      // Usar el controlador para obtener el job real de la API
+      final realJob = await controller.getRealJobById(jobId);
+      print('_handleShowMore - realJob: ${realJob?.id}');
+      
+      if (realJob != null) {
+        print('_handleShowMore - Navigating with realJob: ${realJob.id}');
+        Get.toNamed(JobDetailsScreen.id, arguments: {
+          'realJob': realJob, // Pasar el DtoReceiveJob real
+          'flavor': flavor,
+          'isFromAppliedJobs': false,
+          'isFromBuilder': true, // Indicar que viene del builder
+        });
+      } else {
+        print('_handleShowMore - realJob is null, using fallback');
+        // Fallback: usar el JobDto convertido
+        final job = controller.jobs.firstWhere((job) => job.id == jobId);
+        
+        // Crear JobDetailsDto con los datos del JobDto
+        final jobDetails = JobDetailsDto(
+          id: job.id,
+          title: job.title,
+          hourlyRate: job.rate,
+          location: job.location,
+          dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
+          jobType: job.jobType,
+          source: job.source,
+          postedDate: _formatDate(job.postedDate),
+          company: job.source,
+          address: job.location,
+          suburb: '',
+          city: '',
+          startDate: _formatDate(job.startDate),
+          time: '${_formatTime(job.startDate)} - ${_formatTime(job.endDate)}',
+          paymentExpected: job.jobType,
+          aboutJob: 'This is a ${job.jobType.toLowerCase()} position for ${job.title}.',
+          requirements: [
+            'Experience in ${job.title.toLowerCase()}',
+            'Valid work permit',
+            'Good communication skills',
+            'Reliable and punctual',
+          ],
+          latitude: -33.8688,
+          longitude: 151.2093,
+        );
+        
+        Get.toNamed(JobDetailsScreen.id, arguments: {
+          'jobDetails': jobDetails,
+          'flavor': flavor,
+          'isFromAppliedJobs': false,
+          'isFromBuilder': true,
+        });
+      }
+    } catch (e) {
+      // En caso de error, usar el JobDto convertido como fallback
+      final job = controller.jobs.firstWhere((job) => job.id == jobId);
+      
+      final jobDetails = JobDetailsDto(
+        id: job.id,
+        title: job.title,
+        hourlyRate: job.rate,
+        location: job.location,
+        dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
+        jobType: job.jobType,
+        source: job.source,
+        postedDate: _formatDate(job.postedDate),
+        company: job.source,
+        address: job.location,
+        suburb: '',
+        city: '',
+        startDate: _formatDate(job.startDate),
+        time: '${_formatTime(job.startDate)} - ${_formatTime(job.endDate)}',
+        paymentExpected: job.jobType,
+        aboutJob: 'This is a ${job.jobType.toLowerCase()} position for ${job.title}.',
+        requirements: [
+          'Experience in ${job.title.toLowerCase()}',
+          'Valid work permit',
+          'Good communication skills',
+          'Reliable and punctual',
+        ],
+        latitude: -33.8688,
+        longitude: 151.2093,
+      );
+      
+      Get.toNamed(JobDetailsScreen.id, arguments: {
+        'jobDetails': jobDetails,
+        'flavor': flavor,
+        'isFromAppliedJobs': false,
+        'isFromBuilder': true,
+      });
+    }
   }
 
   String _formatDate(DateTime date) {
@@ -303,6 +358,8 @@ class MyJobsScreen extends StatelessWidget {
   String _formatTime(DateTime date) {
     return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
+
+
 
   void _handleVisibilityChanged(String jobId, bool isVisible) {
     controller.updateJobVisibility(jobId, isVisible);

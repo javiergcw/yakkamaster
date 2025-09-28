@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../data/dto/job_details_dto.dart';
+import '../../../../features/logic/builder/models/receive/dto_receive_job.dart';
 
 class JobDetailsScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
   final RxBool hasApplied = false.obs;
   final RxBool showSuccessModal = false.obs;
   final Rx<JobDetailsDto?> jobDetails = Rx<JobDetailsDto?>(null);
+  final Rx<DtoReceiveJob?> realJob = Rx<DtoReceiveJob?>(null);
   final RxBool isFromAppliedJobs = false.obs;
   final RxBool isFromBuilder = false.obs;
 
@@ -22,6 +24,9 @@ class JobDetailsScreenController extends GetxController {
     if (arguments != null) {
       if (arguments['jobDetails'] != null) {
         jobDetails.value = arguments['jobDetails'];
+      }
+      if (arguments['realJob'] != null) {
+        realJob.value = arguments['realJob'];
       }
       if (arguments['flavor'] != null) {
         currentFlavor.value = arguments['flavor'];

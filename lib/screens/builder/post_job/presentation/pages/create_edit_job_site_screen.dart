@@ -120,6 +120,9 @@ class CreateEditJobSiteScreen extends StatelessWidget {
                            if (value == null || value.trim().isEmpty) {
                              return 'Please enter an address';
                            }
+                           if (value.trim().length < 10) {
+                             return 'Address must be at least 10 characters long';
+                           }
                            return null;
                          },
                        ),
@@ -134,6 +137,9 @@ class CreateEditJobSiteScreen extends StatelessWidget {
                          validator: (value) {
                            if (value == null || value.trim().isEmpty) {
                              return 'Please enter a suburb';
+                           }
+                           if (value.trim().length < 3) {
+                             return 'Suburb must be at least 3 characters long';
                            }
                            return null;
                          },

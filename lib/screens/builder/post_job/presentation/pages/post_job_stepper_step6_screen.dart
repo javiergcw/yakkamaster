@@ -6,7 +6,7 @@ import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../logic/controllers/unified_post_job_controller.dart';
 
-class PostJobStepperStep6Screen extends StatelessWidget {
+class PostJobStepperStep6Screen extends StatefulWidget {
   static const String id = '/builder/post-job-step6';
   
   final AppFlavor? flavor;
@@ -16,13 +16,34 @@ class PostJobStepperStep6Screen extends StatelessWidget {
     this.flavor,
   });
 
+  @override
+  State<PostJobStepperStep6Screen> createState() => _PostJobStepperStep6ScreenState();
+}
+
+class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
   final UnifiedPostJobController controller = Get.find<UnifiedPostJobController>();
+  late TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController(text: controller.description.value);
+    _descriptionController.addListener(() {
+      controller.updateDescription(_descriptionController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // Establecer el flavor en el controlador
-    if (flavor != null) {
-      controller.currentFlavor.value = flavor!;
+    if (widget.flavor != null) {
+      controller.currentFlavor.value = widget.flavor!;
     }
 
     final mediaQuery = MediaQuery.of(context);
@@ -35,7 +56,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
     final questionFontSize = screenWidth * 0.075;
     final iconSize = screenWidth * 0.06;
     
-    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
+    final currentFlavor = widget.flavor ?? AppFlavorConfig.currentFlavor;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -293,16 +314,13 @@ class PostJobStepperStep6Screen extends StatelessWidget {
                      Row(
                        children: [
                          Expanded(
-                           child: Obx(() {
-                             final textController = TextEditingController(text: controller.description.value);
-                             return CustomTextField(
-                               labelText: "Description",
-                               hintText: "Description...",
-                               controller: textController,
-                               flavor: currentFlavor,
-                               maxLines: 4,
-                             );
-                           }),
+                           child: CustomTextField(
+                             labelText: "Description",
+                             hintText: "Description...",
+                             controller: _descriptionController,
+                             flavor: currentFlavor,
+                             maxLines: 4,
+                           ),
                          ),
                          SizedBox(width: horizontalPadding * 0.5),
                          TextButton(
@@ -360,7 +378,7 @@ class PostJobStepperStep6Screen extends StatelessWidget {
     final verticalSpacing = screenHeight * 0.025;
     final chipHeight = screenHeight * 0.045;
     final chipFontSize = screenWidth * 0.03;
-    final currentFlavor = flavor ?? AppFlavorConfig.currentFlavor;
+    final currentFlavor = widget.flavor ?? AppFlavorConfig.currentFlavor;
 
     return Obx(() {
       if (controller.isLoadingJobRequirements.value) {

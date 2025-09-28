@@ -83,11 +83,11 @@ class JobSitesScreen extends StatelessWidget {
             // Main Content
             Expanded(
               child: Obx(() {
-                if (controller.jobSiteController.isLoading) {
+                if (controller.isLoadingApi.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (controller.jobSiteController.errorMessage.isNotEmpty) {
+                if (controller.errorMessageApi.value.isNotEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -99,7 +99,7 @@ class JobSitesScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         Text(
-                          controller.jobSiteController.errorMessage,
+                          controller.errorMessageApi.value,
                           style: GoogleFonts.poppins(
                             fontSize: descriptionFontSize,
                             color: Colors.grey[600],
@@ -108,8 +108,7 @@ class JobSitesScreen extends StatelessWidget {
                         ),
                         SizedBox(height: verticalSpacing),
                         ElevatedButton(
-                          onPressed: () =>
-                              controller.jobSiteController.loadJobSites(),
+                          onPressed: () => controller.loadApiJobSites(),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -117,7 +116,7 @@ class JobSitesScreen extends StatelessWidget {
                   );
                 }
 
-                if (controller.jobSiteController.jobSites.isEmpty) {
+                if (controller.apiJobSites.isEmpty) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -155,11 +154,9 @@ class JobSitesScreen extends StatelessWidget {
                     horizontal: horizontalPadding,
                     vertical: verticalSpacing * 0.5,
                   ),
-                  itemCount:
-                      controller.jobSiteController.jobSites.length +
-                      1, // +1 para el botón de crear
+                  itemCount: controller.apiJobSites.length + 1, // +1 para el botón de crear
                   itemBuilder: (context, index) {
-                    if (index == controller.jobSiteController.jobSites.length) {
+                    if (index == controller.apiJobSites.length) {
                       // Botón para crear job site al final
                       return Container(
                         margin: EdgeInsets.only(top: verticalSpacing),
@@ -193,20 +190,23 @@ class JobSitesScreen extends StatelessWidget {
                       );
                     }
 
-                    final jobSite =
-                        controller.jobSiteController.jobSites[index];
-                    return JobSiteCard(
-                      jobSite: jobSite,
-                      isSelected: jobSite.isSelected,
-                      onTap: () {
-                        controller.jobSiteController.toggleJobSiteSelection(
-                          jobSite.id,
-                        );
-                      },
-                      onEdit: () {
-                        controller.handleEditJobSite(jobSite);
-                      },
-                    );
+                    final jobSite = controller.apiJobSites[index];
+                    return Obx(() {
+                      // Recalcular el estado de selección reactivamente
+                      final updatedJobSiteDto = controller.convertToJobSiteDto(jobSite);
+                      return JobSiteCard(
+                        jobSite: updatedJobSiteDto,
+                        isSelected: updatedJobSiteDto.isSelected,
+                        onTap: () {
+                          controller.toggleJobSiteSelection(
+                            updatedJobSiteDto.id,
+                          );
+                        },
+                        onEdit: () {
+                          controller.handleEditJobSite(jobSite);
+                        },
+                      );
+                    });
                   },
                 );
               }),
@@ -222,12 +222,12 @@ class JobSitesScreen extends StatelessWidget {
                 ),
                 child: ElevatedButton(
                   onPressed:
-                      controller.jobSiteController.selectedJobSites.isNotEmpty
+                      controller.selectedJobSiteIds.isNotEmpty
                       ? controller.handleRequestWorkers
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                        controller.jobSiteController.selectedJobSites.isNotEmpty
+                        controller.selectedJobSiteIds.isNotEmpty
                         ? Color(
                             AppFlavorConfig.getPrimaryColor(
                               controller.currentFlavor.value,
