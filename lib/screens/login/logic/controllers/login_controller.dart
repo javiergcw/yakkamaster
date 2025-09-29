@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
+import '../../../../utils/storage/auth_storage.dart';
 
 class LoginController extends GetxController {
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   
   final RxBool isLoading = false.obs;
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
+  
+  final AuthStorage _authStorage = AuthStorage();
 
   @override
   void onInit() {
@@ -21,12 +25,19 @@ class LoginController extends GetxController {
   @override
   void onClose() {
     phoneController.dispose();
+    emailController.dispose();
     super.onClose();
   }
 
   void handleContinue() {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
+
+      // Guardar email si está presente
+      final email = emailController.text.trim();
+      if (email.isNotEmpty) {
+        _saveUserEmail(email);
+      }
 
       // Simular proceso de login
       Future.delayed(const Duration(seconds: 2), () {
@@ -37,7 +48,22 @@ class LoginController extends GetxController {
   }
 
   void handleEmailLogin() {
+    // Obtener el email del formulario y guardar en storage
+    final email = emailController.text.trim();
+    if (email.isNotEmpty) {
+      _saveUserEmail(email);
+    }
     Get.toNamed('/email-login', arguments: {'flavor': currentFlavor.value});
+  }
+  
+  /// Guarda el email del usuario en storage
+  Future<void> _saveUserEmail(String email) async {
+    try {
+      await _authStorage.setUserEmail(email);
+      print('Email guardado: $email');
+    } catch (e) {
+      print('Error al guardar email: $e');
+    }
   }
 
   void handleGoogleLogin() {

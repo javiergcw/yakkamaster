@@ -6,13 +6,44 @@ import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
 import '../widgets/country_selector.dart';
 import '../../logic/controllers/create_profile_builder_controller.dart';
+import '../../../../../utils/storage/auth_storage.dart';
 
-class CreateProfileStep2BuilderScreen extends StatelessWidget {
+class CreateProfileStep2BuilderScreen extends StatefulWidget {
   static const String id = '/create-profile-step2-builder';
   
-  CreateProfileStep2BuilderScreen({super.key});
+  const CreateProfileStep2BuilderScreen({super.key});
 
+  @override
+  State<CreateProfileStep2BuilderScreen> createState() => _CreateProfileStep2BuilderScreenState();
+}
+
+class _CreateProfileStep2BuilderScreenState extends State<CreateProfileStep2BuilderScreen> {
   final CreateProfileBuilderController controller = Get.put(CreateProfileBuilderController(), tag: 'builder_profile');
+  final AuthStorage _authStorage = AuthStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEmailFromStorage();
+  }
+
+  /// Carga el email desde storage y lo asigna al controller
+  Future<void> _loadEmailFromStorage() async {
+    try {
+      print('Iniciando carga de email desde storage en Step2...');
+      final savedEmail = await _authStorage.getUserEmail();
+      print('Email obtenido del storage en Step2: $savedEmail');
+      
+      if (savedEmail != null && savedEmail.isNotEmpty) {
+        controller.emailController.text = savedEmail;
+        print('Email cargado desde storage en Step2: $savedEmail');
+      } else {
+        print('No hay email guardado en storage para Step2');
+      }
+    } catch (e) {
+      print('Error al cargar email desde storage en Step2: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +117,7 @@ class CreateProfileStep2BuilderScreen extends StatelessWidget {
                 showBorder: true,
                 flavor: controller.currentFlavor.value,
                 keyboardType: TextInputType.emailAddress,
+                enabled: false,
               ),
 
               SizedBox(height: verticalSpacing * 0.8),

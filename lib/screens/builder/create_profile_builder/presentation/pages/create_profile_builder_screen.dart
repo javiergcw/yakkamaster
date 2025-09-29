@@ -6,12 +6,33 @@ import '../../../../../features/widgets/custom_button.dart';
 import '../widgets/progress_indicator.dart';
 import '../../logic/controllers/create_profile_builder_controller.dart';
 
-class CreateProfileBuilderScreen extends StatelessWidget {
+class CreateProfileBuilderScreen extends StatefulWidget {
   static const String id = '/create-profile-builder';
   
-  CreateProfileBuilderScreen({super.key});
+  const CreateProfileBuilderScreen({super.key});
 
+  @override
+  State<CreateProfileBuilderScreen> createState() => _CreateProfileBuilderScreenState();
+}
+
+class _CreateProfileBuilderScreenState extends State<CreateProfileBuilderScreen> {
   final CreateProfileBuilderController controller = Get.put(CreateProfileBuilderController(), tag: 'builder_profile');
+  final FocusNode _firstNameFocusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // Enfocar automáticamente el primer campo al cargar la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _firstNameFocusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _firstNameFocusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +102,7 @@ class CreateProfileBuilderScreen extends StatelessWidget {
               // Campo First Name
               CustomTextField(
                 controller: controller.firstNameController,
+                focusNode: _firstNameFocusNode,
                 hintText: "First name (Required)",
                 showBorder: true,
                 flavor: controller.currentFlavor.value,

@@ -22,6 +22,8 @@ class CustomTextField extends StatelessWidget {
   final AppFlavor? flavor;
   final bool showBorder;
   final double? borderRadius;
+  final bool autofocus;
+  final FocusNode? focusNode;
 
   const CustomTextField({
     super.key,
@@ -42,6 +44,8 @@ class CustomTextField extends StatelessWidget {
     this.flavor,
     this.showBorder = true,
     this.borderRadius,
+    this.autofocus = false,
+    this.focusNode,
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
@@ -69,9 +73,11 @@ class CustomTextField extends StatelessWidget {
       enabled: enabled,
       onTap: onTap,
       onChanged: onChanged,
+      autofocus: autofocus,
+      focusNode: focusNode,
       style: GoogleFonts.poppins(
         fontSize: fontSize,
-        color: Colors.black87,
+        color: enabled ? Colors.black87 : Colors.grey[500],
       ),
       decoration: InputDecoration(
         hintText: hintText,
@@ -79,7 +85,7 @@ class CustomTextField extends StatelessWidget {
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
         filled: showBorder,
-        fillColor: showBorder ? Colors.grey[50] : Colors.transparent,
+        fillColor: showBorder ? (enabled ? Colors.grey[50] : Colors.grey[100]) : Colors.transparent,
         border: showBorder ? OutlineInputBorder(
           borderRadius: BorderRadius.circular(defaultBorderRadius),
           borderSide: BorderSide(
@@ -115,13 +121,20 @@ class CustomTextField extends StatelessWidget {
             width: 2,
           ),
         ) : InputBorder.none,
+        disabledBorder: showBorder ? OutlineInputBorder(
+          borderRadius: BorderRadius.circular(defaultBorderRadius),
+          borderSide: BorderSide(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
+        ) : InputBorder.none,
         hintStyle: GoogleFonts.poppins(
           fontSize: fontSize,
-          color: Colors.grey[500],
+          color: enabled ? Colors.grey[500] : Colors.grey[400],
         ),
         labelStyle: GoogleFonts.poppins(
           fontSize: fontSize,
-          color: Colors.grey[600],
+          color: enabled ? Colors.grey[600] : Colors.grey[400],
         ),
         contentPadding: EdgeInsets.symmetric(
           horizontal: horizontalPadding,

@@ -10,6 +10,7 @@ class AuthStorage {
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userTokenKey = 'user_token';
   static const String _sessionTokenKey = 'session_token';
+  static const String _userEmailKey = 'user_email';
 
   final StorageManager _storage = StorageManager();
 
@@ -93,6 +94,26 @@ class AuthStorage {
     return await _storage.remove(_sessionTokenKey);
   }
 
+  /// Guarda el email del usuario
+  Future<bool> setUserEmail(String email) async {
+    return await _storage.setString(_userEmailKey, email);
+  }
+
+  /// Obtiene el email del usuario
+  Future<String?> getUserEmail() async {
+    return await _storage.getString(_userEmailKey);
+  }
+
+  /// Verifica si existe un email guardado
+  Future<bool> hasUserEmail() async {
+    return await _storage.containsKey(_userEmailKey);
+  }
+
+  /// Elimina el email del usuario
+  Future<bool> removeUserEmail() async {
+    return await _storage.remove(_userEmailKey);
+  }
+
   /// Elimina todos los tokens de autenticación
   Future<void> clearAllTokens() async {
     await _storage.removeMultiple([
@@ -100,6 +121,7 @@ class AuthStorage {
       _refreshTokenKey,
       _userTokenKey,
       _sessionTokenKey,
+      _userEmailKey,
     ]);
   }
 
@@ -110,6 +132,7 @@ class AuthStorage {
       'refresh': await getRefreshToken(),
       'user': await getUserToken(),
       'session': await getSessionToken(),
+      'email': await getUserEmail(),
     };
   }
 }

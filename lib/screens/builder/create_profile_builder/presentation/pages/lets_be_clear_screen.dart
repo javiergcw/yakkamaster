@@ -9,15 +9,13 @@ import '../../logic/controllers/create_profile_builder_controller.dart';
 
 class LetsBeClearScreen extends StatelessWidget {
   static const String id = '/builder/lets-be-clear';
-  
+
   final AppFlavor? flavor;
 
-  LetsBeClearScreen({
-    super.key,
-    this.flavor,
-  });
+  LetsBeClearScreen({super.key, this.flavor});
 
-  final CreateProfileBuilderController controller = Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
+  final CreateProfileBuilderController controller =
+      Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +26,7 @@ class LetsBeClearScreen extends StatelessWidget {
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive
     final horizontalPadding = screenWidth * 0.06;
     final verticalSpacing = screenHeight * 0.025;
@@ -71,43 +69,32 @@ class LetsBeClearScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
-            // Contenido principal con botón integrado
+
+            // Contenido principal con scroll
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   children: [
                     SizedBox(height: verticalSpacing * 1.5),
-                    
+
                     // Logo de YAKKA
                     Center(
                       child: Container(
                         width: logoSize,
                         height: logoSize,
                         child: SvgPicture.asset(
-                          AssetsConfig.getLogoMiddle(controller.currentFlavor.value),
+                          AssetsConfig.getLogoMiddle(
+                            controller.currentFlavor.value,
+                          ),
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                    
-                    // Título principal
-                    Text(
-                      "Let's be clear",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: headlineFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                        height: 1.2,
-                      ),
-                    ),
-                    
+
+                   
                     SizedBox(height: verticalSpacing * 1.5),
-                    
+
                     // Texto descriptivo
                     Text(
                       "We connect people — we don't manage, hire, or supervise.",
@@ -118,9 +105,9 @@ class LetsBeClearScreen extends StatelessWidget {
                         height: 1.4,
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 1.5),
-                    
+
                     // Sección de disclaimer
                     Text(
                       "YAKKA is not responsible for:",
@@ -132,9 +119,9 @@ class LetsBeClearScreen extends StatelessWidget {
                         height: 1.2,
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 1.5),
-                    
+
                     // Lista numerada de responsabilidades
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,19 +153,45 @@ class LetsBeClearScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    
-                    SizedBox(height: verticalSpacing * 3),
-                    
-                    // Botón de aceptación usando CustomButton
-                    Obx(() => CustomButton(
+
+                    // Espacio adicional para que el contenido no quede oculto detrás del botón fijo
+                    SizedBox(height: verticalSpacing * 8),
+                  ],
+                ),
+              ),
+            ),
+
+            // Botón fijo en la parte inferior
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding,
+                vertical: verticalSpacing,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    offset: Offset(0, -2),
+                    blurRadius: 8,
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: SizedBox(
+                  height: 60,
+                  width: double.infinity,
+                  child: Obx(
+                    () => CustomButton(
                       text: "I understand and accept",
-                      onPressed: controller.isLoading.value ? null : controller.handleAccept,
+                      onPressed: controller.isLoading.value
+                          ? null
+                          : controller.handleAccept,
                       isLoading: controller.isLoading.value,
                       showShadow: false,
-                    )),
-                    
-                    SizedBox(height: verticalSpacing * 2),
-                  ],
+                    ),
+                  ),
                 ),
               ),
             ),

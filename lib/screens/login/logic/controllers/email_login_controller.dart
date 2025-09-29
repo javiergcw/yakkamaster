@@ -70,6 +70,9 @@ class EmailLoginController extends GetxController {
           await _authStorage.setBearerToken(result.data!.accessToken);
           await _authStorage.setRefreshToken(result.data!.refreshToken);
           
+          // Guardar email del usuario en storage
+          await _authStorage.setUserEmail(emailController.text.trim());
+          
           // Mostrar mensaje de éxito
           Get.snackbar(
             'Success',
@@ -232,6 +235,9 @@ class EmailLoginController extends GetxController {
         // Guardar tokens en el almacenamiento local
         await _authStorage.setBearerToken(result.data!.accessToken);
         await _authStorage.setRefreshToken(result.data!.refreshToken);
+        
+        // Guardar email del usuario en storage
+        await _authStorage.setUserEmail(emailController.text.trim());
         
         // Verificar si el usuario ya tiene perfiles creados
         final profiles = result.data!.profiles;

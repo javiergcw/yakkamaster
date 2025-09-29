@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../features/widgets/custom_button.dart';
+import '../../../../features/widgets/custom_text_field.dart';
 import '../../../../features/widgets/phone_input.dart';
 import '../widgets/login_header.dart';
 import '../widgets/terms_conditions.dart';
@@ -62,6 +63,19 @@ class LoginScreen extends StatelessWidget {
                         controller: controller.phoneController,
                         flavor: controller.currentFlavor.value,
                         validator: controller.validatePhone,
+                      ),
+                    ),
+
+                    SizedBox(height: verticalSpacing),
+
+                    // Email input
+                    Obx(
+                      () => CustomTextField(
+                        controller: controller.emailController,
+                        hintText: "Email (Optional)",
+                        keyboardType: TextInputType.emailAddress,
+                        flavor: controller.currentFlavor.value,
+                        showBorder: true,
                       ),
                     ),
 

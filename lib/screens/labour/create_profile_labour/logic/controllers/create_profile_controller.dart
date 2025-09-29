@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../utils/storage/auth_storage.dart';
 import '../../../../../features/logic/masters/use_case/master_use_case.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_skill.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_experience_level.dart';
@@ -23,17 +24,19 @@ import '../../presentation/pages/lets_be_clear_screen.dart';
 import '../../presentation/pages/profile_created_screen.dart';
 import '../../../home/presentation/pages/home_screen.dart';
 import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
+import '../../../../builder/home/presentation/pages/camera_simple_screen.dart';
 
 class CreateProfileController extends GetxController {
   // ===== GENERAL CONFIGURATION =====
   final String controllerId = DateTime.now().millisecondsSinceEpoch.toString();
   static bool _isInitialized = false;
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
-  
+
   // Instancias de los casos de uso
   final MasterUseCase _masterUseCase = MasterUseCase();
   final LabourUseCase _labourUseCase = LabourUseCase();
-  
+  final AuthStorage _authStorage = AuthStorage();
+
   // Variables estáticas para preservar datos entre navegaciones
   static String? _preservedFirstName;
   static String? _preservedLastName;
@@ -44,114 +47,150 @@ class CreateProfileController extends GetxController {
   static List<String> _preservedSelectedSkills = [];
   static List<Map<String, dynamic>> _preservedLicenses = [];
   static String? _preservedProfileImagePath;
-  
+
   // ===== STEP 1: BASIC INFO =====
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController(text: '0412345678');
-  final TextEditingController emailController = TextEditingController(text: 'testing22@gmail.com');
+  final TextEditingController phoneController = TextEditingController(text: '');
+  final TextEditingController emailController = TextEditingController(text: '');
   final TextEditingController birthCountryController = TextEditingController();
-  
+
   // ===== STEP 2: SKILLS & EXPERIENCE =====
   final TextEditingController searchController = TextEditingController();
-  
+
   // Variables para datos dinámicos de la API
   final RxList<DtoReceiveSkill> allSkillsFromApi = <DtoReceiveSkill>[].obs;
-  final RxList<DtoReceiveExperienceLevel> experienceLevelsFromApi = <DtoReceiveExperienceLevel>[].obs;
+  final RxList<DtoReceiveExperienceLevel> experienceLevelsFromApi =
+      <DtoReceiveExperienceLevel>[].obs;
   final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
   final RxBool isLoadingSkills = false.obs;
   final RxBool isLoadingExperienceLevels = false.obs;
   final RxBool isLoadingLicenses = false.obs;
-  
+
   // Lista de habilidades filtradas
   final RxList<String> filteredSkills = <String>[].obs;
-  
+
   // Habilidades seleccionadas (usando ID único: "categoryId_subcategoryId")
   final RxSet<String> selectedSkills = <String>{}.obs;
-  
+
   // Categorías expandidas
   final RxSet<String> expandedCategories = <String>{}.obs;
-  
+
   // Mapa de categorías y sus subcategorías
-  final RxMap<String, List<String>> categorySubcategories = <String, List<String>>{}.obs;
-  
+  final RxMap<String, List<String>> categorySubcategories =
+      <String, List<String>>{}.obs;
+
   // Experiencia por habilidad
   final RxMap<String, int> skillExperience = <String, int>{}.obs;
-  
+
   // Referencias por habilidad
-  final RxMap<String, Map<String, dynamic>?> skillReferences = <String, Map<String, dynamic>?>{}.obs;
-  
+  final RxMap<String, Map<String, dynamic>?> skillReferences =
+      <String, Map<String, dynamic>?>{}.obs;
+
   // ===== STEP 3: LOCATION =====
   final TextEditingController addressController = TextEditingController();
   final TextEditingController suburbController = TextEditingController();
-  
+
   // Variables reactivas para las opciones de ubicación
   final RxBool willingToRelocate = true.obs;
   final RxBool hasCar = true.obs;
-  
+
   // ===== STEP 4: PROFILE PHOTO =====
   final ImagePicker picker = ImagePicker();
   final ImagePicker _photoPicker = ImagePicker();
   final Rx<File?> profileImage = Rx<File?>(null);
   final Rx<File?> profilePhoto = Rx<File?>(null);
-  
+
   // ===== STEP 5: LICENSES =====
   final RxList<Map<String, dynamic>> licenses = <Map<String, dynamic>>[].obs;
   final RxString? selectedLicenseType = RxString('');
   final RxList<String> licenseTypes = <String>[].obs;
-  
+
   // ===== STEP 6: PREVIOUS EMPLOYER =====
   final TextEditingController companyNameController = TextEditingController();
   final TextEditingController positionController = TextEditingController();
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
   final TextEditingController referenceNameController = TextEditingController();
-  final TextEditingController referencePhoneController = TextEditingController();
-  final TextEditingController referenceEmailController = TextEditingController();
-  
+  final TextEditingController referencePhoneController =
+      TextEditingController();
+  final TextEditingController referenceEmailController =
+      TextEditingController();
+
   // Variables reactivas para empleador anterior
   final RxBool hasPreviousEmployer = false.obs;
   final RxBool canContactReference = false.obs;
-  final Rx<Map<String, dynamic>?> firstSupervisor = Rx<Map<String, dynamic>?>(null);
-  final Rx<Map<String, dynamic>?> secondSupervisor = Rx<Map<String, dynamic>?>(null);
-  
+  final Rx<Map<String, dynamic>?> firstSupervisor = Rx<Map<String, dynamic>?>(
+    null,
+  );
+  final Rx<Map<String, dynamic>?> secondSupervisor = Rx<Map<String, dynamic>?>(
+    null,
+  );
+
   // ===== STEP 7: DOCUMENTS =====
   final RxString? selectedCredential = RxString('');
   final RxList<String> credentials = <String>[].obs;
-  
+
   final RxList<Map<String, dynamic>> documents = <Map<String, dynamic>>[
-    {'type': 'Resume', 'file': null, 'uploaded': false, 'path': null, 'size': null},
-    {'type': 'Cover letter', 'file': null, 'uploaded': false, 'path': null, 'size': null},
-    {'type': 'Police check', 'file': null, 'uploaded': false, 'path': null, 'size': null},
-    {'type': 'Other', 'file': null, 'uploaded': false, 'path': null, 'size': null},
+    {
+      'type': 'Resume',
+      'file': null,
+      'uploaded': false,
+      'path': null,
+      'size': null,
+    },
+    {
+      'type': 'Cover letter',
+      'file': null,
+      'uploaded': false,
+      'path': null,
+      'size': null,
+    },
+    {
+      'type': 'Police check',
+      'file': null,
+      'uploaded': false,
+      'path': null,
+      'size': null,
+    },
+    {
+      'type': 'Other',
+      'file': null,
+      'uploaded': false,
+      'path': null,
+      'size': null,
+    },
   ].obs;
 
   @override
   void onInit() {
     super.onInit();
-    
+
     // Si se pasa un flavor específico, usarlo
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
     }
-    
+
     // Solo inicializar la primera vez
     if (!_isInitialized) {
       _isInitialized = true;
-      
+
       // Cargar datos desde la API
       loadSkillsFromApi(showSnackbar: true);
       loadExperienceLevelsFromApi(showSnackbar: true);
       loadLicensesFromApi(showSnackbar: true);
-    
-    // Agregar listener para búsqueda
-    searchController.addListener(() {
-      filterSkills(searchController.text);
-    });
+
+      // Agregar listener para búsqueda
+      searchController.addListener(() {
+        filterSkills(searchController.text);
+      });
     }
-    
+
     // Restaurar datos preservados si existen
     restoreControllerData();
+
+    // Cargar email desde storage
+    _loadUserEmailFromStorage();
   }
 
   @override
@@ -175,10 +214,6 @@ class CreateProfileController extends GetxController {
     super.onClose();
   }
 
-  
-
-
-
   // ===== STEP 1: BASIC INFO METHODS =====
 
   // Create Profile → Create Profile Step 2
@@ -194,9 +229,12 @@ class CreateProfileController extends GetxController {
       );
       return;
     }
-    
+
     // Navegar a la siguiente pantalla (step 2)
-    Get.toNamed(CreateProfileStep2Screen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(
+      CreateProfileStep2Screen.id,
+      arguments: {'flavor': currentFlavor.value},
+    );
   }
 
   // Create Profile Step 2 → Skills Experience
@@ -212,9 +250,11 @@ class CreateProfileController extends GetxController {
       );
       return;
     }
-    
+
     // Validar formato de email
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
+    if (!RegExp(
+      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ).hasMatch(emailController.text)) {
       Get.snackbar(
         'Error',
         'Please enter a valid email address',
@@ -224,7 +264,7 @@ class CreateProfileController extends GetxController {
       );
       return;
     }
-    
+
     // Validar campo de teléfono
     if (phoneController.text.isEmpty) {
       Get.snackbar(
@@ -236,9 +276,12 @@ class CreateProfileController extends GetxController {
       );
       return;
     }
-    
+
     // Navegar a la pantalla de habilidades (step 3)
-    Get.toNamed(SkillsExperienceScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(
+      SkillsExperienceScreen.id,
+      arguments: {'flavor': currentFlavor.value},
+    );
   }
 
   // ===== STEP 2: SKILLS & EXPERIENCE METHODS =====
@@ -256,7 +299,7 @@ class CreateProfileController extends GetxController {
       );
       return;
     }
-    
+
     // Navegar a la pantalla de ubicación (step 3)
     Get.toNamed(LocationScreen.id, arguments: {'flavor': currentFlavor.value});
   }
@@ -266,7 +309,10 @@ class CreateProfileController extends GetxController {
   // Location → Profile Photo
   void handleLocationContinue() {
     // Navegar a la pantalla de foto de perfil (step 4)
-    Get.toNamed(ProfilePhotoScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(
+      ProfilePhotoScreen.id,
+      arguments: {'flavor': currentFlavor.value},
+    );
   }
 
   void toggleWillingToRelocate() {
@@ -286,7 +332,7 @@ class CreateProfileController extends GetxController {
   }
 
   // ===== STEP 5: LICENSES METHODS =====
-  
+
   // License → Respect
   void handleLicenseContinue() {
     // Navegar a la pantalla de respeto (step 6)
@@ -299,9 +345,12 @@ class CreateProfileController extends GetxController {
   void handleRespectCommit() {
     // Preservar datos antes de navegar
     preserveControllerData();
-    
+
     // Navegar a la pantalla "Let's Be Clear" (step 7)
-    Get.offAndToNamed(LetsBeClearScreen.id, arguments: {'flavor': currentFlavor.value});
+    Get.offAndToNamed(
+      LetsBeClearScreen.id,
+      arguments: {'flavor': currentFlavor.value},
+    );
   }
 
   // ===== STEP 7: LET'S BE CLEAR METHODS =====
@@ -310,10 +359,13 @@ class CreateProfileController extends GetxController {
   void handleLetsBeClearAccept() async {
     // Crear el perfil de trabajador antes de navegar
     bool profileCreated = await createLabourProfile();
-    
+
     // Solo navegar si el perfil se creó exitosamente
     if (profileCreated) {
-      Get.offAndToNamed(ProfileCreatedScreen.id, arguments: {'flavor': currentFlavor.value});
+      Get.offAndToNamed(
+        ProfileCreatedScreen.id,
+        arguments: {'flavor': currentFlavor.value},
+      );
     }
   }
 
@@ -323,7 +375,7 @@ class CreateProfileController extends GetxController {
   void handleStartUsingYakka() {
     // Limpiar el controlador después de completar el flujo
     resetController();
-    
+
     // Navegar a la pantalla home de YAKKA
     Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
@@ -341,14 +393,13 @@ class CreateProfileController extends GetxController {
     Get.offAllNamed(HomeScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 
-  
   /// Carga las habilidades desde la API
   Future<void> loadSkillsFromApi({bool showSnackbar = true}) async {
     try {
       isLoadingSkills.value = true;
-      
+
       final result = await _masterUseCase.getSkills();
-      
+
       if (result.isSuccess && result.data != null) {
         allSkillsFromApi.value = result.data!;
         filteredSkills.value = result.data!.map((skill) => skill.name).toList();
@@ -359,14 +410,14 @@ class CreateProfileController extends GetxController {
       isLoadingSkills.value = false;
     }
   }
-  
+
   /// Carga los niveles de experiencia desde la API
   Future<void> loadExperienceLevelsFromApi({bool showSnackbar = true}) async {
     try {
       isLoadingExperienceLevels.value = true;
-      
+
       final result = await _masterUseCase.getActiveExperienceLevels();
-      
+
       if (result.isSuccess && result.data != null) {
         experienceLevelsFromApi.value = result.data!;
       }
@@ -382,11 +433,15 @@ class CreateProfileController extends GetxController {
     try {
       isLoadingLicenses.value = true;
       final result = await _masterUseCase.getLicenses();
-      
+
       if (result.isSuccess && result.data != null) {
         licensesFromApi.value = result.data!;
-        credentials.value = result.data!.map((license) => license.name).toList();
-        licenseTypes.value = result.data!.map((license) => license.name).toList();
+        credentials.value = result.data!
+            .map((license) => license.name)
+            .toList();
+        licenseTypes.value = result.data!
+            .map((license) => license.name)
+            .toList();
       }
     } catch (e) {
       // Error handling without snackbar
@@ -444,6 +499,19 @@ class CreateProfileController extends GetxController {
     }
   }
 
+  /// Carga el email del usuario desde storage
+  Future<void> _loadUserEmailFromStorage() async {
+    try {
+      final savedEmail = await _authStorage.getUserEmail();
+      if (savedEmail != null && savedEmail.isNotEmpty) {
+        emailController.text = savedEmail;
+        print('Email cargado desde storage: $savedEmail');
+      }
+    } catch (e) {
+      print('Error al cargar email desde storage: $e');
+    }
+  }
+
   /// Recopila todos los datos del stepper y crea el perfil de trabajador
   Future<bool> createLabourProfile() async {
     try {
@@ -451,7 +519,7 @@ class CreateProfileController extends GetxController {
       final firstName = firstNameController.text.trim();
       final lastName = lastNameController.text.trim();
       final phone = phoneController.text.trim();
-      
+
       if (firstName.isEmpty || lastName.isEmpty) {
         Get.snackbar(
           'Error',
@@ -462,17 +530,18 @@ class CreateProfileController extends GetxController {
         );
         return false;
       }
-      
+
       // ===== STEP 3: LOCATION =====
-      final location = '${addressController.text.trim()}, ${suburbController.text.trim()}';
+      final location =
+          '${addressController.text.trim()}, ${suburbController.text.trim()}';
       final bio = 'Experienced worker with ${selectedSkills.length} skills';
-      
+
       // ===== STEP 4: PROFILE PHOTO =====
       String avatarFileName = '';
       if (profileImage.value != null) {
         avatarFileName = profileImage.value!.path.split('/').last;
       }
-      
+
       // ===== STEP 2: SKILLS & EXPERIENCE =====
       List<DtoSendLabourSkill> skills = [];
       if (selectedSkills.isEmpty) {
@@ -485,57 +554,63 @@ class CreateProfileController extends GetxController {
         );
         return false;
       }
-      
+
       for (String uniqueId in selectedSkills) {
         // Extraer categoryId y subcategoryId del ID único
         List<String> parts = uniqueId.split('_');
         if (parts.length >= 2) {
           String categoryId = parts[0];
           String subcategoryId = parts[1];
-          
+
           // Obtener experiencia
           int experienceValue = skillExperience[uniqueId] ?? 0;
           double yearsExperience = _convertExperienceToYears(experienceValue);
           String experienceLevelId = _getExperienceLevelId(experienceValue);
-          
+
           print('DEBUG - Skill: $uniqueId');
           print('DEBUG - Experience Value: $experienceValue');
           print('DEBUG - Experience Level ID: $experienceLevelId');
           print('DEBUG - Years Experience: $yearsExperience');
-          
+
           // Crear skill con IDs válidos de la API
-          skills.add(DtoSendLabourSkill(
-            categoryId: categoryId,
-            subcategoryId: subcategoryId,
-            experienceLevelId: experienceLevelId,
-            yearsExperience: yearsExperience,
-            isPrimary: skills.isEmpty,
-          ));
+          skills.add(
+            DtoSendLabourSkill(
+              categoryId: categoryId,
+              subcategoryId: subcategoryId,
+              experienceLevelId: experienceLevelId,
+              yearsExperience: yearsExperience,
+              isPrimary: skills.isEmpty,
+            ),
+          );
         }
       }
-      
+
       // ===== STEP 5: LICENSES =====
       List<DtoSendLabourLicense> labourLicenses = [];
       for (var license in this.licenses) {
         if (license['uploaded'] == true && license['file'] != null) {
           String fileName = license['file'].toString();
           String licenseId = license['id'] ?? license['type'] ?? 'unknown';
-          
+
           print('DEBUG - License: ${license['type']}');
           print('DEBUG - License ID: $licenseId');
           print('DEBUG - File: $fileName');
-          
-          labourLicenses.add(DtoSendLabourLicense(
-            licenseId: licenseId,
-            photoUrl: fileName,
-            issuedAt: DateTime.now().toIso8601String(),
-            expiresAt: DateTime.now().add(Duration(days: 365)).toIso8601String(),
-          ));
+
+          labourLicenses.add(
+            DtoSendLabourLicense(
+              licenseId: licenseId,
+              photoUrl: fileName,
+              issuedAt: DateTime.now().toIso8601String(),
+              expiresAt: DateTime.now()
+                  .add(Duration(days: 365))
+                  .toIso8601String(),
+            ),
+          );
         }
       }
-      
+
       print('DEBUG - Total licenses to send: ${labourLicenses.length}');
-      
+
       // ===== CREAR PERFIL CON TODOS LOS DATOS =====
       final result = await _labourUseCase.createLabourProfile(
         firstName: firstName,
@@ -547,7 +622,7 @@ class CreateProfileController extends GetxController {
         skills: skills,
         licenses: labourLicenses,
       );
-      
+
       if (result.isSuccess) {
         Get.snackbar(
           'Success',
@@ -603,7 +678,8 @@ class CreateProfileController extends GetxController {
     if (experienceLevelsFromApi.isNotEmpty) {
       try {
         // Usar el índice como posición en la lista
-        if (experienceValue >= 0 && experienceValue < experienceLevelsFromApi.length) {
+        if (experienceValue >= 0 &&
+            experienceValue < experienceLevelsFromApi.length) {
           return experienceLevelsFromApi[experienceValue].id;
         } else {
           return experienceLevelsFromApi.first.id;
@@ -612,24 +688,31 @@ class CreateProfileController extends GetxController {
         return experienceLevelsFromApi.first.id;
       }
     }
-    
+
     // Si no hay datos de API, retornar ID por defecto
     return 'f057645b-b107-42c5-b4e9-03921430bb25'; // ID de "Less than 6 months"
   }
-  
+
   void filterSkills(String query) {
     if (query.isEmpty) {
       // Usar categorías de la API
       if (allSkillsFromApi.isNotEmpty) {
-        filteredSkills.value = allSkillsFromApi.map((skill) => skill.name).toList();
+        filteredSkills.value = allSkillsFromApi
+            .map((skill) => skill.name)
+            .toList();
       }
     } else {
       // Filtrar categorías según los datos de la API
       if (allSkillsFromApi.isNotEmpty) {
-        List<String> categoriesToFilter = allSkillsFromApi.map((skill) => skill.name).toList();
+        List<String> categoriesToFilter = allSkillsFromApi
+            .map((skill) => skill.name)
+            .toList();
         filteredSkills.value = categoriesToFilter
-          .where((category) => category.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+            .where(
+              (category) =>
+                  category.toLowerCase().contains(query.toLowerCase()),
+            )
+            .toList();
       }
     }
   }
@@ -645,11 +728,16 @@ class CreateProfileController extends GetxController {
     }
   }
 
+  // Colapsar todas las categorías expandidas
+  void collapseAllCategories() {
+    expandedCategories.clear();
+  }
+
   // Toggle para subcategorías (seleccionar y abrir modal de experiencia)
   void toggleSubcategory(String subcategory) {
     // Crear ID único para la subcategoría
     String uniqueId = getUniqueSubcategoryId(subcategory);
-    
+
     if (selectedSkills.contains(uniqueId)) {
       // Si ya está seleccionada, deseleccionarla
       selectedSkills.remove(uniqueId);
@@ -679,19 +767,19 @@ class CreateProfileController extends GetxController {
     return subcategoryName; // Fallback si no se encuentra
   }
 
-  // Obtener nombre de skill desde ID único
+  // Obtener nombre de skill desde ID único (categoría + subcategoría)
   String getSkillNameFromUniqueId(String uniqueId) {
     List<String> parts = uniqueId.split('_');
     if (parts.length >= 2) {
       String categoryId = parts[0];
       String subcategoryId = parts[1];
-      
+
       if (allSkillsFromApi.isNotEmpty) {
         for (var skill in allSkillsFromApi) {
           if (skill.id == categoryId) {
             for (var sub in skill.subcategories) {
               if (sub.id == subcategoryId) {
-                return sub.name;
+                return '${skill.name} - ${sub.name}';
               }
             }
           }
@@ -706,10 +794,10 @@ class CreateProfileController extends GetxController {
     // Obtener el ID único de la subcategoría
     String uniqueId = getUniqueSubcategoryId(subcategory);
     List<String> parts = uniqueId.split('_');
-    
+
     if (parts.length >= 2) {
       String categoryId = parts[0];
-      
+
       // Buscar la categoría por ID y contraerla
       if (allSkillsFromApi.isNotEmpty) {
         for (var skill in allSkillsFromApi) {
@@ -734,7 +822,7 @@ class CreateProfileController extends GetxController {
         return [];
       }
     }
-    
+
     // Si no hay datos de API, retornar lista vacía
     return [];
   }
@@ -755,13 +843,13 @@ class CreateProfileController extends GetxController {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive para el modal
     final modalHeight = screenHeight * 0.5;
     final modalPadding = screenWidth * 0.06;
     final titleFontSize = screenWidth * 0.048;
     final buttonFontSize = screenWidth * 0.032;
-    
+
     // Variable reactiva para mantener la selección
     final RxString selectedExperienceLevel = ''.obs;
 
@@ -804,7 +892,7 @@ class CreateProfileController extends GetxController {
                     ),
                   ),
                 ),
-                
+
                 // Contenido del modal con fondo blanco
                 Expanded(
                   child: Container(
@@ -817,139 +905,173 @@ class CreateProfileController extends GetxController {
                           if (isLoadingExperienceLevels.value) {
                             return Center(
                               child: CircularProgressIndicator(
-                                color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                color: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
+                                  ),
+                                ),
                               ),
                             );
                           }
-                          
+
                           // Usar niveles de la API
                           List<String> experienceLevels = [];
                           if (experienceLevelsFromApi.isNotEmpty) {
-                            experienceLevels = experienceLevelsFromApi.map((level) => level.name).toList();
+                            experienceLevels = experienceLevelsFromApi
+                                .map((level) => level.name)
+                                .toList();
                           }
-                          
+
                           return Column(
-                            children: _buildExperienceLevelsGridReactive(experienceLevels, selectedExperienceLevel, setModalState, buttonFontSize),
+                            children: _buildExperienceLevelsGridReactive(
+                              experienceLevels,
+                              selectedExperienceLevel,
+                              setModalState,
+                              buttonFontSize,
+                            ),
                           );
                         }),
-                      
-                      SizedBox(height: modalPadding),
-                      
-                      // Texto Add reference (optional) o referencia guardada
-                      Obx(() {
-                        final currentReference = skillReferences[selectedSkill];
-                        if (currentReference != null) {
-                          // Mostrar referencia guardada para esta habilidad
-                          return Container(
+
+                        SizedBox(height: modalPadding),
+
+                        // Texto Add reference (optional) o referencia guardada
+                        Obx(() {
+                          final currentReference =
+                              skillReferences[selectedSkill];
+                          if (currentReference != null) {
+                            // Mostrar referencia guardada para esta habilidad
+                            return Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.green[200]!),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Reference Added:',
+                                    style: TextStyle(
+                                      fontSize: buttonFontSize * 0.9,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.green[700],
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '${currentReference['name']} - ${currentReference['company']}',
+                                    style: TextStyle(
+                                      fontSize: buttonFontSize * 0.85,
+                                      color: Colors.green[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            // Mostrar botón para agregar referencia
+                            return GestureDetector(
+                              onTap: () {
+                                // Usar el modal de supervisor existente
+                                showAddSupervisorModalForSkill(selectedSkill);
+                              },
+                              child: Center(
+                                child: Text(
+                                  '+add reference (optional)',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: buttonFontSize,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.bold,
+                                    decoration: TextDecoration.underline,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                        }),
+
+                        // Spacer para empujar el botón hacia abajo
+                        Spacer(),
+
+                        // Botón SAVE sin sombra
+                        Obx(
+                          () => Container(
                             width: double.infinity,
-                            padding: EdgeInsets.all(12),
+                            height: 56,
                             decoration: BoxDecoration(
-                              color: Colors.green[50],
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.green[200]!),
+                              color: selectedExperienceLevel.value.isNotEmpty
+                                  ? Color(
+                                      AppFlavorConfig.getPrimaryColor(
+                                        currentFlavor.value,
+                                      ),
+                                    )
+                                  : Colors.grey[400],
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Reference Added:',
-                                  style: TextStyle(
-                                    fontSize: buttonFontSize * 0.9,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green[700],
+                            child: ElevatedButton(
+                              onPressed:
+                                  selectedExperienceLevel.value.isNotEmpty
+                                  ? () {
+                                      // Guardar la experiencia seleccionada usando ID único
+                                      String uniqueId = getUniqueSubcategoryId(
+                                        selectedSkill,
+                                      );
+                                      selectedSkills.add(uniqueId);
+                                      int experienceValue = _getExperienceValue(
+                                        selectedExperienceLevel.value,
+                                      );
+                                      skillExperience[uniqueId] =
+                                          experienceValue;
+
+                                      print(
+                                        'DEBUG - Saving experience for skill: $selectedSkill',
+                                      );
+                                      print('DEBUG - Unique ID: $uniqueId');
+                                      print(
+                                        'DEBUG - Selected Level: ${selectedExperienceLevel.value}',
+                                      );
+                                      print(
+                                        'DEBUG - Experience Value: $experienceValue',
+                                      );
+
+                                      // Contraer la categoría padre después de guardar
+                                      _collapseParentCategory(selectedSkill);
+
+                                      Get.back();
+                                    }
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
                                   ),
                                 ),
-                                SizedBox(height: 4),
-                                Text(
-                                  '${currentReference['name']} - ${currentReference['company']}',
-                                  style: TextStyle(
-                                    fontSize: buttonFontSize * 0.85,
-                                    color: Colors.green[600],
-                                  ),
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          // Mostrar botón para agregar referencia
-                          return GestureDetector(
-                            onTap: () {
-                              // Usar el modal de supervisor existente
-                              showAddSupervisorModalForSkill(selectedSkill);
-                            },
-                            child: Center(
+                                elevation: 0,
+                              ),
+
                               child: Text(
-                                '+add reference (optional)',
-                                textAlign: TextAlign.center,
+                                'SAVE',
                                 style: TextStyle(
-                                  fontSize: buttonFontSize,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold,
-                                  decoration: TextDecoration.underline,
-                                  letterSpacing: 0.3,
+                                  fontSize: buttonFontSize * 1.1,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 1.2,
                                 ),
                               ),
                             ),
-                          );
-                        }
-                      }),
-                      
-                      // Spacer para empujar el botón hacia abajo
-                      Spacer(),
-                   
-                      // Botón SAVE sin sombra
-                      Obx(() => Container(
-                        width: double.infinity,
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: selectedExperienceLevel.value.isNotEmpty
-                              ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))
-                              : Colors.grey[400],
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: ElevatedButton(
-                              onPressed: selectedExperienceLevel.value.isNotEmpty 
-                              ? () {
-                                  // Guardar la experiencia seleccionada usando ID único
-                                  String uniqueId = getUniqueSubcategoryId(selectedSkill);
-                                  selectedSkills.add(uniqueId);
-                                  int experienceValue = _getExperienceValue(selectedExperienceLevel.value);
-                                  skillExperience[uniqueId] = experienceValue;
-                                  
-                                  print('DEBUG - Saving experience for skill: $selectedSkill');
-                                  print('DEBUG - Unique ID: $uniqueId');
-                                  print('DEBUG - Selected Level: ${selectedExperienceLevel.value}');
-                                  print('DEBUG - Experience Value: $experienceValue');
-                                  
-                                  // Contraer la categoría padre después de guardar
-                                  _collapseParentCategory(selectedSkill);
-                                  
-                                  Get.back();
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-                            foregroundColor: Colors.white,
-                            padding: EdgeInsets.zero,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
-                          ),
-                          
-                          child: Text(
-                            'SAVE',
-                            style: TextStyle(
-                              fontSize: buttonFontSize * 1.1,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 1.2,
-                            ),
                           ),
                         ),
-                      )),
-                      
-                      SizedBox(height: modalPadding * 0.5),
+
+                        SizedBox(height: modalPadding * 0.5),
                       ],
                     ),
                   ),
@@ -971,41 +1093,44 @@ class CreateProfileController extends GetxController {
     double buttonFontSize,
   ) {
     List<Widget> widgets = [];
-    
+
     // Dividir en filas de 2 elementos
     for (int i = 0; i < experienceLevels.length; i += 2) {
       if (i > 0) {
         widgets.add(SizedBox(height: 12));
       }
-      
+
       List<String> rowLevels = experienceLevels.skip(i).take(2).toList();
-      
+
       widgets.add(
         Row(
-          children: rowLevels.map((level) {
-            return Expanded(
-              child: Obx(() => _buildExperienceButtonReactive(
-                level,
-                selectedExperienceLevel.value,
-                () {
-                  selectedExperienceLevel.value = level;
-                },
-                buttonFontSize,
-              )),
-            );
-          }).toList()
-            ..addAll(
-              // Agregar espacios vacíos si la fila no está completa
-              List.generate(2 - rowLevels.length, (index) => Expanded(child: SizedBox())),
-            ),
+          children:
+              rowLevels.map((level) {
+                return Expanded(
+                  child: Obx(
+                    () => _buildExperienceButtonReactive(
+                      level,
+                      selectedExperienceLevel.value,
+                      () {
+                        selectedExperienceLevel.value = level;
+                      },
+                      buttonFontSize,
+                    ),
+                  ),
+                );
+              }).toList()..addAll(
+                // Agregar espacios vacíos si la fila no está completa
+                List.generate(
+                  2 - rowLevels.length,
+                  (index) => Expanded(child: SizedBox()),
+                ),
+              ),
         ),
       );
     }
-    
+
     return widgets;
   }
-
-
 
   int _getExperienceValue(String level) {
     // Buscar el nivel de experiencia en los datos de la API
@@ -1015,7 +1140,7 @@ class CreateProfileController extends GetxController {
           (levelData) => levelData.name == level,
           orElse: () => experienceLevelsFromApi.first,
         );
-        
+
         // Usar el índice del nivel en la lista como valor
         int index = experienceLevelsFromApi.indexOf(experienceLevel);
         return index >= 0 ? index : 0;
@@ -1023,7 +1148,7 @@ class CreateProfileController extends GetxController {
         return 0; // Default al primer nivel
       }
     }
-    
+
     // Fallback si no hay datos de API
     return 0;
   }
@@ -1035,55 +1160,56 @@ class CreateProfileController extends GetxController {
     double buttonFontSize,
   ) {
     final isSelected = selectedLevel == level;
-    
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: isSelected 
-              ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))
-              : const Color(0xFFF5F5F5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected 
+      child: Padding(
+        padding: EdgeInsetsGeometry.only(left: 4),
+        child: Container(
+          height: 50,
+          decoration: BoxDecoration(
+            color: isSelected
                 ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))
-                : const Color(0xFFE5E7EB),
-            width: isSelected ? 2 : 1,
+                : const Color(0xFFF5F5F5),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))
+                  : const Color(0xFFE5E7EB),
+              width: isSelected ? 2 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Color(
+                        AppFlavorConfig.getPrimaryColor(currentFlavor.value),
+                      ).withOpacity(0.4),
+                      offset: const Offset(0, 6),
+                      blurRadius: 12,
+                      spreadRadius: 0,
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      offset: const Offset(0, 2),
+                      blurRadius: 4,
+                      spreadRadius: 0,
+                    ),
+                  ],
           ),
-          boxShadow: isSelected 
-              ? [
-                  BoxShadow(
-                    color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.4),
-                    offset: const Offset(0, 6),
-                    blurRadius: 12,
-                    spreadRadius: 0,
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                    spreadRadius: 0,
-                  ),
-                ],
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              level,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: buttonFontSize,
-                color: isSelected 
-                    ? Colors.black 
-                    : const Color(0xFF374151),
-                fontWeight: isSelected 
-                    ? FontWeight.w600 
-                    : FontWeight.w500,
-                height: 1.2,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                level,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: buttonFontSize,
+                  color: isSelected ? Colors.black : const Color(0xFF374151),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  height: 1.2,
+                ),
               ),
             ),
           ),
@@ -1091,8 +1217,6 @@ class CreateProfileController extends GetxController {
       ),
     );
   }
-
-
 
   void resetSelections() {
     selectedSkills.clear();
@@ -1109,9 +1233,8 @@ class CreateProfileController extends GetxController {
     // Método mantenido para compatibilidad, pero ya no se usa
   }
 
-
   // ===== IMAGE PICKER METHODS =====
-  
+
   void showImageSourceDialog() {
     Get.bottomSheet(
       Container(
@@ -1138,10 +1261,7 @@ class CreateProfileController extends GetxController {
               padding: EdgeInsets.all(20),
               child: Text(
                 'Seleccionar imagen',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
             ListTile(
@@ -1172,14 +1292,14 @@ class CreateProfileController extends GetxController {
   void showPhotoOptions() {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
-    
+
     // Calcular valores responsive
     final modalPadding = screenWidth * 0.06;
     final titleFontSize = screenWidth * 0.048;
     final itemFontSize = screenWidth * 0.038;
     final subtitleFontSize = screenWidth * 0.032;
     final iconSize = screenWidth * 0.08;
-    
+
     Get.bottomSheet(
       Container(
         decoration: BoxDecoration(
@@ -1210,7 +1330,7 @@ class CreateProfileController extends GetxController {
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
-            
+
             // Título del modal
             Container(
               width: double.infinity,
@@ -1229,7 +1349,7 @@ class CreateProfileController extends GetxController {
                 ),
               ),
             ),
-            
+
             // Opciones de selección
             Container(
               padding: EdgeInsets.symmetric(horizontal: modalPadding),
@@ -1240,10 +1360,14 @@ class CreateProfileController extends GetxController {
                     width: double.infinity,
                     margin: EdgeInsets.only(bottom: modalPadding * 0.8),
                     decoration: BoxDecoration(
-                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      color: Color(
+                        AppFlavorConfig.getPrimaryColor(currentFlavor.value),
+                      ).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.3),
+                        color: Color(
+                          AppFlavorConfig.getPrimaryColor(currentFlavor.value),
+                        ).withOpacity(0.3),
                         width: 1,
                       ),
                     ),
@@ -1264,7 +1388,11 @@ class CreateProfileController extends GetxController {
                                 width: iconSize,
                                 height: iconSize,
                                 decoration: BoxDecoration(
-                                  color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                  color: Color(
+                                    AppFlavorConfig.getPrimaryColor(
+                                      currentFlavor.value,
+                                    ),
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Icon(
@@ -1273,9 +1401,9 @@ class CreateProfileController extends GetxController {
                                   size: iconSize * 0.6,
                                 ),
                               ),
-                              
+
                               SizedBox(width: modalPadding),
-                              
+
                               // Texto
                               Expanded(
                                 child: Column(
@@ -1301,7 +1429,7 @@ class CreateProfileController extends GetxController {
                                   ],
                                 ),
                               ),
-                              
+
                               // Flecha
                               Icon(
                                 Icons.arrow_forward_ios,
@@ -1314,7 +1442,7 @@ class CreateProfileController extends GetxController {
                       ),
                     ),
                   ),
-                  
+
                   // Opción Gallery
                   Container(
                     width: double.infinity,
@@ -1322,10 +1450,7 @@ class CreateProfileController extends GetxController {
                     decoration: BoxDecoration(
                       color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.grey[200]!,
-                        width: 1,
-                      ),
+                      border: Border.all(color: Colors.grey[200]!, width: 1),
                     ),
                     child: Material(
                       color: Colors.transparent,
@@ -1353,9 +1478,9 @@ class CreateProfileController extends GetxController {
                                   size: iconSize * 0.6,
                                 ),
                               ),
-                              
+
                               SizedBox(width: modalPadding),
-                              
+
                               // Texto
                               Expanded(
                                 child: Column(
@@ -1381,7 +1506,7 @@ class CreateProfileController extends GetxController {
                                   ],
                                 ),
                               ),
-                              
+
                               // Flecha
                               Icon(
                                 Icons.arrow_forward_ios,
@@ -1414,7 +1539,9 @@ class CreateProfileController extends GetxController {
         Get.dialog(
           AlertDialog(
             title: const Text('Camera Permission'),
-            content: const Text('This app needs camera access to take photos. Please grant permission in settings.'),
+            content: const Text(
+              'This app needs camera access to take photos. Please grant permission in settings.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
@@ -1452,12 +1579,14 @@ class CreateProfileController extends GetxController {
       if (capturedImage != null) {
         print('Image received from camera: ${capturedImage.path}');
         profileImage.value = capturedImage;
-        
+
         // Mostrar mensaje de éxito
         Get.snackbar(
           'Success',
           'Image updated successfully',
-          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          backgroundColor: Color(
+            AppFlavorConfig.getPrimaryColor(currentFlavor.value),
+          ),
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
         );
@@ -1482,7 +1611,9 @@ class CreateProfileController extends GetxController {
         Get.dialog(
           AlertDialog(
             title: const Text('Permiso de Cámara'),
-            content: const Text('Esta aplicación necesita acceso a la cámara para tomar fotos. Por favor, concede el permiso en la configuración.'),
+            content: const Text(
+              'Esta aplicación necesita acceso a la cámara para tomar fotos. Por favor, concede el permiso en la configuración.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Get.back(),
@@ -1518,9 +1649,7 @@ class CreateProfileController extends GetxController {
       }
 
       Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(),
-        ),
+        const Center(child: CircularProgressIndicator()),
         barrierDismissible: false,
       );
 
@@ -1530,11 +1659,11 @@ class CreateProfileController extends GetxController {
         maxHeight: 512,
         imageQuality: 80,
       );
-      
+
       if (Get.isDialogOpen!) {
         Get.back();
       }
-      
+
       if (image != null) {
         profileImage.value = File(image.path);
       }
@@ -1542,19 +1671,22 @@ class CreateProfileController extends GetxController {
       if (Get.isDialogOpen!) {
         Get.back();
       }
-      
+
       String errorMessage = 'Error al seleccionar imagen';
-      
+
       if (e.toString().contains('channel-error')) {
-        errorMessage = 'Error de comunicación. Intenta:\n1. Reiniciar la app\n2. Verificar permisos de cámara\n3. Usar galería en lugar de cámara';
+        errorMessage =
+            'Error de comunicación. Intenta:\n1. Reiniciar la app\n2. Verificar permisos de cámara\n3. Usar galería en lugar de cámara';
       } else if (e.toString().contains('permission')) {
-        errorMessage = 'Permisos no concedidos. Ve a:\nConfiguración > Aplicaciones > Yakka Sports > Permisos';
+        errorMessage =
+            'Permisos no concedidos. Ve a:\nConfiguración > Aplicaciones > Yakka Sports > Permisos';
       } else if (e.toString().contains('camera')) {
         errorMessage = 'Error al acceder a la cámara. Intenta usar la galería.';
       } else if (e.toString().contains('pigeon')) {
-        errorMessage = 'Error interno del plugin. Intenta:\n1. Reiniciar la app\n2. Usar galería en lugar de cámara';
+        errorMessage =
+            'Error interno del plugin. Intenta:\n1. Reiniciar la app\n2. Usar galería en lugar de cámara';
       }
-      
+
       Get.dialog(
         AlertDialog(
           title: const Text('Error'),
@@ -1563,10 +1695,10 @@ class CreateProfileController extends GetxController {
             TextButton(
               onPressed: () {
                 Get.back();
-                if (source == ImageSource.camera && 
-                    (e.toString().contains('channel-error') || 
-                     e.toString().contains('camera') ||
-                     e.toString().contains('pigeon'))) {
+                if (source == ImageSource.camera &&
+                    (e.toString().contains('channel-error') ||
+                        e.toString().contains('camera') ||
+                        e.toString().contains('pigeon'))) {
                   pickImage(ImageSource.gallery);
                 }
               },
@@ -1579,7 +1711,7 @@ class CreateProfileController extends GetxController {
           ],
         ),
       );
-      
+
       print('Error al seleccionar imagen: $e');
     }
   }
@@ -1604,7 +1736,7 @@ class CreateProfileController extends GetxController {
         maxHeight: 512,
         imageQuality: 80,
       );
-      
+
       if (image != null) {
         profileImage.value = File(image.path);
       }
@@ -1618,25 +1750,25 @@ class CreateProfileController extends GetxController {
       if (source == ImageSource.camera) {
         final cameraStatus = await Permission.camera.request();
         if (!cameraStatus.isGranted) {
-      Get.snackbar(
+          Get.snackbar(
             'Permisos requeridos',
             'Se necesita acceso a la cámara para tomar fotos',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
       } else {
         final photosStatus = await Permission.photos.request();
         if (!photosStatus.isGranted) {
-      Get.snackbar(
+          Get.snackbar(
             'Permisos requeridos',
             'Se necesita acceso a las fotos para seleccionar una imagen',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
-      return;
-    }
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+          );
+          return;
+        }
       }
 
       final XFile? image = await _photoPicker.pickImage(
@@ -1660,7 +1792,7 @@ class CreateProfileController extends GetxController {
   }
 
   // ===== LICENSE METHODS =====
-  
+
   void showLicenseDropdown() {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
@@ -1728,36 +1860,240 @@ class CreateProfileController extends GetxController {
   }
 
   void addLicense() {
-    if (selectedCredential?.value != null && selectedCredential!.value.isNotEmpty) {
-      // Buscar el ID real de la licencia desde la API
-      String licenseId = '';
-      String licenseName = selectedCredential!.value;
-      
-      if (licensesFromApi.isNotEmpty) {
-        try {
-          final license = licensesFromApi.firstWhere(
-            (l) => l.name == licenseName,
-            orElse: () => licensesFromApi.first,
-          );
-          licenseId = license.id;
-        } catch (e) {
-          // Si no se encuentra, usar el primer ID disponible
-          licenseId = licensesFromApi.first.id;
-        }
-      }
-      
-      licenses.add({
-        'id': licenseId,
-        'type': licenseName,
-        'number': '',
-        'expiryDate': '',
-        'uploaded': false,
-        'file': null,
-        'path': null,
-        'size': null,
-      });
-      selectedCredential?.value = '';
+    // Validar si hay una credencial seleccionada
+    if (selectedCredential?.value == null || selectedCredential!.value.isEmpty) {
+      Get.snackbar(
+        'Warning',
+        'Please select a credential first',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
+      return;
     }
+
+    // Mostrar modal bottom sheet para seleccionar foto o cámara
+    _showImageSourceModal();
+  }
+
+  void _showImageSourceModal() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select Image Source',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Opción de cámara
+                GestureDetector(
+                  onTap: () {
+                    Get.back(); // Cerrar el modal
+                    _captureImageFromCamera();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Camera',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Opción de galería
+                GestureDetector(
+                  onTap: () {
+                    Get.back(); // Cerrar el modal
+                    _selectImageFromGallery();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.photo_library,
+                          size: 40,
+                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Gallery',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _captureImageFromCamera() async {
+    try {
+      // Navegar a la pantalla de cámara simple (con switch)
+      await Get.to(
+        () => CameraSimpleScreen(
+          flavor: currentFlavor.value,
+          onImageCaptured: (File image) {
+            // Este callback se ejecutará cuando se capture la imagen
+            final xFile = XFile(image.path);
+            _addLicenseToMapWithImage(xFile);
+          },
+        ),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error opening camera: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _selectImageFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        // Agregar la licencia con la imagen seleccionada
+        _addLicenseToMapWithImage(image);
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error selecting image: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _addLicenseToMapWithImage(XFile image) async {
+    // Buscar el ID real de la licencia desde la API
+    String licenseId = '';
+    String licenseName = selectedCredential!.value;
+
+    if (licensesFromApi.isNotEmpty) {
+      try {
+        final license = licensesFromApi.firstWhere(
+          (l) => l.name == licenseName,
+          orElse: () => licensesFromApi.first,
+        );
+        licenseId = license.id;
+      } catch (e) {
+        // Si no se encuentra, usar el primer ID disponible
+        licenseId = licensesFromApi.first.id;
+      }
+    }
+
+    // Obtener información del archivo
+    final file = File(image.path);
+    final fileName = image.path.split('/').last;
+    final fileSize = await file.length();
+
+    licenses.add({
+      'id': licenseId,
+      'type': licenseName,
+      'number': '',
+      'expiryDate': '',
+      'uploaded': true,
+      'file': fileName,
+      'path': image.path,
+      'size': fileSize,
+    });
+    selectedCredential?.value = '';
+  }
+
+  void _addLicenseToMap() {
+    // Buscar el ID real de la licencia desde la API
+    String licenseId = '';
+    String licenseName = selectedCredential!.value;
+
+    if (licensesFromApi.isNotEmpty) {
+      try {
+        final license = licensesFromApi.firstWhere(
+          (l) => l.name == licenseName,
+          orElse: () => licensesFromApi.first,
+        );
+        licenseId = license.id;
+      } catch (e) {
+        // Si no se encuentra, usar el primer ID disponible
+        licenseId = licensesFromApi.first.id;
+      }
+    }
+
+    licenses.add({
+      'id': licenseId,
+      'type': licenseName,
+      'number': '',
+      'expiryDate': '',
+      'uploaded': false,
+      'file': null,
+      'path': null,
+      'size': null,
+    });
+    selectedCredential?.value = '';
   }
 
   void removeLicense(int index) {
@@ -1776,7 +2112,7 @@ class CreateProfileController extends GetxController {
 
       if (result != null) {
         PlatformFile file = result.files.first;
-        
+
         // Actualizar la licencia en la lista reactiva
         licenses[index] = {
           ...licenses[index],
@@ -1785,10 +2121,10 @@ class CreateProfileController extends GetxController {
           'path': file.path,
           'size': file.size,
         };
-        
+
         // Forzar la actualización de la UI
         licenses.refresh();
-        
+
         Get.snackbar(
           'Success',
           'File uploaded successfully',
@@ -1808,7 +2144,7 @@ class CreateProfileController extends GetxController {
   }
 
   // ===== PREVIOUS EMPLOYER METHODS =====
-  
+
   void toggleHasPreviousEmployer() {
     hasPreviousEmployer.value = !hasPreviousEmployer.value;
   }
@@ -1826,7 +2162,7 @@ class CreateProfileController extends GetxController {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive para el modal
     final modalHeight = screenHeight * 0.75;
     final modalPadding = screenWidth * 0.06;
@@ -1839,7 +2175,7 @@ class CreateProfileController extends GetxController {
     final nameController = TextEditingController();
     final companyController = TextEditingController();
     final phoneController = TextEditingController();
-    
+
     // Variables para intl_phone_field
     String initialCountryCode = 'US';
 
@@ -1880,7 +2216,7 @@ class CreateProfileController extends GetxController {
                 ),
               ),
             ),
-            
+
             // Contenido del modal
             Expanded(
               child: Container(
@@ -1910,13 +2246,16 @@ class CreateProfileController extends GetxController {
                         decoration: InputDecoration(
                           hintText: "Enter Name Contact",
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 2),
-                    
+
                     // Campo Company Type
                     Text(
                       "Company Type",
@@ -1938,13 +2277,16 @@ class CreateProfileController extends GetxController {
                         decoration: InputDecoration(
                           hintText: "Enter Company Name",
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 2),
-                    
+
                     // Campo Phone Number
                     Text(
                       "Phone Number",
@@ -1970,11 +2312,20 @@ class CreateProfileController extends GetxController {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+                          borderSide: BorderSide(
+                            color: Color(
+                              AppFlavorConfig.getPrimaryColor(
+                                currentFlavor.value,
+                              ),
+                            ),
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                       style: TextStyle(
                         fontSize: labelFontSize,
@@ -1988,9 +2339,9 @@ class CreateProfileController extends GetxController {
                         // El número completo se actualiza automáticamente
                       },
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // Botones EXIT y SAVE
                     Row(
                       children: [
@@ -1998,14 +2349,22 @@ class CreateProfileController extends GetxController {
                           child: Container(
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                              color: Color(
+                                AppFlavorConfig.getPrimaryColor(
+                                  currentFlavor.value,
+                                ),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.white, width: 1),
                             ),
                             child: ElevatedButton(
                               onPressed: () => Get.back(),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                backgroundColor: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
+                                  ),
+                                ),
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.zero,
                                 shape: RoundedRectangleBorder(
@@ -2029,7 +2388,11 @@ class CreateProfileController extends GetxController {
                           child: Container(
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                              color: Color(
+                                AppFlavorConfig.getPrimaryColor(
+                                  currentFlavor.value,
+                                ),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.white, width: 1),
                             ),
@@ -2050,7 +2413,11 @@ class CreateProfileController extends GetxController {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                backgroundColor: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
+                                  ),
+                                ),
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.zero,
                                 shape: RoundedRectangleBorder(
@@ -2087,7 +2454,7 @@ class CreateProfileController extends GetxController {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
-    
+
     // Calcular valores responsive para el modal
     final modalHeight = screenHeight * 0.75;
     final modalPadding = screenWidth * 0.06;
@@ -2100,7 +2467,7 @@ class CreateProfileController extends GetxController {
     final nameController = TextEditingController();
     final companyController = TextEditingController();
     final phoneController = TextEditingController();
-    
+
     // Variables para intl_phone_field
     String initialCountryCode = 'US';
 
@@ -2141,7 +2508,7 @@ class CreateProfileController extends GetxController {
                 ),
               ),
             ),
-            
+
             // Contenido del modal
             Expanded(
               child: Container(
@@ -2171,13 +2538,16 @@ class CreateProfileController extends GetxController {
                         decoration: InputDecoration(
                           hintText: "Enter Name Contact",
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 2),
-                    
+
                     // Campo Company Type
                     Text(
                       "Company Type",
@@ -2199,13 +2569,16 @@ class CreateProfileController extends GetxController {
                         decoration: InputDecoration(
                           hintText: "Enter Company Name",
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                         ),
                       ),
                     ),
-                    
+
                     SizedBox(height: verticalSpacing * 2),
-                    
+
                     // Campo Phone Number
                     Text(
                       "Phone Number",
@@ -2231,11 +2604,20 @@ class CreateProfileController extends GetxController {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value))),
+                          borderSide: BorderSide(
+                            color: Color(
+                              AppFlavorConfig.getPrimaryColor(
+                                currentFlavor.value,
+                              ),
+                            ),
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                       ),
                       style: TextStyle(
                         fontSize: labelFontSize,
@@ -2249,9 +2631,9 @@ class CreateProfileController extends GetxController {
                         // El número completo se actualiza automáticamente
                       },
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // Botones EXIT y SAVE
                     Row(
                       children: [
@@ -2259,14 +2641,22 @@ class CreateProfileController extends GetxController {
                           child: Container(
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                              color: Color(
+                                AppFlavorConfig.getPrimaryColor(
+                                  currentFlavor.value,
+                                ),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.white, width: 1),
                             ),
                             child: ElevatedButton(
                               onPressed: () => Get.back(),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                backgroundColor: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
+                                  ),
+                                ),
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.zero,
                                 shape: RoundedRectangleBorder(
@@ -2290,7 +2680,11 @@ class CreateProfileController extends GetxController {
                           child: Container(
                             height: 56,
                             decoration: BoxDecoration(
-                              color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                              color: Color(
+                                AppFlavorConfig.getPrimaryColor(
+                                  currentFlavor.value,
+                                ),
+                              ),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.white, width: 1),
                             ),
@@ -2319,7 +2713,11 @@ class CreateProfileController extends GetxController {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                                backgroundColor: Color(
+                                  AppFlavorConfig.getPrimaryColor(
+                                    currentFlavor.value,
+                                  ),
+                                ),
                                 foregroundColor: Colors.white,
                                 padding: EdgeInsets.zero,
                                 shape: RoundedRectangleBorder(
@@ -2359,14 +2757,8 @@ class CreateProfileController extends GetxController {
         title: Text('Edit Supervisor'),
         content: Text('Edit supervisor modal functionality'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Save'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
+          TextButton(onPressed: () => Get.back(), child: Text('Save')),
         ],
       ),
     );
@@ -2378,10 +2770,7 @@ class CreateProfileController extends GetxController {
         title: Text('Delete Supervisor'),
         content: Text('Are you sure you want to delete this supervisor?'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: Text('Cancel'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
           TextButton(
             onPressed: () {
               if (isFirst) {
@@ -2404,7 +2793,7 @@ class CreateProfileController extends GetxController {
   }
 
   // ===== DOCUMENTS METHODS =====
-  
+
   void showCredentialDropdown() {
     final mediaQuery = MediaQuery.of(Get.context!);
     final screenWidth = mediaQuery.size.width;
@@ -2485,7 +2874,7 @@ class CreateProfileController extends GetxController {
 
       if (result != null) {
         PlatformFile file = result.files.first;
-        
+
         documents[index]['uploaded'] = true;
         documents[index]['file'] = file.name;
         documents[index]['path'] = file.path;
@@ -2499,7 +2888,8 @@ class CreateProfileController extends GetxController {
   String formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    if (bytes < 1024 * 1024 * 1024) return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    if (bytes < 1024 * 1024 * 1024)
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 }

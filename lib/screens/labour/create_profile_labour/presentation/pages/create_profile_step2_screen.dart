@@ -86,6 +86,7 @@ class CreateProfileStep2Screen extends StatelessWidget {
                 showBorder: true,
                 flavor: controller.currentFlavor.value,
                 keyboardType: TextInputType.emailAddress,
+                enabled: false,
               ),
 
               SizedBox(height: verticalSpacing * 0.8),

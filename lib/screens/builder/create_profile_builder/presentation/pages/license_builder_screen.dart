@@ -118,13 +118,20 @@ class LicenseBuilderScreen extends StatelessWidget {
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: Obx(() => Text(
-                                    controller.selectedCredential?.value ?? "Select credential",
-                                    style: GoogleFonts.poppins(
-                                      fontSize: buttonFontSize,
-                                      color: controller.selectedCredential?.value != null ? Colors.black : Colors.grey[600],
-                                    ),
-                                  )),
+                                  child: Obx(
+                                    () {
+                                      final hasSelection = controller.selectedCredential?.value.isNotEmpty == true;
+                                      return Text(
+                                        hasSelection 
+                                            ? controller.selectedCredential!.value
+                                            : "Select credential",
+                                        style: GoogleFonts.poppins(
+                                          fontSize: buttonFontSize,
+                                          color: hasSelection ? Colors.black : Colors.grey[600],
+                                        ),
+                                      );
+                                    },
+                                  ),
                                 ),
                                 Icon(
                                   Icons.keyboard_arrow_down,
@@ -265,14 +272,6 @@ class LicenseBuilderScreen extends StatelessWidget {
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ),
-                                SizedBox(width: horizontalPadding * 0.5),
-                                Text(
-                                  "(Optional)",
-                                  style: GoogleFonts.poppins(
-                                    fontSize: buttonFontSize * 0.8,
-                                    color: Colors.grey[600],
                                   ),
                                 ),
                               ],

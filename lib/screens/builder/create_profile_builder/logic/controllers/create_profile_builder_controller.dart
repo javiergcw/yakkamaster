@@ -9,6 +9,7 @@ import '../../presentation/widgets/company_selection_dialog.dart';
 import '../../presentation/pages/register_new_company_screen.dart';
 import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
 import '../../../../builder/home/presentation/pages/camera_with_overlay_screen.dart';
+import '../../../../builder/home/presentation/pages/camera_simple_screen.dart';
 import '../../../../../features/logic/builder/use_case/builder_use_case.dart';
 import '../../../../../features/logic/builder/models/send/dto_send_builder_profile.dart';
 import '../../../../../features/logic/masters/use_case/master_use_case.dart';
@@ -698,34 +699,240 @@ class CreateProfileBuilderController extends GetxController {
 
   // Métodos para manejar licencias
   void addLicense() {
-    if (selectedCredential?.value != null && selectedCredential!.value.isNotEmpty) {
-      // Buscar el ID real de la licencia desde la API
-      String licenseId = '';
-      String licenseName = selectedCredential!.value;
-      
-      if (licensesFromApi.isNotEmpty) {
-        try {
-          final license = licensesFromApi.firstWhere(
-            (l) => l.name == licenseName,
-            orElse: () => licensesFromApi.first,
-          );
-          licenseId = license.id;
-        } catch (e) {
-          // Si no se encuentra, usar el primer ID disponible
-          licenseId = licensesFromApi.first.id;
-        }
-      }
-      
-      licenses.add({
-        'id': licenseId,
-        'type': licenseName,
-        'uploaded': false,
-        'file': '',
-        'path': '',
-        'size': null,
-      });
-      selectedCredential?.value = '';
+    // Validar si hay una credencial seleccionada
+    if (selectedCredential?.value == null || selectedCredential!.value.isEmpty) {
+      Get.snackbar(
+        'Warning',
+        'Please select a credential first',
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+        duration: Duration(seconds: 2),
+      );
+      return;
     }
+
+    // Mostrar modal bottom sheet para seleccionar foto o cámara
+    _showImageSourceModal();
+  }
+
+  void _showImageSourceModal() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Select Image Source',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // Opción de cámara
+                GestureDetector(
+                  onTap: () {
+                    Get.back(); // Cerrar el modal
+                    _captureImageFromCamera();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.camera_alt,
+                          size: 40,
+                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Camera',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Opción de galería
+                GestureDetector(
+                  onTap: () {
+                    Get.back(); // Cerrar el modal
+                    _selectImageFromGallery();
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        width: 2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.photo_library,
+                          size: 40,
+                          color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Gallery',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _captureImageFromCamera() async {
+    try {
+      // Navegar a la pantalla de cámara simple (con switch)
+      await Get.to(
+        () => CameraSimpleScreen(
+          flavor: currentFlavor.value,
+          onImageCaptured: (File image) {
+            // Este callback se ejecutará cuando se capture la imagen
+            final xFile = XFile(image.path);
+            _addLicenseToMapWithImage(xFile);
+          },
+        ),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error opening camera: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _selectImageFromGallery() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      
+      if (image != null) {
+        // Agregar la licencia con la imagen seleccionada
+        _addLicenseToMapWithImage(image);
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Error selecting image: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  void _addLicenseToMapWithImage(XFile image) async {
+    // Buscar el ID real de la licencia desde la API
+    String licenseId = '';
+    String licenseName = selectedCredential!.value;
+
+    if (licensesFromApi.isNotEmpty) {
+      try {
+        final license = licensesFromApi.firstWhere(
+          (l) => l.name == licenseName,
+          orElse: () => licensesFromApi.first,
+        );
+        licenseId = license.id;
+      } catch (e) {
+        // Si no se encuentra, usar el primer ID disponible
+        licenseId = licensesFromApi.first.id;
+      }
+    }
+
+    // Obtener información del archivo
+    final file = File(image.path);
+    final fileName = image.path.split('/').last;
+    final fileSize = await file.length();
+
+    licenses.add({
+      'id': licenseId,
+      'type': licenseName,
+      'number': '',
+      'expiryDate': '',
+      'uploaded': true,
+      'file': fileName,
+      'path': image.path,
+      'size': fileSize,
+    });
+    selectedCredential?.value = '';
+  }
+
+  void _addLicenseToMap() {
+    // Buscar el ID real de la licencia desde la API
+    String licenseId = '';
+    String licenseName = selectedCredential!.value;
+
+    if (licensesFromApi.isNotEmpty) {
+      try {
+        final license = licensesFromApi.firstWhere(
+          (l) => l.name == licenseName,
+          orElse: () => licensesFromApi.first,
+        );
+        licenseId = license.id;
+      } catch (e) {
+        // Si no se encuentra, usar el primer ID disponible
+        licenseId = licensesFromApi.first.id;
+      }
+    }
+
+    licenses.add({
+      'id': licenseId,
+      'type': licenseName,
+      'number': '',
+      'expiryDate': '',
+      'uploaded': false,
+      'file': null,
+      'path': null,
+      'size': null,
+    });
+    selectedCredential?.value = '';
   }
 
   void removeLicense(int index) {
@@ -785,6 +992,7 @@ class CreateProfileBuilderController extends GetxController {
       isLoadingLicenses.value = false;
     }
   }
+
 
   void showCredentialDropdown() {
     // Usar licencias de la API en lugar de lista hardcodeada

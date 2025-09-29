@@ -3,26 +3,25 @@ import 'package:camera/camera.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
-import '../../../../../config/assets_config.dart';
 import '../../../../../config/app_flavor.dart';
 
-class CameraWithOverlayScreen extends StatefulWidget {
-  static const String id = '/camera-with-overlay';
+class CameraSimpleScreen extends StatefulWidget {
+  static const String id = '/camera-simple';
   
   final AppFlavor flavor;
   final Function(File) onImageCaptured;
 
-  const CameraWithOverlayScreen({
+  const CameraSimpleScreen({
     super.key,
     required this.flavor,
     required this.onImageCaptured,
   });
 
   @override
-  State<CameraWithOverlayScreen> createState() => _CameraWithOverlayScreenState();
+  State<CameraSimpleScreen> createState() => _CameraSimpleScreenState();
 }
 
-class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
+class _CameraSimpleScreenState extends State<CameraSimpleScreen> {
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isInitialized = false;
@@ -126,14 +125,13 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
 
     try {
       final Directory appDir = await getApplicationDocumentsDirectory();
-      final String fileName = 'profile_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String fileName = 'license_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final String filePath = '${appDir.path}/$fileName';
 
       final XFile image = await _cameraController!.takePicture();
       final File imageFile = File(image.path);
       
-      // Por ahora, usar la imagen original sin procesamiento complejo
-      // TODO: Implementar recorte de overlay más adelante
+      // Copiar la imagen al directorio de la aplicación
       await imageFile.copy(filePath);
       final File finalImage = File(filePath);
       
@@ -197,15 +195,6 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
             const Center(
               child: CircularProgressIndicator(
                 color: Colors.white,
-              ),
-            ),
-
-          // Overlay de la cámara
-          if (_isInitialized)
-            Positioned.fill(
-              child: Image.asset(
-                AssetsConfig.getCameraOverlay(widget.flavor),
-                fit: BoxFit.cover,
               ),
             ),
 
@@ -316,45 +305,6 @@ class _CameraWithOverlayScreenState extends State<CameraWithOverlayScreen> {
                           color: Colors.white,
                           size: 36,
                         ),
-                ),
-              ),
-            ),
-          ),
-
-          // Instrucciones
-          Positioned(
-            bottom: 150,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Color(AppFlavorConfig.getPrimaryColor(widget.flavor)).withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      offset: const Offset(0, 4),
-                      blurRadius: 12,
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  'Position your face within the frame\nOnly this area will be saved',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    height: 1.3,
-                  ),
                 ),
               ),
             ),
