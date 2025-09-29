@@ -19,7 +19,9 @@ class AssetsConfig {
   static const Map<AppFlavor, Map<AssetType, String>> _assets = {
     AppFlavor.labour: {
       AssetType.logo: 'assets/yakka_sport_logo.svg',
+      //
       AssetType.joinLogo: 'assets/YAKKA_SPORT_SPLASH.png',
+      //
       AssetType.icon: 'assets/icons/labour_icon.png',
       AssetType.background: 'assets/backgrounds/labour_bg.png',
       AssetType.respect: 'assets/respect.png',

@@ -13,7 +13,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>yakka_sports</string>
+		<string>Yakka Sports</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -50,6 +50,8 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Esta aplicación necesita acceso a la galería para seleccionar fotos de perfil.</string>
 		<key>UIStatusBarHidden</key>
+		<false/>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
 	</dict>
 </plist>

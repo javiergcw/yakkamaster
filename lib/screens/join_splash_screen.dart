@@ -42,8 +42,8 @@ class JoinSplashScreen extends StatelessWidget {
                     opacity: animationValue,
                     child: Obx(() => Image.asset(
                       AssetsConfig.getJoinLogo(controller.currentFlavor.value),
-                      width: 200,
-                      height: 80,
+                      width: 400,
+                      height: 200,
                       fit: BoxFit.contain,
                     )),
                   ),

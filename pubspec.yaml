@@ -1,5 +1,5 @@
 name: yakka_sports
-description: "A new Flutter project."
+description: "Sport professionals app"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -65,6 +65,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -113,17 +114,37 @@ flutter:
 # Flutter Native Splash configuration
 flutter_native_splash:
   # Background color
-  color: "#ffffff"
+  color: "#098d36"
   
   # Splash screen image
-  image: assets/YAKKA_SPORT_LOGO.png
+  image: assets/Yakka SPORT logo vertical White 2-3.png
   
-  # Image positioning
+  # Image positioning (más pequeño)
   android_gravity: center
-  ios_content_mode: center
+  ios_content_mode: scaleAspectFit
   web_image_mode: center
   
   # Android 12+ configuration
   android_12:
-    image: assets/YAKKA_SPORT_LOGO.png
-    color: "#ffffff"
+    image: assets/Yakka SPORT logo vertical White 2-3.png
+    color: "#098d36"
+  
+
+
+# Flutter Launcher Icons configuration
+flutter_launcher_icons:
+  # Usar íconos existentes en lugar de generar nuevos
+  android: false
+  ios: false
+  web:
+    generate: true
+    image_path: "assets/1024.png"
+    background_color: "#ffffff"
+    theme_color: "#ffffff"
+  windows:
+    generate: true
+    image_path: "assets/1024.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/1024.png"
