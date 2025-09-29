@@ -12,7 +12,7 @@ import 'features/logic/generals/use_case/general_use_case.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Configurar estilo de la barra de estado
+  // Configurar estilo de la barra de estados
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
