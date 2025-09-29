@@ -10,6 +10,9 @@ class DtoReceiveJob {
   final double wageLeadingHandAllowance;
   final double wageProductivityAllowance;
   final double extrasOvertimeRate;
+  final double? wageHourlyRate;
+  final double? travelAllowance;
+  final double? gst;
   final String startDateWork;
   final String endDateWork;
   final bool workSaturday;
@@ -36,6 +39,9 @@ class DtoReceiveJob {
     required this.wageLeadingHandAllowance,
     required this.wageProductivityAllowance,
     required this.extrasOvertimeRate,
+    this.wageHourlyRate,
+    this.travelAllowance,
+    this.gst,
     required this.startDateWork,
     required this.endDateWork,
     required this.workSaturday,
@@ -65,6 +71,9 @@ class DtoReceiveJob {
       wageLeadingHandAllowance: (json['wage_leading_hand_allowance'] as num).toDouble(),
       wageProductivityAllowance: (json['wage_productivity_allowance'] as num).toDouble(),
       extrasOvertimeRate: (json['extras_overtime_rate'] as num).toDouble(),
+      wageHourlyRate: json['wage_hourly_rate'] != null ? (json['wage_hourly_rate'] as num).toDouble() : null,
+      travelAllowance: json['travel_allowance'] != null ? (json['travel_allowance'] as num).toDouble() : null,
+      gst: json['gst'] != null ? (json['gst'] as num).toDouble() : null,
       startDateWork: json['start_date_work'] as String,
       endDateWork: json['end_date_work'] as String,
       workSaturday: json['work_saturday'] as bool,
@@ -94,6 +103,9 @@ class DtoReceiveJob {
     double? wageLeadingHandAllowance,
     double? wageProductivityAllowance,
     double? extrasOvertimeRate,
+    double? wageHourlyRate,
+    double? travelAllowance,
+    double? gst,
     String? startDateWork,
     String? endDateWork,
     bool? workSaturday,
@@ -120,6 +132,9 @@ class DtoReceiveJob {
       wageLeadingHandAllowance: wageLeadingHandAllowance ?? this.wageLeadingHandAllowance,
       wageProductivityAllowance: wageProductivityAllowance ?? this.wageProductivityAllowance,
       extrasOvertimeRate: extrasOvertimeRate ?? this.extrasOvertimeRate,
+      wageHourlyRate: wageHourlyRate ?? this.wageHourlyRate,
+      travelAllowance: travelAllowance ?? this.travelAllowance,
+      gst: gst ?? this.gst,
       startDateWork: startDateWork ?? this.startDateWork,
       endDateWork: endDateWork ?? this.endDateWork,
       workSaturday: workSaturday ?? this.workSaturday,
@@ -207,6 +222,9 @@ class DtoReceiveJob {
         other.wageLeadingHandAllowance == wageLeadingHandAllowance &&
         other.wageProductivityAllowance == wageProductivityAllowance &&
         other.extrasOvertimeRate == extrasOvertimeRate &&
+        other.wageHourlyRate == wageHourlyRate &&
+        other.travelAllowance == travelAllowance &&
+        other.gst == gst &&
         other.startDateWork == startDateWork &&
         other.endDateWork == endDateWork &&
         other.workSaturday == workSaturday &&
@@ -235,6 +253,9 @@ class DtoReceiveJob {
         wageLeadingHandAllowance.hashCode ^
         wageProductivityAllowance.hashCode ^
         extrasOvertimeRate.hashCode ^
+        (wageHourlyRate?.hashCode ?? 0) ^
+        (travelAllowance?.hashCode ?? 0) ^
+        (gst?.hashCode ?? 0) ^
         startDateWork.hashCode ^
         endDateWork.hashCode ^
         workSaturday.hashCode ^

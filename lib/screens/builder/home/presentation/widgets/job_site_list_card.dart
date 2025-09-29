@@ -11,12 +11,14 @@ class JobSiteListCard extends StatelessWidget {
   final JobSiteDto jobSite;
   final VoidCallback onTap;
   final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   const JobSiteListCard({
     super.key,
     required this.jobSite,
     required this.onTap,
     required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -248,6 +250,38 @@ class JobSiteListCard extends StatelessWidget {
                               fontSize: descriptionFontSize,
                               fontWeight: FontWeight.w400,
                               color: Color(AppFlavorConfig.getPrimaryColor(AppFlavorConfig.currentFlavor)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    SizedBox(height: verticalSpacing * 0.3),
+                    
+                    // Delete Button Row
+                    GestureDetector(
+                      onTap: onDelete,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: iconSize * 0.6,
+                            height: iconSize * 0.6,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.delete,
+                              size: iconSize * 0.6,
+                              color: Colors.red[600],
+                            ),
+                          ),
+                          SizedBox(width: horizontalPadding * 0.2),
+                          Text(
+                            "Delete",
+                            style: GoogleFonts.poppins(
+                              fontSize: descriptionFontSize,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.red[600],
                             ),
                           ),
                         ],

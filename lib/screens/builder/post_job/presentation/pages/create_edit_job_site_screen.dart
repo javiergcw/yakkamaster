@@ -178,7 +178,7 @@ class CreateEditJobSiteScreen extends StatelessWidget {
              Padding(
                padding: EdgeInsets.all(horizontalPadding),
                child: Obx(() => CustomButton(
-                 text: controller.editingJobSite.value != null ? "Update jobsite" : "Save jobsite",
+                 text: (controller.editingJobSite.value != null || controller.editingJobSiteReceive.value != null) ? "Update jobsite" : "Save jobsite",
                  onPressed: controller.handleSave,
                  type: ButtonType.secondary,
                  isLoading: controller.isLoading.value,

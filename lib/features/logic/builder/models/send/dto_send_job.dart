@@ -8,6 +8,9 @@ class DtoSendJob {
   final double wageLeadingHandAllowance;
   final double wageProductivityAllowance;
   final double extrasOvertimeRate;
+  final double wageHourlyRate;
+  final double travelAllowance;
+  final double gst;
   final String startDateWork;
   final String endDateWork;
   final bool workSaturday;
@@ -33,6 +36,9 @@ class DtoSendJob {
     this.wageLeadingHandAllowance = 0.0,
     this.wageProductivityAllowance = 0.0,
     this.extrasOvertimeRate = 0.0,
+    this.wageHourlyRate = 0.0,
+    this.travelAllowance = 0.0,
+    this.gst = 0.0,
     this.startDateWork = '',
     this.endDateWork = '',
     this.workSaturday = false,
@@ -61,6 +67,9 @@ class DtoSendJob {
       'wage_leading_hand_allowance': wageLeadingHandAllowance,
       'wage_productivity_allowance': wageProductivityAllowance,
       'extras_overtime_rate': extrasOvertimeRate,
+      'wage_hourly_rate': wageHourlyRate,
+      'travel_allowance': travelAllowance,
+      'gst': gst,
       'start_date_work': startDateWork,
       'end_date_work': endDateWork,
       'work_saturday': workSaturday,
@@ -90,6 +99,9 @@ class DtoSendJob {
       wageLeadingHandAllowance: (json['wage_leading_hand_allowance'] as num).toDouble(),
       wageProductivityAllowance: (json['wage_productivity_allowance'] as num).toDouble(),
       extrasOvertimeRate: (json['extras_overtime_rate'] as num).toDouble(),
+      wageHourlyRate: (json['wage_hourly_rate'] as num).toDouble(),
+      travelAllowance: (json['travel_allowance'] as num).toDouble(),
+      gst: (json['gst'] as num).toDouble(),
       startDateWork: json['start_date_work'] as String,
       endDateWork: json['end_date_work'] as String,
       workSaturday: json['work_saturday'] as bool,
@@ -118,10 +130,13 @@ class DtoSendJob {
     double wageLeadingHandAllowance = 0.0,
     double wageProductivityAllowance = 0.0,
     double extrasOvertimeRate = 1.5,
+    double wageHourlyRate = 0.0,
+    double travelAllowance = 0.0,
+    double gst = 0.0,
     String startDateWork = '',
     String endDateWork = '',
     bool workSaturday = false,
-    bool workSunday = false,
+    bool workSunday = false,  
     String startTime = '08:00:00',
     String endTime = '17:00:00',
     String description = '',
@@ -143,6 +158,9 @@ class DtoSendJob {
       wageLeadingHandAllowance: wageLeadingHandAllowance,
       wageProductivityAllowance: wageProductivityAllowance,
       extrasOvertimeRate: extrasOvertimeRate,
+      wageHourlyRate: wageHourlyRate,
+      travelAllowance: travelAllowance,
+      gst: gst,
       startDateWork: startDateWork,
       endDateWork: endDateWork,
       workSaturday: workSaturday,
@@ -171,6 +189,9 @@ class DtoSendJob {
     double? wageLeadingHandAllowance,
     double? wageProductivityAllowance,
     double? extrasOvertimeRate,
+    double? wageHourlyRate,
+    double? travelAllowance,
+    double? gst,
     String? startDateWork,
     String? endDateWork,
     bool? workSaturday,
@@ -196,6 +217,9 @@ class DtoSendJob {
       wageLeadingHandAllowance: wageLeadingHandAllowance ?? this.wageLeadingHandAllowance,
       wageProductivityAllowance: wageProductivityAllowance ?? this.wageProductivityAllowance,
       extrasOvertimeRate: extrasOvertimeRate ?? this.extrasOvertimeRate,
+      wageHourlyRate: wageHourlyRate ?? this.wageHourlyRate,
+      travelAllowance: travelAllowance ?? this.travelAllowance,
+      gst: gst ?? this.gst,
       startDateWork: startDateWork ?? this.startDateWork,
       endDateWork: endDateWork ?? this.endDateWork,
       workSaturday: workSaturday ?? this.workSaturday,
@@ -254,6 +278,11 @@ class DtoSendJob {
     return wageSiteAllowance + wageLeadingHandAllowance + wageProductivityAllowance;
   }
 
+  /// Obtiene el costo total por hora incluyendo todos los componentes
+  double get totalHourlyCost {
+    return wageHourlyRate + totalAllowances + travelAllowance + gst;
+  }
+
   @override
   String toString() {
     return 'DtoSendJob(jobsiteId: $jobsiteId, jobTypeId: $jobTypeId, manyLabours: $manyLabours, description: $description)';
@@ -271,6 +300,9 @@ class DtoSendJob {
         other.wageLeadingHandAllowance == wageLeadingHandAllowance &&
         other.wageProductivityAllowance == wageProductivityAllowance &&
         other.extrasOvertimeRate == extrasOvertimeRate &&
+        other.wageHourlyRate == wageHourlyRate &&
+        other.travelAllowance == travelAllowance &&
+        other.gst == gst &&
         other.startDateWork == startDateWork &&
         other.endDateWork == endDateWork &&
         other.workSaturday == workSaturday &&
@@ -298,6 +330,9 @@ class DtoSendJob {
         wageLeadingHandAllowance.hashCode ^
         wageProductivityAllowance.hashCode ^
         extrasOvertimeRate.hashCode ^
+        wageHourlyRate.hashCode ^
+        travelAllowance.hashCode ^
+        gst.hashCode ^
         startDateWork.hashCode ^
         endDateWork.hashCode ^
         workSaturday.hashCode ^

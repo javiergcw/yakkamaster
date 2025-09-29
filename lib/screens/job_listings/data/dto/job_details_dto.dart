@@ -12,6 +12,15 @@ class JobDetailsDto extends JobDto {
   final List<String> requirements;
   final double latitude;
   final double longitude;
+  
+  // Datos de salarios reales del API
+  final double wageSiteAllowance;
+  final double wageLeadingHandAllowance;
+  final double wageProductivityAllowance;
+  final double extrasOvertimeRate;
+  final double? wageHourlyRate;
+  final double? travelAllowance;
+  final double? gst;
 
   JobDetailsDto({
     required super.id,
@@ -34,6 +43,13 @@ class JobDetailsDto extends JobDto {
     required this.requirements,
     required this.latitude,
     required this.longitude,
+    required this.wageSiteAllowance,
+    required this.wageLeadingHandAllowance,
+    required this.wageProductivityAllowance,
+    required this.extrasOvertimeRate,
+    this.wageHourlyRate,
+    this.travelAllowance,
+    this.gst,
   });
 
   factory JobDetailsDto.fromJobDto(JobDto job) {
@@ -63,6 +79,14 @@ class JobDetailsDto extends JobDto {
       ],
       latitude: -33.8688, // Sydney coordinates
       longitude: 151.2093,
+      // Valores por defecto para salarios
+      wageSiteAllowance: job.hourlyRate,
+      wageLeadingHandAllowance: 0.0,
+      wageProductivityAllowance: 0.0,
+      extrasOvertimeRate: 1.5,
+      wageHourlyRate: null,
+      travelAllowance: null,
+      gst: null,
     );
   }
 
@@ -88,6 +112,13 @@ class JobDetailsDto extends JobDto {
       requirements: List<String>.from(json['requirements'] ?? []),
       latitude: (json['latitude'] ?? 0.0).toDouble(),
       longitude: (json['longitude'] ?? 0.0).toDouble(),
+      wageSiteAllowance: (json['wageSiteAllowance'] ?? 0.0).toDouble(),
+      wageLeadingHandAllowance: (json['wageLeadingHandAllowance'] ?? 0.0).toDouble(),
+      wageProductivityAllowance: (json['wageProductivityAllowance'] ?? 0.0).toDouble(),
+      extrasOvertimeRate: (json['extrasOvertimeRate'] ?? 1.5).toDouble(),
+      wageHourlyRate: json['wageHourlyRate'] != null ? (json['wageHourlyRate'] as num).toDouble() : null,
+      travelAllowance: json['travelAllowance'] != null ? (json['travelAllowance'] as num).toDouble() : null,
+      gst: json['gst'] != null ? (json['gst'] as num).toDouble() : null,
     );
   }
 
@@ -106,6 +137,13 @@ class JobDetailsDto extends JobDto {
       'requirements': requirements,
       'latitude': latitude,
       'longitude': longitude,
+      'wageSiteAllowance': wageSiteAllowance,
+      'wageLeadingHandAllowance': wageLeadingHandAllowance,
+      'wageProductivityAllowance': wageProductivityAllowance,
+      'extrasOvertimeRate': extrasOvertimeRate,
+      'wageHourlyRate': wageHourlyRate,
+      'travelAllowance': travelAllowance,
+      'gst': gst,
     };
   }
 
@@ -131,6 +169,13 @@ class JobDetailsDto extends JobDto {
     List<String>? requirements,
     double? latitude,
     double? longitude,
+    double? wageSiteAllowance,
+    double? wageLeadingHandAllowance,
+    double? wageProductivityAllowance,
+    double? extrasOvertimeRate,
+    double? wageHourlyRate,
+    double? travelAllowance,
+    double? gst,
   }) {
     return JobDetailsDto(
       id: id ?? this.id,
@@ -153,6 +198,13 @@ class JobDetailsDto extends JobDto {
       requirements: requirements ?? this.requirements,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      wageSiteAllowance: wageSiteAllowance ?? this.wageSiteAllowance,
+      wageLeadingHandAllowance: wageLeadingHandAllowance ?? this.wageLeadingHandAllowance,
+      wageProductivityAllowance: wageProductivityAllowance ?? this.wageProductivityAllowance,
+      extrasOvertimeRate: extrasOvertimeRate ?? this.extrasOvertimeRate,
+      wageHourlyRate: wageHourlyRate ?? this.wageHourlyRate,
+      travelAllowance: travelAllowance ?? this.travelAllowance,
+      gst: gst ?? this.gst,
     );
   }
 }

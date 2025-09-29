@@ -82,6 +82,11 @@ class UnifiedPostJobController extends GetxController {
   final RxList<DtoReceiveLicense> licensesFromApi = <DtoReceiveLicense>[].obs;
   final RxList<String> credentials = <String>[].obs;
   final RxBool isLoadingCredentials = false.obs;
+  
+  // Variables para constantes de pago
+  final RxDouble gstPercentage = 10.0.obs; // Valor por defecto
+  final RxDouble minimumHourlyWage = 28.0.obs; // Valor por defecto
+  final RxBool isLoadingPaymentConstants = false.obs;
 
   // ===== JOBSITE SELECTION =====
   final RxList<dynamic> selectedJobSites = <dynamic>[].obs;
@@ -95,6 +100,11 @@ class UnifiedPostJobController extends GetxController {
   int get currentStep => _currentStep.value;
   bool get isLoading => _isLoading.value;
   String get errorMessage => _errorMessage.value;
+  
+  // Getters para constantes de pago
+  double get currentGstPercentage => gstPercentage.value;
+  double get currentMinimumHourlyWage => minimumHourlyWage.value;
+  bool get isPaymentConstantsLoading => isLoadingPaymentConstants.value;
 
   @override
   void onInit() {
@@ -132,6 +142,9 @@ class UnifiedPostJobController extends GetxController {
     
     // Cargar credenciales desde el backend
     loadCredentialsFromApi();
+    
+    // Cargar constantes de pago desde el backend
+    _loadPaymentConstants();
     
     // Cargar tipos de trabajo desde el backend
     loadJobTypesFromApi();
@@ -481,6 +494,8 @@ class UnifiedPostJobController extends GetxController {
   // ===== STEP 3 - COSTS =====
   void updateHourlyRate(double rate) {
     _postJobData.value = _postJobData.value.copyWith(hourlyRate: rate);
+    print('✅ Hourly rate updated: \$${rate.toStringAsFixed(2)}');
+    print('✅ GST will be: \$${_calculateGST(rate).toStringAsFixed(2)}');
   }
 
   void updateSiteAllowance(double allowance) {
@@ -501,6 +516,7 @@ class UnifiedPostJobController extends GetxController {
 
   void updateTravelAllowance(double allowance) {
     _postJobData.value = _postJobData.value.copyWith(travelAllowance: allowance);
+    print('✅ Travel allowance updated: \$${allowance.toStringAsFixed(2)}');
   }
 
   double calculateTotalCost() {
@@ -510,11 +526,12 @@ class UnifiedPostJobController extends GetxController {
     final productivityAllowance = _postJobData.value.productivityAllowance ?? 0.0;
     final overtimeRate = _postJobData.value.overtimeRate ?? 0.0;
     final travelAllowance = _postJobData.value.travelAllowance ?? 0.0;
-    final yakkaServiceFee = 2.80; // Fixed value
-    final gst = 0.28; // Fixed value (10% of Yakka Service Fee)
+    
+    // Calcular GST usando el porcentaje dinámico de la API
+    final gst = _calculateGST(hourlyRate);
     
     return hourlyRate + siteAllowance + leadingHandAllowance + productivityAllowance + 
-           overtimeRate + travelAllowance + yakkaServiceFee + gst;
+           overtimeRate + travelAllowance + gst;
   }
 
   // ===== STEP 4 - DATE SELECTION =====
@@ -704,8 +721,10 @@ class UnifiedPostJobController extends GetxController {
   }
 
   bool isStep3Valid() {
-    return _postJobData.value.hourlyRate != null && 
-           _postJobData.value.hourlyRate! > 0;
+    final hourlyRate = _postJobData.value.hourlyRate;
+    return hourlyRate != null && 
+           hourlyRate > 0 &&
+           hourlyRate >= minimumHourlyWage.value;
   }
 
   bool isStep4Valid() {
@@ -959,6 +978,16 @@ class UnifiedPostJobController extends GetxController {
       throw Exception('Supervisor name is required when supervisor signature is required');
     }
 
+    // Obtener el hourlyRate del formulario o usar el mínimo de la API
+    final hourlyRate = data.hourlyRate ?? minimumHourlyWage.value;
+    final gstValue = _calculateGST(hourlyRate);
+    
+    // Debug: Verificar valores antes de enviar
+    print('🔍 Creating job data:');
+    print('  - Hourly Rate: \$${hourlyRate.toStringAsFixed(2)}');
+    print('  - Travel Allowance: \$${(data.travelAllowance ?? 0.0).toStringAsFixed(2)}');
+    print('  - GST: \$${gstValue.toStringAsFixed(2)} (${gstPercentage.value}%)');
+    
     // Crear DtoSendJob con valores del formulario y fallbacks apropiados
     return DtoSendJob(
       jobsiteId: selectedJobSiteId.value,
@@ -969,6 +998,9 @@ class UnifiedPostJobController extends GetxController {
       wageLeadingHandAllowance: data.leadingHandAllowance ?? 0.0,
       wageProductivityAllowance: data.productivityAllowance ?? 0.0,
       extrasOvertimeRate: data.overtimeRate ?? 0.0,
+      wageHourlyRate: hourlyRate,
+      travelAllowance: data.travelAllowance ?? 0.0,
+      gst: gstValue,
       startDateWork: startDateWork ?? _formatDateForApi(DateTime.now()),
       endDateWork: endDateWork ?? _formatDateForApi(DateTime.now().add(Duration(days: 30))),
       workSaturday: data.workOnSaturdays ?? false,
@@ -990,6 +1022,38 @@ class UnifiedPostJobController extends GetxController {
   /// Formatea una fecha para la API sin milisegundos
   String _formatDateForApi(DateTime date) {
     return '${date.toIso8601String().split('.')[0]}Z';
+  }
+
+  /// Calcula el GST basado en el salario por hora usando el porcentaje dinámico
+  double _calculateGST(double hourlyRate) {
+    return hourlyRate * (gstPercentage.value / 100.0);
+  }
+
+  /// Carga las constantes de pago desde la API
+  Future<void> _loadPaymentConstants() async {
+    try {
+      isLoadingPaymentConstants.value = true;
+      
+      final result = await _masterUseCase.getPaymentConstants(activeOnly: true);
+      
+      if (result.isSuccess && result.data != null) {
+        // Actualizar GST
+        final gstValue = result.data!.gst;
+        if (gstValue != null) {
+          gstPercentage.value = gstValue;
+        }
+        
+        // Actualizar salario mínimo por hora
+        final hourlyWageValue = result.data!.hourlyWage;
+        if (hourlyWageValue != null) {
+          minimumHourlyWage.value = hourlyWageValue;
+        }
+      }
+    } catch (e) {
+      print('Error cargando constantes de pago: $e');
+    } finally {
+      isLoadingPaymentConstants.value = false;
+    }
   }
 
   /// Obtiene un tipo de pago válido según la API

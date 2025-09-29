@@ -56,21 +56,23 @@ class ServiceJobs {
       // Realizar petición GET al endpoint /api/v1/builder/jobs
       final response = await _crudService.getAll(ApiBuilderConstants.jobs);
       
+      // Debug: imprimir la respuesta
+      print('ServiceJobs.getJobs - Response body: ${response.body}');
+      print('ServiceJobs.getJobs - Response jsonBody: ${response.jsonBody}');
+      print('ServiceJobs.getJobs - Response jsonListBody: ${response.jsonListBody}');
+      
       // Procesar la respuesta y convertir a List<DtoReceiveJob>
       final result = await _responseHandler.handleResponse<List<DtoReceiveJob>>(
         response,
-        fromJson: (json) {
-          // La respuesta tiene estructura: {"jobs": [...], "message": "..."}
-          if (json.containsKey('jobs') && json['jobs'] is List) {
-            final jobsList = json['jobs'] as List;
-            return jobsList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
-          }
-          throw Exception('Jobs array not found in response');
+        fromJsonList: (jsonList) {
+          print('ServiceJobs.getJobs - fromJsonList called with ${jsonList.length} items');
+          return jsonList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
         },
       );
 
       return result;
     } catch (e) {
+      print('ServiceJobs.getJobs - Error: $e');
       return ApiResult<List<DtoReceiveJob>>.error(
         message: 'Error getting jobs: $e',
         error: e,
@@ -87,14 +89,34 @@ class ServiceJobs {
       // Realizar petición GET al endpoint /api/v1/builder/jobs/:id
       final response = await _crudService.getById(ApiBuilderConstants.jobs, id);
       
+      // Debug: imprimir la respuesta
+      print('ServiceJobs.getJobById - Response body: ${response.body}');
+      print('ServiceJobs.getJobById - Response jsonBody: ${response.jsonBody}');
+      
       // Procesar la respuesta y convertir a DtoReceiveJob
+      // La respuesta tiene estructura: {"job": {...}, "message": "..."}
+      print('ServiceJobs.getJobById - About to process response with ResponseHandler');
       final result = await _responseHandler.handleResponse<DtoReceiveJob>(
         response,
-        fromJson: DtoReceiveJob.fromJson,
+        fromJson: (json) {
+          print('ServiceJobs.getJobById - fromJson called with keys: ${json.keys.toList()}');
+          // Extraer el objeto 'job' de la respuesta
+          if (json.containsKey('job') && json['job'] != null) {
+            print('ServiceJobs.getJobById - Found job key, parsing...');
+            return DtoReceiveJob.fromJson(json['job'] as Map<String, dynamic>);
+          }
+          print('ServiceJobs.getJobById - Job data not found in response');
+          throw Exception('Job data not found in response');
+        },
       );
+      
+      print('ServiceJobs.getJobById - ResponseHandler result isSuccess: ${result.isSuccess}');
+      print('ServiceJobs.getJobById - ResponseHandler result data: ${result.data?.id}');
+      print('ServiceJobs.getJobById - ResponseHandler result message: ${result.message}');
 
       return result;
     } catch (e) {
+      print('ServiceJobs.getJobById - Error: $e');
       return ApiResult<DtoReceiveJob>.error(
         message: 'Error getting job by ID: $e',
         error: e,
@@ -166,13 +188,8 @@ class ServiceJobs {
       // Procesar la respuesta y convertir a List<DtoReceiveJob>
       final result = await _responseHandler.handleResponse<List<DtoReceiveJob>>(
         response,
-        fromJson: (json) {
-          // La respuesta tiene estructura: {"jobs": [...], "message": "..."}
-          if (json.containsKey('jobs') && json['jobs'] is List) {
-            final jobsList = json['jobs'] as List;
-            return jobsList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
-          }
-          throw Exception('Jobs array not found in response');
+        fromJsonList: (jsonList) {
+          return jsonList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
         },
       );
 

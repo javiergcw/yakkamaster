@@ -87,4 +87,59 @@ class ServiceJobsites {
       );
     }
   }
+
+  /// Actualiza un jobsite existente
+  Future<ApiResult<DtoReceiveJobsite>> updateJobsite(String id, DtoSendJobsite jobsiteData) async {
+    try {
+      // Asegurar que el header de JWT esté configurado
+      await _crudService.headerManager.loadBearerToken();
+      
+      // Realizar petición PUT al endpoint /api/v1/jobsites/:id
+      final response = await _crudService.update(
+        ApiBuilderConstants.jobsites,
+        id,
+        jobsiteData.toJson(),
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceiveJobsite
+      final result = await _responseHandler.handleResponse<DtoReceiveJobsite>(
+        response,
+        fromJson: DtoReceiveJobsite.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobsite>.error(
+        message: 'Error updating jobsite: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Elimina un jobsite
+  Future<ApiResult<bool>> deleteJobsite(String id) async {
+    try {
+      // Asegurar que el header de JWT esté configurado
+      await _crudService.headerManager.loadBearerToken();
+      
+      // Realizar petición DELETE al endpoint /api/v1/jobsites/:id
+      final response = await _crudService.delete(
+        ApiBuilderConstants.jobsites,
+        id,
+      );
+      
+      // Procesar la respuesta
+      final result = await _responseHandler.handleResponse<bool>(
+        response,
+        fromJson: (json) => true, // Si la respuesta es exitosa, consideramos que se eliminó
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<bool>.error(
+        message: 'Error deleting jobsite: $e',
+        error: e,
+      );
+    }
+  }
 }

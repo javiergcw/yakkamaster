@@ -21,23 +21,30 @@ class JobDetailsScreenController extends GetxController {
     super.onInit();
     // Establecer datos desde argumentos
     final arguments = Get.arguments;
+    print('JobDetailsScreenController.onInit - Arguments: $arguments');
+    
     if (arguments != null) {
       if (arguments['jobDetails'] != null) {
         jobDetails.value = arguments['jobDetails'];
+        print('JobDetailsScreenController.onInit - jobDetails set: ${jobDetails.value?.id}');
       }
       if (arguments['realJob'] != null) {
         realJob.value = arguments['realJob'];
+        print('JobDetailsScreenController.onInit - realJob set: ${realJob.value?.id}');
       }
       if (arguments['flavor'] != null) {
         currentFlavor.value = arguments['flavor'];
+        print('JobDetailsScreenController.onInit - flavor set: ${currentFlavor.value}');
       }
       if (arguments['isFromAppliedJobs'] != null) {
         isFromAppliedJobs.value = arguments['isFromAppliedJobs'];
         // Si viene de trabajos aplicados, marcar como ya aplicado
         hasApplied.value = arguments['isFromAppliedJobs'];
+        print('JobDetailsScreenController.onInit - isFromAppliedJobs set: ${isFromAppliedJobs.value}');
       }
       if (arguments['isFromBuilder'] != null) {
         isFromBuilder.value = arguments['isFromBuilder'];
+        print('JobDetailsScreenController.onInit - isFromBuilder set: ${isFromBuilder.value}');
       }
     }
   }

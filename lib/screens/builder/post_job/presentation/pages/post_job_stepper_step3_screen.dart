@@ -141,6 +141,40 @@ class PostJobStepperStep3Screen extends StatelessWidget {
                       ),
                     ),
 
+                    SizedBox(height: verticalSpacing * 0.5),
+
+                    // Payment constants info
+                    Obx(() {
+                      final controller = Get.find<UnifiedPostJobController>();
+                      return Container(
+                        padding: EdgeInsets.all(horizontalPadding * 0.8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue[200]!, width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Colors.blue[700],
+                              size: screenWidth * 0.04,
+                            ),
+                            SizedBox(width: horizontalPadding * 0.3),
+                            Expanded(
+                              child: Text(
+                                "Minimum hourly wage: \$${controller.currentMinimumHourlyWage.toStringAsFixed(2)}",
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.032,
+                                  color: Colors.blue[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+
                     SizedBox(height: verticalSpacing * 2),
 
                     // Adjustable Costs Section
@@ -159,22 +193,33 @@ class PostJobStepperStep3Screen extends StatelessWidget {
 
                     // Wage (Hourly Rate)
                     Obx(
-                      () => _buildCostCard(
-                        context,
-                        "Wage (Hourly Rate)*",
-                        controller.postJobData.hourlyRate ?? 28.0,
-                        isRequired: true,
-                        hasError:
-                            controller.postJobData.hourlyRate == null ||
-                            controller.postJobData.hourlyRate! <= 0,
-                        errorMessage: "This field is required.",
-                        onTap: () => _showCostModal(
+                      () {
+                        final hourlyRate = controller.postJobData.hourlyRate;
+                        final minimumWage = controller.currentMinimumHourlyWage;
+                        final hasError = hourlyRate == null || 
+                                       hourlyRate <= 0 || 
+                                       hourlyRate < minimumWage;
+                        final errorMessage = hourlyRate == null || hourlyRate <= 0
+                            ? "This field is required."
+                            : hourlyRate < minimumWage
+                                ? "Minimum wage is \$${minimumWage.toStringAsFixed(2)}"
+                                : null;
+                        
+                        return _buildCostCard(
                           context,
-                          "Wage (Hourly Rate)",
-                          controller.postJobData.hourlyRate ?? 28.0,
-                          controller.updateHourlyRate,
-                        ),
-                      ),
+                          "Wage (Hourly Rate)*",
+                          hourlyRate ?? minimumWage,
+                          isRequired: true,
+                          hasError: hasError,
+                          errorMessage: errorMessage,
+                          onTap: () => _showCostModal(
+                            context,
+                            "Wage (Hourly Rate)",
+                            hourlyRate ?? minimumWage,
+                            controller.updateHourlyRate,
+                          ),
+                        );
+                      },
                     ),
 
                     SizedBox(height: verticalSpacing * 0.5),
@@ -490,44 +535,6 @@ class PostJobStepperStep3Screen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceCard(BuildContext context, String title, String value) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final cardHeight = screenHeight * 0.06;
-    final titleFontSize = screenWidth * 0.035;
-    final valueFontSize = screenWidth * 0.035;
-
-    return Container(
-      height: cardHeight,
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding * 0.8,
-        vertical: verticalSpacing * 0.4,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: titleFontSize,
-              color: Colors.black,
-            ),
-          ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: valueFontSize,
-              color: Colors.grey[600],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildCostCardWithDescription(
     BuildContext context,

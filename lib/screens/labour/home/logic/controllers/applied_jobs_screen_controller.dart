@@ -88,6 +88,13 @@ class AppliedJobsScreenController extends GetxController {
       ],
       latitude: -33.8688,
       longitude: 151.2093,
+      wageSiteAllowance: 0,
+      wageLeadingHandAllowance: 0.0,
+      wageProductivityAllowance: 0.0,
+      extrasOvertimeRate: 1.5,
+      wageHourlyRate: null,
+      travelAllowance: null,
+      gst: null,
     );
     
     Get.toNamed('/job-details', arguments: {

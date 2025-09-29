@@ -1,30 +1,8 @@
 import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
+import '../../../../features/logic/labour/use_case/jobs_use_case.dart';
+import '../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
 
-// Modelo simple para los trabajos
-class JobItem {
-  final String id;
-  final String title;
-  final String hourlyRate;
-  final String location;
-  final String company;
-  final String jobType;
-  final String postedTime;
-  final String? dateRange;
-  final String? distance;
-
-  JobItem({
-    required this.id,
-    required this.title,
-    required this.hourlyRate,
-    required this.location,
-    required this.company,
-    required this.jobType,
-    required this.postedTime,
-    this.dateRange,
-    this.distance,
-  });
-}
 
 class JobSearchResultsScreenController extends GetxController {
   // Flavor
@@ -38,14 +16,23 @@ class JobSearchResultsScreenController extends GetxController {
   final RxList<String> whatSuggestions = <String>[].obs;
   
   // Job count
-  final RxInt jobCount = 1235.obs;
+  final RxInt jobCount = 0.obs;
   
   // Last search
   final RxString lastSearch = 'construction in All Sydney NWS'.obs;
   final RxInt newJobsCount = 99.obs;
   
   // Lista de trabajos
-  final RxList<JobItem> jobList = <JobItem>[].obs;
+  final RxList<DtoReceiveLabourJob> jobList = <DtoReceiveLabourJob>[].obs;
+  
+  // Estados de carga
+  final RxBool isLoading = false.obs;
+  final RxString errorMessage = ''.obs;
+  
+  // Caso de uso para jobs
+  final JobsUseCase _jobsUseCase = JobsUseCase();
+
+
 
   // Lista de palabras clave disponibles
   final List<String> _availableKeywords = [
@@ -89,58 +76,35 @@ class JobSearchResultsScreenController extends GetxController {
       }
     }
     
-    // Cargar trabajos de ejemplo
-    _loadSampleJobs();
+    // Cargar trabajos desde el API
+    loadJobs();
   }
   
-  void _loadSampleJobs() {
-    jobList.value = [
-      JobItem(
-        id: '1',
-        title: 'General Labour',
-        hourlyRate: '\$22.50/hr',
-        location: 'City',
-        company: 'Name company',
-        jobType: 'Full time',
-        postedTime: 'Posted 1d ago',
-      ),
-      JobItem(
-        id: '2',
-        title: 'General Labour',
-        hourlyRate: '\$22.50/hr',
-        location: 'Bondi, Sydney, NSW (5km from you)',
-        company: '12/09/2024 - 17/09/2024',
-        jobType: 'On going',
-        postedTime: 'Posted 1d ago',
-      ),
-      JobItem(
-        id: '3',
-        title: 'Cleaner',
-        hourlyRate: '\$25.00/hr',
-        location: 'City',
-        company: '12/09/2024 - 17/09/2024',
-        jobType: 'Part time',
-        postedTime: 'Posted 2d ago',
-      ),
-      JobItem(
-        id: '4',
-        title: 'Construction Worker',
-        hourlyRate: '\$28.00/hr',
-        location: 'Sydney CBD',
-        company: 'ABC Construction',
-        jobType: 'Full time',
-        postedTime: 'Posted 3d ago',
-      ),
-      JobItem(
-        id: '5',
-        title: 'Electrician',
-        hourlyRate: '\$35.00/hr',
-        location: 'Parramatta, NSW',
-        company: 'Electric Solutions',
-        jobType: 'Contract',
-        postedTime: 'Posted 4d ago',
-      ),
-    ];
+  /// Carga los jobs desde el API
+  Future<void> loadJobs() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+      
+      final result = await _jobsUseCase.getJobs();
+      
+      if (result.isSuccess && result.data != null) {
+        // Usar directamente los DtoReceiveLabourJob del API
+        jobList.value = result.data!.jobs;
+        jobCount.value = result.data!.total;
+      } else {
+        errorMessage.value = result.message ?? 'Error loading jobs';
+        jobList.clear();
+        jobCount.value = 0;
+      }
+    } catch (e) {
+      errorMessage.value = 'Error loading jobs: $e';
+      jobList.clear();
+      jobCount.value = 0;
+      print('Error details: $e');
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void updateWhatQuery(String value) {
@@ -193,18 +157,8 @@ class JobSearchResultsScreenController extends GetxController {
   }
 
   void _updateJobCount() {
-    // Simular actualización del conteo de trabajos basado en las búsquedas
-    // En una implementación real, esto haría una llamada a la API
-    int baseCount = 1235;
-    
-    if (whatQuery.value.isNotEmpty) {
-      baseCount += 100;
-    }
-    if (whereQuery.value.isNotEmpty) {
-      baseCount += 50;
-    }
-    
-    jobCount.value = baseCount;
+    // El conteo se actualiza automáticamente cuando se cargan los jobs desde el API
+    // No necesitamos hacer cálculos simulados aquí
   }
 
   void performSearch() {
@@ -213,14 +167,13 @@ class JobSearchResultsScreenController extends GetxController {
     print('whatQuery: "${whatQuery.value}"');
     print('whereQuery: "${whereQuery.value}"');
     
-    // Aquí deberías hacer la llamada a la API para obtener los resultados
-    // Por ahora solo actualizamos el conteo
-    _updateJobCount();
+    // Recargar jobs desde el API
+    loadJobs();
     
     // Mostrar un mensaje de que se está realizando la búsqueda
     Get.snackbar(
-      'Búsqueda realizada',
-      'Buscando: ${whatQuery.value.isNotEmpty ? whatQuery.value : "todos los trabajos"}${whereQuery.value.isNotEmpty ? " en $whereQuery.value" : ""}',
+      'Search performed',
+      'Searching: ${whatQuery.value.isNotEmpty ? whatQuery.value : "all jobs"}${whereQuery.value.isNotEmpty ? " in $whereQuery.value" : ""}',
       snackPosition: SnackPosition.BOTTOM,
       duration: Duration(seconds: 2),
     );

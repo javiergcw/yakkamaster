@@ -6,6 +6,7 @@ import '../../../../config/app_flavor.dart';
 import '../../../../config/constants.dart';
 import '../../logic/controllers/job_search_results_screen_controller.dart';
 import '../../data/dto/job_details_dto.dart';
+import '../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
 
 class JobSearchResultsScreen extends StatefulWidget {
   static const String id = '/job-search-results';
@@ -186,23 +187,93 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             Expanded(
               child: Container(
                 color: Colors.grey[100],
-                child: Obx(() => ListView.builder(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                    vertical: verticalSpacing,
-                  ),
-                  itemCount: controller.jobList.length,
-                  itemBuilder: (context, index) {
-                    final job = controller.jobList[index];
-                    return _buildJobCard(
-                      job: job,
-                      horizontalPadding: horizontalPadding,
-                      verticalSpacing: verticalSpacing,
-                      bodyFontSize: bodyFontSize,
-                      flavor: controller.currentFlavor.value,
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
-                  },
-                )),
+                  }
+
+                  if (controller.errorMessage.value.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: iconSize * 2,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          Text(
+                            controller.errorMessage.value,
+                            style: GoogleFonts.poppins(
+                              fontSize: bodyFontSize,
+                              color: Colors.grey[600],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          ElevatedButton(
+                            onPressed: () => controller.loadJobs(),
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (controller.jobList.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.work_off,
+                            size: iconSize * 2,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: verticalSpacing),
+                          Text(
+                            "No jobs found",
+                            style: GoogleFonts.poppins(
+                              fontSize: bodyFontSize,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          SizedBox(height: verticalSpacing * 0.5),
+                          Text(
+                            "Try adjusting your search criteria",
+                            style: GoogleFonts.poppins(
+                              fontSize: bodyFontSize * 0.9,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: verticalSpacing,
+                    ),
+                    itemCount: controller.jobList.length,
+                    itemBuilder: (context, index) {
+                      final job = controller.jobList[index];
+                      return _buildJobCard(
+                        job: job,
+                        horizontalPadding: horizontalPadding,
+                        verticalSpacing: verticalSpacing,
+                        bodyFontSize: bodyFontSize,
+                        flavor: controller.currentFlavor.value,
+                      );
+                    },
+                  );
+                }),
               ),
             ),
           ],
@@ -212,7 +283,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
   }
 
   Widget _buildJobCard({
-    required JobItem job,
+    required DtoReceiveLabourJob job,
     required double horizontalPadding,
     required double verticalSpacing,
     required double bodyFontSize,
@@ -271,7 +342,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             
             // Salario
             Text(
-              job.hourlyRate,
+              '\$${job.budget.toStringAsFixed(2)}/hr',
               style: GoogleFonts.poppins(
                 fontSize: bodyFontSize * 1.1,
                 fontWeight: FontWeight.w600,
@@ -292,7 +363,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             
             _buildJobDetail(
               icon: Icons.business,
-              text: job.company,
+              text: job.builder.displayName,
               bodyFontSize: bodyFontSize,
             ),
             
@@ -308,7 +379,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
                   ),
                 ),
                 Text(
-                  job.postedTime,
+                  'Posted ${_formatTimeAgo(job.createdAt)} ago',
                   style: GoogleFonts.poppins(
                     fontSize: bodyFontSize * 0.9,
                     color: Colors.grey[600],
@@ -323,12 +394,14 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             GestureDetector(
               onTap: () {
                 // Navegar a detalles del trabajo
-                print('View details for job: ${job.id}');
+                print('View details for job: ${job.jobId}');
                 Get.toNamed(
                   '/job-details',
                   arguments: {
                     'jobDetails': _createJobDetailsFromJob(job),
                     'flavor': flavor,
+                    'isFromAppliedJobs': false,
+                    'isFromBuilder': false,
                   },
                 );
               },
@@ -383,51 +456,91 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
     );
   }
 
-  // Método para convertir JobItem a JobDetailsDto
-  JobDetailsDto _createJobDetailsFromJob(JobItem job) {
-    // Extraer el precio numérico del string (ej: "$22.50/hr" -> 22.50)
-    final priceMatch = RegExp(r'\$(\d+\.?\d*)').firstMatch(job.hourlyRate);
-    final hourlyRate = priceMatch != null ? double.parse(priceMatch.group(1)!) : 25.0;
+  // Método para convertir DtoReceiveLabourJob a JobDetailsDto
+  JobDetailsDto _createJobDetailsFromJob(DtoReceiveLabourJob job) {
+    // Usar budget como tarifa base
+    double hourlyRate = job.budget;
+
+    // Generar fecha de rango
+    String dateRange = '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}';
+    String startDate = _formatDate(job.startDate);
+
+    // Generar requisitos básicos
+    List<String> requirements = [
+      'Previous experience in ${job.jobType.toLowerCase()} preferred',
+      'Physical fitness and ability to work outdoors',
+      'Valid driver\'s license',
+      'Good communication skills',
+      'Reliable and punctual',
+    ];
+
+    // Generar descripción del trabajo
+    String aboutJob = job.description.isNotEmpty 
+        ? job.description 
+        : 'This is a ${job.title.toLowerCase()} position. We are looking for a reliable and hardworking individual to join our team.';
 
     return JobDetailsDto(
-      id: job.id,
+      id: job.jobId,
       title: job.title,
       hourlyRate: hourlyRate,
       location: job.location,
-      dateRange: job.dateRange ?? '01/01/2024 - 31/01/2024',
+      dateRange: dateRange,
       jobType: job.jobType,
-      source: job.company,
-      postedDate: job.postedTime.replaceAll('Posted ', '').replaceAll(' ago', ''),
-      company: job.company,
+      source: job.builder.displayName,
+      postedDate: _formatDate(job.createdAt),
+      company: job.builder.displayName,
       address: job.location,
       suburb: job.location.contains(',') ? job.location.split(',')[0].trim() : job.location,
       city: job.location.contains(',') ? job.location.split(',')[1].trim() : job.location,
-      startDate: '01/01/2024',
-      time: '9:00 AM - 5:00 PM',
-      paymentExpected: 'Within 7 days',
-      aboutJob: 'This is a ${job.title.toLowerCase()} position. We are looking for a reliable and hardworking individual to join our team. The role involves various tasks related to ${job.title.toLowerCase()} work.',
-      requirements: [
-        'Previous experience in ${job.title.toLowerCase()} preferred',
-        'Physical fitness and ability to work outdoors',
-        'Valid driver\'s license',
-        'Good communication skills',
-        'Reliable and punctual',
-      ],
+      startDate: startDate,
+      time: '9:00 AM - 5:00 PM', // Valor por defecto
+      paymentExpected: 'Weekly payment', // Valor por defecto
+      aboutJob: aboutJob,
+      requirements: requirements,
       latitude: -33.8688,
       longitude: 151.2093,
+      // Valores por defecto para salarios (no disponibles en DtoReceiveLabourJob)
+      wageSiteAllowance: job.budget,
+      wageLeadingHandAllowance: 0.0,
+      wageProductivityAllowance: 0.0,
+      extrasOvertimeRate: 1.5,
+      wageHourlyRate: null,
+      travelAllowance: null,
+      gst: null,
     );
   }
 
+  /// Formatea una fecha para mostrar
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  /// Calcula el tiempo transcurrido desde una fecha
+  String _formatTimeAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m';
+    } else {
+      return 'now';
+    }
+  }
+
   // Método para compartir un trabajo
-  void _shareJob(JobItem job) {
+  void _shareJob(DtoReceiveLabourJob job) {
     final shareText = '''
 🔨 ${job.title}
 
-💰 ${job.hourlyRate}
+💰 \$${job.budget.toStringAsFixed(2)}/hr
 📍 ${job.location}
-🏢 ${job.company}
+🏢 ${job.builder.displayName}
 ⏰ ${job.jobType}
-📅 ${job.postedTime}
+📅 Posted ${_formatTimeAgo(job.createdAt)} ago
 
 ¡Encuentra más trabajos en Yakka Sports!
 ''';

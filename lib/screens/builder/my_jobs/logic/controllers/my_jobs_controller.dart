@@ -197,20 +197,24 @@ Check out this job opportunity on Yakka Sports!
   /// Obtiene un job real por ID de la API
   Future<DtoReceiveJob?> getRealJobById(String jobId) async {
     try {
-      final result = await _jobsUseCase.getJobs();
+      print('MyJobsController.getRealJobById - Starting with jobId: $jobId');
+      
+      // Usar el método específico para obtener un job por ID
+      final result = await _jobsUseCase.getJobById(jobId);
+      
+      print('MyJobsController.getRealJobById - Result isSuccess: ${result.isSuccess}');
+      print('MyJobsController.getRealJobById - Result data: ${result.data?.id}');
+      print('MyJobsController.getRealJobById - Result message: ${result.message}');
       
       if (result.isSuccess && result.data != null) {
-        // Buscar el job específico por ID
-        try {
-          return result.data!.firstWhere((job) => job.id == jobId);
-        } catch (e) {
-          print('Job not found with ID: $jobId');
-          return null;
-        }
+        print('MyJobsController.getRealJobById - Success! Returning job: ${result.data!.id}');
+        return result.data!;
+      } else {
+        print('MyJobsController.getRealJobById - Job not found with ID: $jobId - ${result.message}');
+        return null;
       }
-      return null;
     } catch (e) {
-      print('Error getting job by ID: $e');
+      print('MyJobsController.getRealJobById - Error getting job by ID: $e');
       return null;
     }
   }
