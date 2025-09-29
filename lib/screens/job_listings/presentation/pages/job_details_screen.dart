@@ -40,47 +40,223 @@ class JobDetailsScreen extends StatelessWidget {
 
   final JobDetailsScreenController controller = Get.put(JobDetailsScreenController());
 
-  // Método para obtener los datos del job (mock o real)
+  // Método para obtener los datos del job desde el controlador
+  JobDetailsDto _getJobDataFromController(DtoReceiveJob? controllerRealJob, JobDetailsDto? controllerJobDetails) {
+    if (controllerRealJob != null) {
+      print('JobDetailsScreen - Using controller realJob: ${controllerRealJob.id}');
+      return _convertRealJobToJobDetailsDto(controllerRealJob);
+    } else if (controllerJobDetails != null) {
+      print('JobDetailsScreen - Using controller jobDetails: ${controllerJobDetails.id}');
+      return controllerJobDetails;
+    } else if (realJob != null) {
+      print('JobDetailsScreen - Using constructor realJob: ${realJob!.id}');
+      return _convertRealJobToJobDetailsDto(realJob!);
+    } else if (jobDetails != null) {
+      print('JobDetailsScreen - Using constructor jobDetails: ${jobDetails!.id}');
+      return jobDetails!;
+    } else {
+      throw Exception('No job data provided');
+    }
+  }
+
+  // Método para convertir DtoReceiveJob a JobDetailsDto
+  JobDetailsDto _convertRealJobToJobDetailsDto(DtoReceiveJob realJobData) {
+    return JobDetailsDto(
+      id: realJobData.id,
+      title: realJobData.description.isNotEmpty ? realJobData.description : 'Construction Job',
+      hourlyRate: _calculateHourlyRateFromRealJob(realJobData),
+      location: 'Job Site ${realJobData.jobsiteId.substring(0, 8)}...', // Mostrar parte del ID del jobsite
+      dateRange: '${_formatDateFromString(realJobData.startDateWork)} - ${_formatDateFromString(realJobData.endDateWork)}',
+      jobType: _getJobTypeDisplayFromRealJob(realJobData),
+      source: 'Builder Company',
+      postedDate: _formatDateFromString(realJobData.createdAt),
+      company: 'Builder Company',
+      address: 'Job Site ${realJobData.jobsiteId.substring(0, 8)}...',
+      suburb: 'Construction Site',
+      city: 'Sydney',
+      startDate: _formatDateFromString(realJobData.startDateWork),
+      time: '${realJobData.startTime} - ${realJobData.endTime}',
+      paymentExpected: _getPaymentExpectedFromRealJob(realJobData),
+      aboutJob: _getAboutJobDescriptionFromRealJob(realJobData),
+      requirements: _getJobRequirementsFromRealJob(realJobData),
+      latitude: -33.8688, // Sydney coordinates as default
+      longitude: 151.2093,
+      // Datos de salarios reales del API
+      wageSiteAllowance: realJobData.wageSiteAllowance,
+      wageLeadingHandAllowance: realJobData.wageLeadingHandAllowance,
+      wageProductivityAllowance: realJobData.wageProductivityAllowance,
+      extrasOvertimeRate: realJobData.extrasOvertimeRate,
+      wageHourlyRate: realJobData.wageHourlyRate,
+      travelAllowance: realJobData.travelAllowance,
+      gst: realJobData.gst,
+    );
+  }
+
+  // Método para obtener los datos del job (mock o real) - DEPRECATED
   JobDetailsDto getJobData() {
     if (realJob != null) {
-      // Convertir DtoReceiveJob a JobDetailsDto con datos reales
-      return JobDetailsDto(
-        id: realJob!.id,
-        title: realJob!.description.isNotEmpty ? realJob!.description : 'Job Description',
-        hourlyRate: realJob!.wageSiteAllowance,
-        location: realJob!.jobsiteId,
-        dateRange: '${_formatDateFromString(realJob!.startDateWork)} - ${_formatDateFromString(realJob!.endDateWork)}',
-        jobType: realJob!.paymentType,
-        source: 'Builder',
-        postedDate: _formatDateFromString(realJob!.createdAt),
-        company: 'Builder',
-        address: realJob!.jobsiteId,
-        suburb: 'Job Site', // Usar jobsiteId como suburb
-        city: 'Sydney', // Ciudad por defecto
-        startDate: _formatDateFromString(realJob!.startDateWork),
-        time: '${realJob!.startTime} - ${realJob!.endTime}',
-        paymentExpected: realJob!.paymentType,
-        aboutJob: realJob!.description.isNotEmpty ? realJob!.description : 'Construction work position',
-        requirements: [
-          'Workers needed: ${realJob!.manyLabours}',
-          'Supervisor required: ${realJob!.requiresSupervisorSignature ? 'Yes' : 'No'}',
-          if (realJob!.supervisorName.isNotEmpty) 'Supervisor: ${realJob!.supervisorName}',
-          'Work Saturday: ${realJob!.workSaturday ? 'Yes' : 'No'}',
-          'Work Sunday: ${realJob!.workSunday ? 'Yes' : 'No'}',
-          'Payment type: ${realJob!.paymentType}',
-          'Ongoing work: ${realJob!.ongoingWork ? 'Yes' : 'No'}',
-          if (realJob!.wageLeadingHandAllowance > 0) 'Leading hand allowance: \$${realJob!.wageLeadingHandAllowance}',
-          if (realJob!.wageProductivityAllowance > 0) 'Productivity allowance: \$${realJob!.wageProductivityAllowance}',
-          if (realJob!.extrasOvertimeRate > 0) 'Overtime rate: ${realJob!.extrasOvertimeRate}x',
-        ],
-        latitude: -33.8688, // Sydney coordinates as default
-        longitude: 151.2093,
-      );
+      return _convertRealJobToJobDetailsDto(realJob!);
     } else if (jobDetails != null) {
       return jobDetails!;
     } else {
       throw Exception('No job data provided');
     }
+  }
+
+
+  /// Calcula la tarifa por hora desde un DtoReceiveJob específico
+  double _calculateHourlyRateFromRealJob(DtoReceiveJob realJobData) {
+    double baseRate = realJobData.wageSiteAllowance;
+    if (realJobData.wageHourlyRate != null && realJobData.wageHourlyRate! > 0) {
+      baseRate = realJobData.wageHourlyRate!;
+    }
+    return baseRate;
+  }
+
+
+  /// Obtiene el tipo de trabajo desde un DtoReceiveJob específico
+  String _getJobTypeDisplayFromRealJob(DtoReceiveJob realJobData) {
+    if (realJobData.ongoingWork) {
+      return 'Ongoing Work';
+    } else {
+      return 'Fixed Term';
+    }
+  }
+
+  /// Obtiene la información de pago esperado
+  String _getPaymentExpected() {
+    switch (realJob!.paymentType) {
+      case 'WEEKLY':
+        return 'Weekly payment';
+      case 'FIXED_DAY':
+        return 'Payment on day ${realJob!.paymentDay} of month';
+      default:
+        return realJob!.paymentType;
+    }
+  }
+
+  /// Obtiene la información de pago desde un DtoReceiveJob específico
+  String _getPaymentExpectedFromRealJob(DtoReceiveJob realJobData) {
+    switch (realJobData.paymentType) {
+      case 'WEEKLY':
+        return 'Weekly payment';
+      case 'FIXED_DAY':
+        return 'Payment on day ${realJobData.paymentDay} of month';
+      default:
+        return realJobData.paymentType;
+    }
+  }
+
+  /// Obtiene la descripción del trabajo
+  String _getAboutJobDescription() {
+    String description = realJob!.description.isNotEmpty 
+        ? realJob!.description 
+        : 'Construction work position';
+    
+    String additionalInfo = '';
+    if (realJob!.ongoingWork) {
+      additionalInfo += ' This is an ongoing work position.';
+    }
+    if (realJob!.workSaturday || realJob!.workSunday) {
+      additionalInfo += ' Weekend work may be required.';
+    }
+    
+    return description + additionalInfo;
+  }
+
+  /// Obtiene la descripción del trabajo desde un DtoReceiveJob específico
+  String _getAboutJobDescriptionFromRealJob(DtoReceiveJob realJobData) {
+    String description = realJobData.description.isNotEmpty 
+        ? realJobData.description 
+        : 'Construction work position';
+    
+    String additionalInfo = '';
+    if (realJobData.ongoingWork) {
+      additionalInfo += ' This is an ongoing work position.';
+    }
+    if (realJobData.workSaturday || realJobData.workSunday) {
+      additionalInfo += ' Weekend work may be required.';
+    }
+    
+    return description + additionalInfo;
+  }
+
+  /// Obtiene los requisitos del trabajo
+  List<String> _getJobRequirements() {
+    List<String> requirements = [
+      'Workers needed: ${realJob!.manyLabours}',
+      'Work schedule: ${realJob!.startTime} - ${realJob!.endTime}',
+      'Work days: ${_getWorkDays()}',
+    ];
+
+    if (realJob!.requiresSupervisorSignature) {
+      requirements.add('Supervisor signature required');
+      if (realJob!.supervisorName.isNotEmpty) {
+        requirements.add('Supervisor: ${realJob!.supervisorName}');
+      }
+    }
+
+    if (realJob!.wageLeadingHandAllowance > 0) {
+      requirements.add('Leading hand allowance: \$${realJob!.wageLeadingHandAllowance.toStringAsFixed(2)}');
+    }
+    if (realJob!.wageProductivityAllowance > 0) {
+      requirements.add('Productivity allowance: \$${realJob!.wageProductivityAllowance.toStringAsFixed(2)}');
+    }
+    if (realJob!.extrasOvertimeRate > 0) {
+      requirements.add('Overtime rate: ${realJob!.extrasOvertimeRate}x');
+    }
+    if (realJob!.travelAllowance != null && realJob!.travelAllowance! > 0) {
+      requirements.add('Travel allowance: \$${realJob!.travelAllowance!.toStringAsFixed(2)}');
+    }
+
+    return requirements;
+  }
+
+  /// Obtiene los requisitos del trabajo desde un DtoReceiveJob específico
+  List<String> _getJobRequirementsFromRealJob(DtoReceiveJob realJobData) {
+    List<String> requirements = [
+      'Workers needed: ${realJobData.manyLabours}',
+      'Work schedule: ${realJobData.startTime} - ${realJobData.endTime}',
+      'Work days: ${_getWorkDaysFromRealJob(realJobData)}',
+    ];
+
+    if (realJobData.requiresSupervisorSignature) {
+      requirements.add('Supervisor signature required');
+      if (realJobData.supervisorName.isNotEmpty) {
+        requirements.add('Supervisor: ${realJobData.supervisorName}');
+      }
+    }
+
+    if (realJobData.wageLeadingHandAllowance > 0) {
+      requirements.add('Leading hand allowance: \$${realJobData.wageLeadingHandAllowance.toStringAsFixed(2)}');
+    }
+    if (realJobData.wageProductivityAllowance > 0) {
+      requirements.add('Productivity allowance: \$${realJobData.wageProductivityAllowance.toStringAsFixed(2)}');
+    }
+    if (realJobData.extrasOvertimeRate > 0) {
+      requirements.add('Overtime rate: ${realJobData.extrasOvertimeRate}x');
+    }
+    if (realJobData.travelAllowance != null && realJobData.travelAllowance! > 0) {
+      requirements.add('Travel allowance: \$${realJobData.travelAllowance!.toStringAsFixed(2)}');
+    }
+
+    return requirements;
+  }
+
+  /// Obtiene los días de trabajo como string
+  String _getWorkDays() {
+    List<String> days = ['Monday-Friday'];
+    if (realJob!.workSaturday) days.add('Saturday');
+    if (realJob!.workSunday) days.add('Sunday');
+    return days.join(', ');
+  }
+
+  /// Obtiene los días de trabajo desde un DtoReceiveJob específico
+  String _getWorkDaysFromRealJob(DtoReceiveJob realJobData) {
+    List<String> days = ['Monday-Friday'];
+    if (realJobData.workSaturday) days.add('Saturday');
+    if (realJobData.workSunday) days.add('Sunday');
+    return days.join(', ');
   }
 
   String _formatDateFromString(String dateString) {
@@ -99,8 +275,15 @@ class JobDetailsScreen extends StatelessWidget {
     print('JobDetailsScreen - jobDetails: ${jobDetails?.id}');
     print('JobDetailsScreen - isFromBuilder: $isFromBuilder');
     
-    // Obtener datos del job (mock o real)
-    final jobData = getJobData();
+    // Usar datos del controlador si están disponibles, sino usar parámetros del constructor
+    final controllerRealJob = controller.realJob.value;
+    final controllerJobDetails = controller.jobDetails.value;
+    
+    print('JobDetailsScreen - controller.realJob: ${controllerRealJob?.id}');
+    print('JobDetailsScreen - controller.jobDetails: ${controllerJobDetails?.id}');
+    
+    // Obtener datos del job (mock o real) - priorizar controlador
+    final jobData = _getJobDataFromController(controllerRealJob, controllerJobDetails);
     
     // Debug: Verificar datos mapeados
     print('JobDetailsScreen - jobData.title: ${jobData.title}');
@@ -364,37 +547,7 @@ class JobDetailsScreen extends StatelessWidget {
                               
                               SizedBox(height: verticalSpacing),
                               
-                              Container(
-                                padding: EdgeInsets.symmetric(vertical: verticalSpacing),
-                                decoration: BoxDecoration(
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Colors.grey[300]!,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Hourly Rate',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: bodyFontSize,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    Text(
-                                      '\$${jobData.hourlyRate.toStringAsFixed(2)}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: bodyFontSize,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              _buildWageDetails(jobData),
                               
                               SizedBox(height: verticalSpacing * 2),
                               
@@ -583,6 +736,128 @@ class JobDetailsScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Construye la sección de detalles de salario
+  Widget _buildWageDetails(JobDetailsDto jobData) {
+    final mediaQuery = MediaQuery.of(Get.context!);
+    final screenWidth = mediaQuery.size.width;
+    final bodyFontSize = screenWidth * 0.035;
+    final verticalSpacing = MediaQuery.of(Get.context!).size.height * 0.025;
+
+    // Usar realJob del controlador si está disponible
+    final currentRealJob = controller.realJob.value ?? realJob;
+
+    if (currentRealJob == null) {
+      // Usar datos del JobDetailsDto cuando no hay realJob
+      List<Widget> wageItems = [];
+
+      // Tarifa base
+      if (jobData.wageHourlyRate != null && jobData.wageHourlyRate! > 0) {
+        wageItems.add(_buildWageItem('Hourly Rate', '\$${jobData.wageHourlyRate!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      } else {
+        wageItems.add(_buildWageItem('Site Allowance', '\$${jobData.wageSiteAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      }
+
+      // Leading hand allowance
+      if (jobData.wageLeadingHandAllowance > 0) {
+        wageItems.add(_buildWageItem('Leading Hand Allowance', '\$${jobData.wageLeadingHandAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      }
+
+      // Productivity allowance
+      if (jobData.wageProductivityAllowance > 0) {
+        wageItems.add(_buildWageItem('Productivity Allowance', '\$${jobData.wageProductivityAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      }
+
+      // Travel allowance
+      if (jobData.travelAllowance != null && jobData.travelAllowance! > 0) {
+        wageItems.add(_buildWageItem('Travel Allowance', '\$${jobData.travelAllowance!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      }
+
+      // Overtime rate
+      if (jobData.extrasOvertimeRate > 0) {
+        wageItems.add(_buildWageItem('Overtime Rate', '${jobData.extrasOvertimeRate}x', bodyFontSize, verticalSpacing));
+      }
+
+      // GST
+      if (jobData.gst != null && jobData.gst! > 0) {
+        wageItems.add(_buildWageItem('GST', '\$${jobData.gst!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+      }
+
+      return Column(children: wageItems);
+    }
+
+    // Mostrar detalles reales del job
+    List<Widget> wageItems = [];
+
+    // Tarifa base
+    if (currentRealJob.wageHourlyRate != null && currentRealJob.wageHourlyRate! > 0) {
+      wageItems.add(_buildWageItem('Hourly Rate', '\$${currentRealJob.wageHourlyRate!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    } else {
+      wageItems.add(_buildWageItem('Site Allowance', '\$${currentRealJob.wageSiteAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    }
+
+    // Leading hand allowance
+    if (currentRealJob.wageLeadingHandAllowance > 0) {
+      wageItems.add(_buildWageItem('Leading Hand Allowance', '\$${currentRealJob.wageLeadingHandAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    }
+
+    // Productivity allowance
+    if (currentRealJob.wageProductivityAllowance > 0) {
+      wageItems.add(_buildWageItem('Productivity Allowance', '\$${currentRealJob.wageProductivityAllowance.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    }
+
+    // Travel allowance
+    if (currentRealJob.travelAllowance != null && currentRealJob.travelAllowance! > 0) {
+      wageItems.add(_buildWageItem('Travel Allowance', '\$${currentRealJob.travelAllowance!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    }
+
+    // Overtime rate
+    if (currentRealJob.extrasOvertimeRate > 0) {
+      wageItems.add(_buildWageItem('Overtime Rate', '${currentRealJob.extrasOvertimeRate}x', bodyFontSize, verticalSpacing));
+    }
+
+    // GST
+    if (currentRealJob.gst != null && currentRealJob.gst! > 0) {
+      wageItems.add(_buildWageItem('GST', '\$${currentRealJob.gst!.toStringAsFixed(2)}', bodyFontSize, verticalSpacing));
+    }
+
+    return Column(children: wageItems);
+  }
+
+  /// Construye un item de salario
+  Widget _buildWageItem(String label, String value, double bodyFontSize, double verticalSpacing) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: verticalSpacing),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey[300]!,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: bodyFontSize,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: bodyFontSize,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

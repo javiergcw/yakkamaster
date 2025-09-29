@@ -383,4 +383,94 @@ class JobSitesListController extends GetxController {
       loadJobSites();
     }
   }
+
+  void handleDeleteJobSite(DtoReceiveJobsite jobSite) async {
+    // Mostrar diálogo de confirmación
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(
+          'Delete Job Site',
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${jobSite.description}"? This action cannot be undone.',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey[700],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Get.back(result: true),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.red[50],
+            ),
+            child: Text(
+              'Delete',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.red[600],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        isLoading.value = true;
+        
+        final result = await _jobsitesUseCase.deleteJobsite(jobSite.id);
+        
+        if (result.isSuccess) {
+          Get.snackbar(
+            'Success',
+            'Job site deleted successfully!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            duration: Duration(seconds: 2),
+          );
+          
+          // Recargar la lista
+          loadJobSites();
+        } else {
+          Get.snackbar(
+            'Error',
+            result.message ?? 'Error deleting job site',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: Duration(seconds: 3),
+          );
+        }
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Error deleting job site: $e',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: Duration(seconds: 3),
+        );
+      } finally {
+        isLoading.value = false;
+      }
+    }
+  }
 }

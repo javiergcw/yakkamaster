@@ -176,4 +176,53 @@ class JobsitesUseCase {
       );
     }
   }
+
+  /// Actualiza un jobsite existente
+  /// 
+  /// [id] - ID del jobsite a actualizar
+  /// [jobsiteData] - Datos del jobsite a actualizar
+  /// Retorna un [ApiResult] con el jobsite actualizado
+  Future<ApiResult<DtoReceiveJobsite>> updateJobsite(String id, DtoSendJobsite jobsiteData) async {
+    try {
+      if (id.trim().isEmpty) {
+        return ApiResult<DtoReceiveJobsite>.error(
+          message: 'Jobsite ID cannot be empty',
+        );
+      }
+
+      // Llamar al servicio para actualizar el jobsite
+      final result = await _serviceJobsites.updateJobsite(id, jobsiteData);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobsite>.error(
+        message: 'Error in use case updating jobsite: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Elimina un jobsite
+  /// 
+  /// [id] - ID del jobsite a eliminar
+  /// Retorna un [ApiResult] con el resultado de la eliminación
+  Future<ApiResult<bool>> deleteJobsite(String id) async {
+    try {
+      if (id.trim().isEmpty) {
+        return ApiResult<bool>.error(
+          message: 'Jobsite ID cannot be empty',
+        );
+      }
+
+      // Llamar al servicio para eliminar el jobsite
+      final result = await _serviceJobsites.deleteJobsite(id);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<bool>.error(
+        message: 'Error in use case deleting jobsite: $e',
+        error: e,
+      );
+    }
+  }
 }

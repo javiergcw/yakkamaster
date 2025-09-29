@@ -168,6 +168,12 @@ class JobListingsController {
       ],
       latitude: -33.8688,
       longitude: 151.2093,
+      wageSiteAllowance: 0,
+      wageLeadingHandAllowance: 0,
+      wageProductivityAllowance: 0,
+      extrasOvertimeRate: 0,
+      travelAllowance: 0,
+      gst: 0,
     );
     
     Get.toNamed(JobDetailsScreen.id, arguments: {

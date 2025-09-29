@@ -238,6 +238,7 @@ class JobSitesListScreen extends StatelessWidget {
                           jobSite: jobSiteDto,
                           onTap: () => controller.handleJobSiteDetail(jobSite),
                           onEdit: () => controller.handleEditJobSite(jobSite),
+                          onDelete: () => controller.handleDeleteJobSite(jobSite),
                         ),
                       ),
                     );

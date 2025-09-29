@@ -28,20 +28,28 @@ class ResponseHandler {
         // Intentar obtener la lista desde diferentes estructuras posibles
         List<dynamic>? jsonList;
         
-        if (response.jsonListBody != null) {
-          // Si la respuesta es directamente un array
-          jsonList = response.jsonListBody;
-        } else if (response.jsonBody != null) {
-          // Si la respuesta es un objeto que contiene un array
-          final jsonBody = response.jsonBody!;
-          
-          // Buscar posibles claves que contengan arrays
-          if (jsonBody.containsKey('data') && jsonBody['data'] is List) {
-            jsonList = jsonBody['data'] as List<dynamic>;
-          } else if (jsonBody.containsKey('results') && jsonBody['results'] is List) {
-            jsonList = jsonBody['results'] as List<dynamic>;
-          } else if (jsonBody.containsKey('items') && jsonBody['items'] is List) {
-            jsonList = jsonBody['items'] as List<dynamic>;
+              if (response.jsonListBody != null) {
+                // Si la respuesta es directamente un array
+                jsonList = response.jsonListBody;
+              } else if (response.jsonBody != null) {
+                // Si la respuesta es un objeto que contiene un array
+                final jsonBody = response.jsonBody!;
+                
+                // Debug: imprimir las claves disponibles
+                print('ResponseHandler - Available keys: ${jsonBody.keys.toList()}');
+                
+                // Buscar posibles claves que contengan arrays
+                if (jsonBody.containsKey('data') && jsonBody['data'] is List) {
+                  jsonList = jsonBody['data'] as List<dynamic>;
+                } else if (jsonBody.containsKey('results') && jsonBody['results'] is List) {
+                  jsonList = jsonBody['results'] as List<dynamic>;
+                } else if (jsonBody.containsKey('items') && jsonBody['items'] is List) {
+                  jsonList = jsonBody['items'] as List<dynamic>;
+        } else if (jsonBody.containsKey('jobs') && jsonBody['jobs'] is List) {
+          print('ResponseHandler - Found jobs key with ${(jsonBody['jobs'] as List).length} items');
+          jsonList = jsonBody['jobs'] as List<dynamic>;
+        } else if (jsonBody.containsKey('jobsites') && jsonBody['jobsites'] is List) {
+            jsonList = jsonBody['jobsites'] as List<dynamic>;
           } else if (jsonBody.containsKey('skills') && jsonBody['skills'] is List) {
             jsonList = jsonBody['skills'] as List<dynamic>;
           } else if (jsonBody.containsKey('experience_levels') && jsonBody['experience_levels'] is List) {
@@ -54,7 +62,7 @@ class ResponseHandler {
           return ApiResult<T>.success(data);
         } else {
           return ApiResult<T>.error(
-            message: 'No se encontró un array válido en la respuesta JSON',
+            message: 'No valid array found in JSON response',
             statusCode: response.statusCode,
             error: 'No array found in JSON response',
           );
@@ -68,7 +76,7 @@ class ResponseHandler {
         } else {
           // Si no es JSON válido, devolver error
           return ApiResult<T>.error(
-            message: 'Respuesta no es un JSON válido: ${response.body}',
+            message: 'Response is not valid JSON: ${response.body}',
             statusCode: response.statusCode,
             error: 'Invalid JSON response',
           );
@@ -79,7 +87,7 @@ class ResponseHandler {
       print('Response body: ${response.body}');
       print('Response jsonBody: ${response.jsonBody}');
       return ApiResult<T>.error(
-        message: 'Error al procesar la respuesta: $e',
+        message: 'Error processing response: $e',
         statusCode: response.statusCode,
         error: e,
       );
@@ -90,29 +98,29 @@ class ResponseHandler {
   String _getErrorMessage(HttpResponse response) {
     switch (response.statusCode) {
       case 400:
-        return 'Solicitud incorrecta';
+        return 'Bad request';
       case 401:
-        return 'No autorizado';
+        return 'Unauthorized';
       case 403:
-        return 'Acceso denegado';
+        return 'Access denied';
       case 404:
-        return 'Recurso no encontrado';
+        return 'Resource not found';
       case 409:
-        return 'Conflicto de datos';
+        return 'Data conflict';
       case 422:
-        return 'Datos de entrada inválidos';
+        return 'Invalid input data';
       case 429:
-        return 'Demasiadas solicitudes';
+        return 'Too many requests';
       case 500:
-        return 'Error interno del servidor';
+        return 'Internal server error';
       case 502:
-        return 'Servidor no disponible';
+        return 'Server unavailable';
       case 503:
-        return 'Servicio temporalmente no disponible';
+        return 'Service temporarily unavailable';
       case 0:
-        return response.body.isNotEmpty ? response.body : 'Error de conexión';
+        return response.body.isNotEmpty ? response.body : 'Connection error';
       default:
-        return 'Error HTTP ${response.statusCode}';
+        return 'HTTP error ${response.statusCode}';
     }
   }
 
@@ -179,5 +187,5 @@ class ApiResult<T> {
   bool get isError => !isSuccess;
 
   /// Obtiene el mensaje de error si existe
-  String get errorMessage => message ?? 'Error desconocido';
+  String get errorMessage => message ?? 'Unknown error';
 }

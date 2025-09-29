@@ -122,7 +122,7 @@ class MyJobsScreen extends StatelessWidget {
           
           // Título
           Text(
-            "Your jobs",
+            "Your Jobs",
             style: GoogleFonts.poppins(
               fontSize: screenWidth * 0.055,
               fontWeight: FontWeight.bold,
@@ -302,6 +302,13 @@ class MyJobsScreen extends StatelessWidget {
           ],
           latitude: -33.8688,
           longitude: 151.2093,
+          wageSiteAllowance: job.rate,
+          wageLeadingHandAllowance: 0.0,
+          wageProductivityAllowance: 0.0,
+          extrasOvertimeRate: 1.5,
+          wageHourlyRate: null,
+          travelAllowance: null,
+          gst: null,
         );
         
         Get.toNamed(JobDetailsScreen.id, arguments: {
@@ -340,6 +347,13 @@ class MyJobsScreen extends StatelessWidget {
         ],
         latitude: -33.8688,
         longitude: 151.2093,
+        wageSiteAllowance: job.rate,
+        wageLeadingHandAllowance: 0.0,
+        wageProductivityAllowance: 0.0,
+        extrasOvertimeRate: 1.5,
+        wageHourlyRate: null,
+        travelAllowance: null,
+        gst: null,
       );
       
       Get.toNamed(JobDetailsScreen.id, arguments: {

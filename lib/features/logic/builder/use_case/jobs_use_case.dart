@@ -58,22 +58,31 @@ class JobsUseCase {
   /// Obtiene un job por ID
   Future<ApiResult<DtoReceiveJob>> getJobById(String id) async {
     try {
+      print('JobsUseCase.getJobById - Starting with id: $id');
+      
       if (id.trim().isEmpty) {
+        print('JobsUseCase.getJobById - Empty ID provided');
         return ApiResult<DtoReceiveJob>.error(
           message: 'Job ID cannot be empty',
         );
       }
 
+      print('JobsUseCase.getJobById - Calling service...');
       final result = await _serviceJobs.getJobById(id);
       
+      print('JobsUseCase.getJobById - Service result isSuccess: ${result.isSuccess}');
+      print('JobsUseCase.getJobById - Service result data: ${result.data?.id}');
+      print('JobsUseCase.getJobById - Service result message: ${result.message}');
+      
       if (result.isSuccess && result.data != null) {
-        print('Job retrieved successfully: ${result.data!.id}');
+        print('JobsUseCase.getJobById - Job retrieved successfully: ${result.data!.id}');
       } else {
-        print('Error getting job by ID: ${result.message}');
+        print('JobsUseCase.getJobById - Error getting job by ID: ${result.message}');
       }
 
       return result;
     } catch (e) {
+      print('JobsUseCase.getJobById - Exception: $e');
       return ApiResult<DtoReceiveJob>.error(
         message: 'Error in getJobById use case: $e',
         error: e,
