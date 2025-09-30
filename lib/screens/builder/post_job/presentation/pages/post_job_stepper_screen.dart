@@ -131,7 +131,7 @@ class PostJobStepperScreen extends StatelessWidget {
                       child: Obx(() => Text(
                         controller.selectedSkills.isEmpty 
                             ? "What kind of worker do you need?"
-                            : "Selected skills",
+                            : "Selected skill",
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth * 0.075,
                           fontWeight: FontWeight.bold,
@@ -139,6 +139,21 @@ class PostJobStepperScreen extends StatelessWidget {
                         ),
                         textAlign: TextAlign.center,
                       )),
+                    ),
+
+                    SizedBox(height: verticalSpacing * 0.5),
+
+                    // Texto informativo sobre selección única
+                    Center(
+                      child: Text(
+                        "Select one skill category and one specific skill",
+                        style: GoogleFonts.poppins(
+                          fontSize: screenWidth * 0.032,
+                          color: Colors.grey[600],
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
 
                     SizedBox(height: verticalSpacing * 0.5),
@@ -185,7 +200,7 @@ class PostJobStepperScreen extends StatelessWidget {
                           child: Text(
                             controller.selectedSkills.isEmpty 
                                 ? "Reset selection"
-                                : "Reset (${controller.selectedSkills.length})",
+                                : "Reset selection",
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth * 0.04,
                               color: Colors.black,
@@ -313,7 +328,7 @@ class PostJobStepperScreen extends StatelessWidget {
                               if (controller.expandedCategories.isNotEmpty) ...[
                                 SizedBox(height: verticalSpacing),
                                 Text(
-                                  "Select specific skills:",
+                                  "Select a specific skill:",
                                   style: GoogleFonts.poppins(
                                     fontSize: screenWidth * 0.035 * 1.1,
                                     fontWeight: FontWeight.w600,

@@ -5,8 +5,8 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/constants.dart';
 import '../../logic/controllers/job_search_results_screen_controller.dart';
-import '../../data/dto/job_details_dto.dart';
 import '../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
+import '../../data/dto/job_details_dto.dart';
 
 class JobSearchResultsScreen extends StatefulWidget {
   static const String id = '/job-search-results';
@@ -314,7 +314,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    job.title,
+                    '${controller.getSkillName(job)} x${controller.getManyLabours(job)}',
                     style: GoogleFonts.poppins(
                       fontSize: bodyFontSize * 1.2,
                       fontWeight: FontWeight.bold,
@@ -342,7 +342,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             
             // Salario
             Text(
-              '\$${job.budget.toStringAsFixed(2)}/hr',
+              '\$${job.totalWage.toStringAsFixed(2)}/hr',
               style: GoogleFonts.poppins(
                 fontSize: bodyFontSize * 1.1,
                 fontWeight: FontWeight.w600,
@@ -392,19 +392,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             
             // Botón de ver detalles
             GestureDetector(
-              onTap: () {
-                // Navegar a detalles del trabajo
-                print('View details for job: ${job.jobId}');
-                Get.toNamed(
-                  '/job-details',
-                  arguments: {
-                    'jobDetails': _createJobDetailsFromJob(job),
-                    'flavor': flavor,
-                    'isFromAppliedJobs': false,
-                    'isFromBuilder': false,
-                  },
-                );
-              },
+              onTap: () => _handleViewDetails(job),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.6),
@@ -456,64 +444,9 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
     );
   }
 
-  // Método para convertir DtoReceiveLabourJob a JobDetailsDto
-  JobDetailsDto _createJobDetailsFromJob(DtoReceiveLabourJob job) {
-    // Usar budget como tarifa base
-    double hourlyRate = job.budget;
 
-    // Generar fecha de rango
-    String dateRange = '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}';
-    String startDate = _formatDate(job.startDate);
 
-    // Generar requisitos básicos
-    List<String> requirements = [
-      'Previous experience in ${job.jobType.toLowerCase()} preferred',
-      'Physical fitness and ability to work outdoors',
-      'Valid driver\'s license',
-      'Good communication skills',
-      'Reliable and punctual',
-    ];
 
-    // Generar descripción del trabajo
-    String aboutJob = job.description.isNotEmpty 
-        ? job.description 
-        : 'This is a ${job.title.toLowerCase()} position. We are looking for a reliable and hardworking individual to join our team.';
-
-    return JobDetailsDto(
-      id: job.jobId,
-      title: job.title,
-      hourlyRate: hourlyRate,
-      location: job.location,
-      dateRange: dateRange,
-      jobType: job.jobType,
-      source: job.builder.displayName,
-      postedDate: _formatDate(job.createdAt),
-      company: job.builder.displayName,
-      address: job.location,
-      suburb: job.location.contains(',') ? job.location.split(',')[0].trim() : job.location,
-      city: job.location.contains(',') ? job.location.split(',')[1].trim() : job.location,
-      startDate: startDate,
-      time: '9:00 AM - 5:00 PM', // Valor por defecto
-      paymentExpected: 'Weekly payment', // Valor por defecto
-      aboutJob: aboutJob,
-      requirements: requirements,
-      latitude: -33.8688,
-      longitude: 151.2093,
-      // Valores por defecto para salarios (no disponibles en DtoReceiveLabourJob)
-      wageSiteAllowance: job.budget,
-      wageLeadingHandAllowance: 0.0,
-      wageProductivityAllowance: 0.0,
-      extrasOvertimeRate: 1.5,
-      wageHourlyRate: null,
-      travelAllowance: null,
-      gst: null,
-    );
-  }
-
-  /// Formatea una fecha para mostrar
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
 
   /// Calcula el tiempo transcurrido desde una fecha
   String _formatTimeAgo(DateTime date) {
@@ -534,9 +467,9 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
   // Método para compartir un trabajo
   void _shareJob(DtoReceiveLabourJob job) {
     final shareText = '''
-🔨 ${job.title}
+🔨 ${controller.getSkillName(job)} x${controller.getManyLabours(job)}
 
-💰 \$${job.budget.toStringAsFixed(2)}/hr
+💰 \$${job.totalWage.toStringAsFixed(2)}/hr
 📍 ${job.location}
 🏢 ${job.builder.displayName}
 ⏰ ${job.jobType}
@@ -547,7 +480,77 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
 
     Share.share(
       shareText,
-      subject: 'Trabajo: ${job.title}',
+      subject: 'Trabajo: ${controller.getSkillName(job)} x${controller.getManyLabours(job)}',
     );
+  }
+
+  void _handleViewDetails(DtoReceiveLabourJob job) async {
+    print('_handleViewDetails called with job: ${job.jobId}');
+    try {
+      // Crear título con skill + número de labours (igual que en la card)
+      final skillName = controller.getSkillName(job);
+      final manyLabours = controller.getManyLabours(job);
+      final title = '${skillName} x${manyLabours}';
+      
+      // Crear JobDetailsDto directamente desde DtoReceiveLabourJob
+      final jobDetails = JobDetailsDto(
+        id: job.jobId,
+        title: title,
+        hourlyRate: job.totalWage,
+        location: job.location.isNotEmpty ? job.location : 'Location TBD',
+        dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
+        jobType: job.jobType,
+        source: job.builder.displayName,
+        postedDate: _formatDate(job.createdAt),
+        company: job.builder.displayName,
+        address: job.jobsite?.address ?? 'Address TBD',
+        suburb: job.jobsite?.suburb ?? '',
+        city: job.jobsite?.suburb ?? '', // Usar suburb como city
+        startDate: _formatDate(job.startDate),
+        time: '${_formatTimeFromString(job.startDate)} - ${_formatTimeFromString(job.endDate)}',
+        paymentExpected: _formatPaymentDay(job.createdAt), // Usar createdAt como fallback
+        aboutJob: job.description.isNotEmpty ? job.description : 'Construction work position.',
+        requirements: job.skills.map((skill) => 
+          '${skill.skillCategory?.name ?? 'Skill'} - ${skill.skillSubcategory?.name ?? 'Specialization'}'
+        ).toList(),
+        latitude: job.jobsite?.latitude ?? -33.8688,
+        longitude: job.jobsite?.longitude ?? 151.2093,
+        wageSiteAllowance: 0, // No disponible en labour job
+        wageLeadingHandAllowance: 0,
+        wageProductivityAllowance: 0,
+        extrasOvertimeRate: 0,
+        wageHourlyRate: job.totalWage,
+        travelAllowance: 0,
+        gst: 0,
+      );
+      
+      Get.toNamed('/job-details', arguments: {
+        'jobDetails': jobDetails,
+        'flavor': controller.currentFlavor.value,
+        'isFromAppliedJobs': false,
+        'isFromBuilder': false,
+        'hasApplied': job.hasApplied,
+      });
+    } catch (e) {
+      print('_handleViewDetails - Error: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to load job details: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
+      );
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  String _formatTimeFromString(DateTime date) {
+    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatPaymentDay(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 }

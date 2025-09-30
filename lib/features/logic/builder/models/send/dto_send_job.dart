@@ -1,3 +1,39 @@
+/// Clase para representar una skill de trabajo
+class JobSkill {
+  final String skillCategoryId;
+  final String skillSubcategoryId;
+
+  JobSkill({
+    required this.skillCategoryId,
+    required this.skillSubcategoryId,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'skill_category_id': skillCategoryId,
+      'skill_subcategory_id': skillSubcategoryId,
+    };
+  }
+
+  factory JobSkill.fromJson(Map<String, dynamic> json) {
+    return JobSkill(
+      skillCategoryId: json['skill_category_id'] as String,
+      skillSubcategoryId: json['skill_subcategory_id'] as String,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is JobSkill &&
+        other.skillCategoryId == skillCategoryId &&
+        other.skillSubcategoryId == skillSubcategoryId;
+  }
+
+  @override
+  int get hashCode => skillCategoryId.hashCode ^ skillSubcategoryId.hashCode;
+}
+
 /// DTO para enviar un job al API
 class DtoSendJob {
   final String jobsiteId;
@@ -18,14 +54,14 @@ class DtoSendJob {
   final String startTime;
   final String endTime;
   final String description;
-  final int paymentDay;
+  final String paymentDay;
   final bool requiresSupervisorSignature;
   final String supervisorName;
   final String visibility;
   final String paymentType;
   final List<String> licenseIds;
-  final List<String> skillCategoryIds;
-  final List<String> skillSubcategoryIds;
+  final List<JobSkill> jobSkills;
+  final List<String> jobRequirementIds;
 
   DtoSendJob({
     required this.jobsiteId,
@@ -46,14 +82,14 @@ class DtoSendJob {
     this.startTime = '',
     this.endTime = '',
     this.description = '',
-    this.paymentDay = 1,
+    this.paymentDay = '',
     this.requiresSupervisorSignature = false,
     this.supervisorName = '',
     this.visibility = 'PUBLIC',
     this.paymentType = 'WEEKLY',
     this.licenseIds = const [],
-    this.skillCategoryIds = const [],
-    this.skillSubcategoryIds = const [],
+    this.jobSkills = const [],
+    this.jobRequirementIds = const [],
   });
 
   /// Convierte a JSON
@@ -83,8 +119,8 @@ class DtoSendJob {
       'visibility': visibility,
       'payment_type': paymentType,
       'license_ids': licenseIds,
-      'skill_category_ids': skillCategoryIds,
-      'skill_subcategory_ids': skillSubcategoryIds,
+      'job_skills': jobSkills.map((skill) => skill.toJson()).toList(),
+      'job_requirement_ids': jobRequirementIds,
     };
   }
 
@@ -109,14 +145,16 @@ class DtoSendJob {
       startTime: json['start_time'] as String,
       endTime: json['end_time'] as String,
       description: json['description'] as String,
-      paymentDay: json['payment_day'] as int,
+      paymentDay: json['payment_day'] as String,
       requiresSupervisorSignature: json['requires_supervisor_signature'] as bool,
       supervisorName: json['supervisor_name'] as String,
       visibility: json['visibility'] as String,
       paymentType: json['payment_type'] as String,
       licenseIds: List<String>.from(json['license_ids'] as List),
-      skillCategoryIds: List<String>.from(json['skill_category_ids'] as List),
-      skillSubcategoryIds: List<String>.from(json['skill_subcategory_ids'] as List),
+      jobSkills: (json['job_skills'] as List)
+          .map((skill) => JobSkill.fromJson(skill as Map<String, dynamic>))
+          .toList(),
+      jobRequirementIds: List<String>.from(json['job_requirement_ids'] as List),
     );
   }
 
@@ -140,14 +178,14 @@ class DtoSendJob {
     String startTime = '08:00:00',
     String endTime = '17:00:00',
     String description = '',
-    int paymentDay = 15,
+    String paymentDay = '',
     bool requiresSupervisorSignature = false,
     String supervisorName = '',
     String visibility = 'PUBLIC',
     String paymentType = 'WEEKLY',
     List<String> licenseIds = const [],
-    List<String> skillCategoryIds = const [],
-    List<String> skillSubcategoryIds = const [],
+    List<JobSkill> jobSkills = const [],
+    List<String> jobRequirementIds = const [],
   }) {
     return DtoSendJob(
       jobsiteId: jobsiteId,
@@ -174,8 +212,8 @@ class DtoSendJob {
       visibility: visibility,
       paymentType: paymentType,
       licenseIds: licenseIds,
-      skillCategoryIds: skillCategoryIds,
-      skillSubcategoryIds: skillSubcategoryIds,
+      jobSkills: jobSkills,
+      jobRequirementIds: jobRequirementIds,
     );
   }
 
@@ -199,14 +237,14 @@ class DtoSendJob {
     String? startTime,
     String? endTime,
     String? description,
-    int? paymentDay,
+    String? paymentDay,
     bool? requiresSupervisorSignature,
     String? supervisorName,
     String? visibility,
     String? paymentType,
     List<String>? licenseIds,
-    List<String>? skillCategoryIds,
-    List<String>? skillSubcategoryIds,
+    List<JobSkill>? jobSkills,
+    List<String>? jobRequirementIds,
   }) {
     return DtoSendJob(
       jobsiteId: jobsiteId ?? this.jobsiteId,
@@ -233,8 +271,8 @@ class DtoSendJob {
       visibility: visibility ?? this.visibility,
       paymentType: paymentType ?? this.paymentType,
       licenseIds: licenseIds ?? this.licenseIds,
-      skillCategoryIds: skillCategoryIds ?? this.skillCategoryIds,
-      skillSubcategoryIds: skillSubcategoryIds ?? this.skillSubcategoryIds,
+      jobSkills: jobSkills ?? this.jobSkills,
+      jobRequirementIds: jobRequirementIds ?? this.jobRequirementIds,
     );
   }
 
@@ -316,8 +354,8 @@ class DtoSendJob {
         other.visibility == visibility &&
         other.paymentType == paymentType &&
         other.licenseIds.toString() == licenseIds.toString() &&
-        other.skillCategoryIds.toString() == skillCategoryIds.toString() &&
-        other.skillSubcategoryIds.toString() == skillSubcategoryIds.toString();
+        other.jobSkills.toString() == jobSkills.toString() &&
+        other.jobRequirementIds.toString() == jobRequirementIds.toString();
   }
 
   @override
@@ -346,7 +384,7 @@ class DtoSendJob {
         visibility.hashCode ^
         paymentType.hashCode ^
         licenseIds.hashCode ^
-        skillCategoryIds.hashCode ^
-        skillSubcategoryIds.hashCode;
+        jobSkills.hashCode ^
+        jobRequirementIds.hashCode;
   }
 }

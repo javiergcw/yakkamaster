@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../config/assets_config.dart';
 import '../../data/dto/job_details_dto.dart';
-import '../../../../features/logic/builder/models/receive/dto_receive_job.dart';
 import '../widgets/job_map.dart';
 import '../widgets/application_success_modal.dart';
 import '../../logic/controllers/job_details_screen_controller.dart';
@@ -23,16 +22,12 @@ import '../../logic/controllers/job_details_screen_controller.dart';
 class JobDetailsScreen extends StatelessWidget {
   static const String id = '/job-details';
   
-  final JobDetailsDto? jobDetails;
-  final DtoReceiveJob? realJob;
   final AppFlavor? flavor;
   final bool isFromAppliedJobs;
   final bool isFromBuilder;
 
   JobDetailsScreen({
     super.key,
-    this.jobDetails,
-    this.realJob,
     this.flavor,
     this.isFromAppliedJobs = false,
     this.isFromBuilder = false,
@@ -41,249 +36,83 @@ class JobDetailsScreen extends StatelessWidget {
   final JobDetailsScreenController controller = Get.put(JobDetailsScreenController());
 
   // Método para obtener los datos del job desde el controlador
-  JobDetailsDto _getJobDataFromController(DtoReceiveJob? controllerRealJob, JobDetailsDto? controllerJobDetails) {
-    if (controllerRealJob != null) {
-      print('JobDetailsScreen - Using controller realJob: ${controllerRealJob.id}');
-      return _convertRealJobToJobDetailsDto(controllerRealJob);
-    } else if (controllerJobDetails != null) {
-      print('JobDetailsScreen - Using controller jobDetails: ${controllerJobDetails.id}');
-      return controllerJobDetails;
-    } else if (realJob != null) {
-      print('JobDetailsScreen - Using constructor realJob: ${realJob!.id}');
-      return _convertRealJobToJobDetailsDto(realJob!);
-    } else if (jobDetails != null) {
-      print('JobDetailsScreen - Using constructor jobDetails: ${jobDetails!.id}');
-      return jobDetails!;
+  JobDetailsDto _getJobDataFromController() {
+    // Priorizar datos del controlador
+    if (controller.jobDetails.value != null) {
+      print('JobDetailsScreen - Using controller jobDetails: ${controller.jobDetails.value!.id}');
+      return controller.jobDetails.value!;
+    } else if (controller.realJob.value != null) {
+      print('JobDetailsScreen - Using controller realJob: ${controller.realJob.value!.id}');
+      // El controlador ya debería haber mapeado los datos, pero por seguridad:
+      return controller.convertRealJobToJobDetailsDto(controller.realJob.value!);
     } else {
-      throw Exception('No job data provided');
+      throw Exception('No job data available - controller should load data from API');
     }
   }
 
-  // Método para convertir DtoReceiveJob a JobDetailsDto
-  JobDetailsDto _convertRealJobToJobDetailsDto(DtoReceiveJob realJobData) {
-    return JobDetailsDto(
-      id: realJobData.id,
-      title: realJobData.description.isNotEmpty ? realJobData.description : 'Construction Job',
-      hourlyRate: _calculateHourlyRateFromRealJob(realJobData),
-      location: 'Job Site ${realJobData.jobsiteId.substring(0, 8)}...', // Mostrar parte del ID del jobsite
-      dateRange: '${_formatDateFromString(realJobData.startDateWork)} - ${_formatDateFromString(realJobData.endDateWork)}',
-      jobType: _getJobTypeDisplayFromRealJob(realJobData),
-      source: 'Builder Company',
-      postedDate: _formatDateFromString(realJobData.createdAt),
-      company: 'Builder Company',
-      address: 'Job Site ${realJobData.jobsiteId.substring(0, 8)}...',
-      suburb: 'Construction Site',
-      city: 'Sydney',
-      startDate: _formatDateFromString(realJobData.startDateWork),
-      time: '${realJobData.startTime} - ${realJobData.endTime}',
-      paymentExpected: _getPaymentExpectedFromRealJob(realJobData),
-      aboutJob: _getAboutJobDescriptionFromRealJob(realJobData),
-      requirements: _getJobRequirementsFromRealJob(realJobData),
-      latitude: -33.8688, // Sydney coordinates as default
-      longitude: 151.2093,
-      // Datos de salarios reales del API
-      wageSiteAllowance: realJobData.wageSiteAllowance,
-      wageLeadingHandAllowance: realJobData.wageLeadingHandAllowance,
-      wageProductivityAllowance: realJobData.wageProductivityAllowance,
-      extrasOvertimeRate: realJobData.extrasOvertimeRate,
-      wageHourlyRate: realJobData.wageHourlyRate,
-      travelAllowance: realJobData.travelAllowance,
-      gst: realJobData.gst,
-    );
-  }
-
-  // Método para obtener los datos del job (mock o real) - DEPRECATED
-  JobDetailsDto getJobData() {
-    if (realJob != null) {
-      return _convertRealJobToJobDetailsDto(realJob!);
-    } else if (jobDetails != null) {
-      return jobDetails!;
-    } else {
-      throw Exception('No job data provided');
-    }
-  }
-
-
-  /// Calcula la tarifa por hora desde un DtoReceiveJob específico
-  double _calculateHourlyRateFromRealJob(DtoReceiveJob realJobData) {
-    double baseRate = realJobData.wageSiteAllowance;
-    if (realJobData.wageHourlyRate != null && realJobData.wageHourlyRate! > 0) {
-      baseRate = realJobData.wageHourlyRate!;
-    }
-    return baseRate;
-  }
-
-
-  /// Obtiene el tipo de trabajo desde un DtoReceiveJob específico
-  String _getJobTypeDisplayFromRealJob(DtoReceiveJob realJobData) {
-    if (realJobData.ongoingWork) {
-      return 'Ongoing Work';
-    } else {
-      return 'Fixed Term';
-    }
-  }
-
-  /// Obtiene la información de pago esperado
-  String _getPaymentExpected() {
-    switch (realJob!.paymentType) {
-      case 'WEEKLY':
-        return 'Weekly payment';
-      case 'FIXED_DAY':
-        return 'Payment on day ${realJob!.paymentDay} of month';
-      default:
-        return realJob!.paymentType;
-    }
-  }
-
-  /// Obtiene la información de pago desde un DtoReceiveJob específico
-  String _getPaymentExpectedFromRealJob(DtoReceiveJob realJobData) {
-    switch (realJobData.paymentType) {
-      case 'WEEKLY':
-        return 'Weekly payment';
-      case 'FIXED_DAY':
-        return 'Payment on day ${realJobData.paymentDay} of month';
-      default:
-        return realJobData.paymentType;
-    }
-  }
-
-  /// Obtiene la descripción del trabajo
-  String _getAboutJobDescription() {
-    String description = realJob!.description.isNotEmpty 
-        ? realJob!.description 
-        : 'Construction work position';
-    
-    String additionalInfo = '';
-    if (realJob!.ongoingWork) {
-      additionalInfo += ' This is an ongoing work position.';
-    }
-    if (realJob!.workSaturday || realJob!.workSunday) {
-      additionalInfo += ' Weekend work may be required.';
-    }
-    
-    return description + additionalInfo;
-  }
-
-  /// Obtiene la descripción del trabajo desde un DtoReceiveJob específico
-  String _getAboutJobDescriptionFromRealJob(DtoReceiveJob realJobData) {
-    String description = realJobData.description.isNotEmpty 
-        ? realJobData.description 
-        : 'Construction work position';
-    
-    String additionalInfo = '';
-    if (realJobData.ongoingWork) {
-      additionalInfo += ' This is an ongoing work position.';
-    }
-    if (realJobData.workSaturday || realJobData.workSunday) {
-      additionalInfo += ' Weekend work may be required.';
-    }
-    
-    return description + additionalInfo;
-  }
-
-  /// Obtiene los requisitos del trabajo
-  List<String> _getJobRequirements() {
-    List<String> requirements = [
-      'Workers needed: ${realJob!.manyLabours}',
-      'Work schedule: ${realJob!.startTime} - ${realJob!.endTime}',
-      'Work days: ${_getWorkDays()}',
-    ];
-
-    if (realJob!.requiresSupervisorSignature) {
-      requirements.add('Supervisor signature required');
-      if (realJob!.supervisorName.isNotEmpty) {
-        requirements.add('Supervisor: ${realJob!.supervisorName}');
-      }
-    }
-
-    if (realJob!.wageLeadingHandAllowance > 0) {
-      requirements.add('Leading hand allowance: \$${realJob!.wageLeadingHandAllowance.toStringAsFixed(2)}');
-    }
-    if (realJob!.wageProductivityAllowance > 0) {
-      requirements.add('Productivity allowance: \$${realJob!.wageProductivityAllowance.toStringAsFixed(2)}');
-    }
-    if (realJob!.extrasOvertimeRate > 0) {
-      requirements.add('Overtime rate: ${realJob!.extrasOvertimeRate}x');
-    }
-    if (realJob!.travelAllowance != null && realJob!.travelAllowance! > 0) {
-      requirements.add('Travel allowance: \$${realJob!.travelAllowance!.toStringAsFixed(2)}');
-    }
-
-    return requirements;
-  }
-
-  /// Obtiene los requisitos del trabajo desde un DtoReceiveJob específico
-  List<String> _getJobRequirementsFromRealJob(DtoReceiveJob realJobData) {
-    List<String> requirements = [
-      'Workers needed: ${realJobData.manyLabours}',
-      'Work schedule: ${realJobData.startTime} - ${realJobData.endTime}',
-      'Work days: ${_getWorkDaysFromRealJob(realJobData)}',
-    ];
-
-    if (realJobData.requiresSupervisorSignature) {
-      requirements.add('Supervisor signature required');
-      if (realJobData.supervisorName.isNotEmpty) {
-        requirements.add('Supervisor: ${realJobData.supervisorName}');
-      }
-    }
-
-    if (realJobData.wageLeadingHandAllowance > 0) {
-      requirements.add('Leading hand allowance: \$${realJobData.wageLeadingHandAllowance.toStringAsFixed(2)}');
-    }
-    if (realJobData.wageProductivityAllowance > 0) {
-      requirements.add('Productivity allowance: \$${realJobData.wageProductivityAllowance.toStringAsFixed(2)}');
-    }
-    if (realJobData.extrasOvertimeRate > 0) {
-      requirements.add('Overtime rate: ${realJobData.extrasOvertimeRate}x');
-    }
-    if (realJobData.travelAllowance != null && realJobData.travelAllowance! > 0) {
-      requirements.add('Travel allowance: \$${realJobData.travelAllowance!.toStringAsFixed(2)}');
-    }
-
-    return requirements;
-  }
-
-  /// Obtiene los días de trabajo como string
-  String _getWorkDays() {
-    List<String> days = ['Monday-Friday'];
-    if (realJob!.workSaturday) days.add('Saturday');
-    if (realJob!.workSunday) days.add('Sunday');
-    return days.join(', ');
-  }
-
-  /// Obtiene los días de trabajo desde un DtoReceiveJob específico
-  String _getWorkDaysFromRealJob(DtoReceiveJob realJobData) {
-    List<String> days = ['Monday-Friday'];
-    if (realJobData.workSaturday) days.add('Saturday');
-    if (realJobData.workSunday) days.add('Sunday');
-    return days.join(', ');
-  }
-
-  String _formatDateFromString(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-    } catch (e) {
-      return dateString; // Retornar el string original si no se puede parsear
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    // Debug: Verificar si se está recibiendo realJob
-    print('JobDetailsScreen - realJob: ${realJob?.id}');
-    print('JobDetailsScreen - jobDetails: ${jobDetails?.id}');
+    // Debug: Verificar datos del controlador
     print('JobDetailsScreen - isFromBuilder: $isFromBuilder');
     
-    // Usar datos del controlador si están disponibles, sino usar parámetros del constructor
+    // Usar datos del controlador
     final controllerRealJob = controller.realJob.value;
     final controllerJobDetails = controller.jobDetails.value;
     
     print('JobDetailsScreen - controller.realJob: ${controllerRealJob?.id}');
     print('JobDetailsScreen - controller.jobDetails: ${controllerJobDetails?.id}');
     
-    // Obtener datos del job (mock o real) - priorizar controlador
-    final jobData = _getJobDataFromController(controllerRealJob, controllerJobDetails);
+    // Verificar si hay datos disponibles
+    if (controller.isLoading.value) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
+    if (controller.errorMessage.value.isNotEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                controller.errorMessage.value,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  // Recargar datos
+                  final arguments = Get.arguments as Map<String, dynamic>?;
+                  if (arguments != null && arguments['jobId'] != null) {
+                    controller.loadJobDetails(arguments['jobId']);
+                  }
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // Obtener datos del job desde el controlador
+    final jobData = _getJobDataFromController();
     
     // Debug: Verificar datos mapeados
     print('JobDetailsScreen - jobData.title: ${jobData.title}');
@@ -747,7 +576,7 @@ class JobDetailsScreen extends StatelessWidget {
     final verticalSpacing = MediaQuery.of(Get.context!).size.height * 0.025;
 
     // Usar realJob del controlador si está disponible
-    final currentRealJob = controller.realJob.value ?? realJob;
+    final currentRealJob = controller.realJob.value;
 
     if (currentRealJob == null) {
       // Usar datos del JobDetailsDto cuando no hay realJob

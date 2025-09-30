@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../features/logic/builder/models/receive/dto_receive_job.dart';
 import '../../logic/controllers/my_jobs_controller.dart';
 import '../widgets/widgets.dart';
 import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
@@ -265,123 +266,147 @@ class MyJobsScreen extends StatelessWidget {
       
       if (realJob != null) {
         print('_handleShowMore - Navigating with realJob: ${realJob.id}');
-        Get.toNamed(JobDetailsScreen.id, arguments: {
-          'realJob': realJob, // Pasar el DtoReceiveJob real
-          'flavor': flavor,
-          'isFromAppliedJobs': false,
-          'isFromBuilder': true, // Indicar que viene del builder
-        });
-      } else {
-        print('_handleShowMore - realJob is null, using fallback');
-        // Fallback: usar el JobDto convertido
-        final job = controller.jobs.firstWhere((job) => job.id == jobId);
         
-        // Crear JobDetailsDto con los datos del JobDto
+        // Crear título con skill + número de labours (igual que en la card)
+        final skillName = _getSkillName(realJob);
+        final title = '${skillName} x${realJob.manyLabours}';
+        
+        // Usar total_wage si está disponible, sino usar wage_site_allowance como fallback
+        final totalWage = realJob.totalWage ?? realJob.wageSiteAllowance;
+        
+        // Crear JobDetailsDto directamente desde DtoReceiveJob
         final jobDetails = JobDetailsDto(
-          id: job.id,
-          title: job.title,
-          hourlyRate: job.rate,
-          location: job.location,
-          dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
-          jobType: job.jobType,
-          source: job.source,
-          postedDate: _formatDate(job.postedDate),
-          company: job.source,
-          address: job.location,
-          suburb: '',
-          city: '',
-          startDate: _formatDate(job.startDate),
-          time: '${_formatTime(job.startDate)} - ${_formatTime(job.endDate)}',
-          paymentExpected: job.jobType,
-          aboutJob: 'This is a ${job.jobType.toLowerCase()} position for ${job.title}.',
+          id: realJob.id,
+          title: title,
+          hourlyRate: totalWage,
+          location: realJob.jobsite?.name ?? realJob.jobsite?.address ?? 'Location TBD',
+          dateRange: '${_formatDate(realJob.startDateWork)} - ${_formatDate(realJob.endDateWork)}',
+          jobType: realJob.jobType?.name ?? realJob.paymentType,
+          source: realJob.builderProfile?.displayName ?? 'Builder',
+          postedDate: _formatDate(realJob.createdAt),
+          company: realJob.builderProfile?.displayName ?? 'Builder',
+          address: realJob.jobsite?.address ?? 'Address TBD',
+          suburb: realJob.jobsite?.suburb ?? '',
+          city: realJob.jobsite?.suburb ?? '', // Usar suburb como city
+          startDate: _formatDate(realJob.startDateWork),
+          time: '${_formatTimeFromString(realJob.startTime)} - ${_formatTimeFromString(realJob.endTime)}',
+          paymentExpected: _formatPaymentDay(realJob.paymentDay),
+          aboutJob: realJob.description.isNotEmpty ? realJob.description : 'Construction work position.',
           requirements: [
-            'Experience in ${job.title.toLowerCase()}',
-            'Valid work permit',
-            'Good communication skills',
-            'Reliable and punctual',
+            ...realJob.jobRequirements.map((req) => req.name).toList(),
+            ...realJob.jobSkills.map((skill) => '${skill.skillCategory?.name ?? 'Skill'} - ${skill.skillSubcategory?.name ?? 'Specialization'}').toList(),
           ],
-          latitude: -33.8688,
-          longitude: 151.2093,
-          wageSiteAllowance: job.rate,
-          wageLeadingHandAllowance: 0.0,
-          wageProductivityAllowance: 0.0,
-          extrasOvertimeRate: 1.5,
-          wageHourlyRate: null,
-          travelAllowance: null,
-          gst: null,
+          latitude: realJob.jobsite?.latitude ?? -33.8688,
+          longitude: realJob.jobsite?.longitude ?? 151.2093,
+          wageSiteAllowance: realJob.wageSiteAllowance,
+          wageLeadingHandAllowance: realJob.wageLeadingHandAllowance,
+          wageProductivityAllowance: realJob.wageProductivityAllowance,
+          extrasOvertimeRate: realJob.extrasOvertimeRate,
+          wageHourlyRate: realJob.wageHourlyRate,
+          travelAllowance: realJob.travelAllowance,
+          gst: realJob.gst,
         );
         
-        Get.toNamed(JobDetailsScreen.id, arguments: {
+        Get.toNamed('/job-details', arguments: {
           'jobDetails': jobDetails,
           'flavor': flavor,
           'isFromAppliedJobs': false,
           'isFromBuilder': true,
         });
+      } else {
+        print('_handleShowMore - realJob is null, showing error');
+        Get.snackbar(
+          'Error',
+          'Job details not found',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 2),
+        );
       }
     } catch (e) {
-      // En caso de error, usar el JobDto convertido como fallback
-      final job = controller.jobs.firstWhere((job) => job.id == jobId);
-      
-      final jobDetails = JobDetailsDto(
-        id: job.id,
-        title: job.title,
-        hourlyRate: job.rate,
-        location: job.location,
-        dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
-        jobType: job.jobType,
-        source: job.source,
-        postedDate: _formatDate(job.postedDate),
-        company: job.source,
-        address: job.location,
-        suburb: '',
-        city: '',
-        startDate: _formatDate(job.startDate),
-        time: '${_formatTime(job.startDate)} - ${_formatTime(job.endDate)}',
-        paymentExpected: job.jobType,
-        aboutJob: 'This is a ${job.jobType.toLowerCase()} position for ${job.title}.',
-        requirements: [
-          'Experience in ${job.title.toLowerCase()}',
-          'Valid work permit',
-          'Good communication skills',
-          'Reliable and punctual',
-        ],
-        latitude: -33.8688,
-        longitude: 151.2093,
-        wageSiteAllowance: job.rate,
-        wageLeadingHandAllowance: 0.0,
-        wageProductivityAllowance: 0.0,
-        extrasOvertimeRate: 1.5,
-        wageHourlyRate: null,
-        travelAllowance: null,
-        gst: null,
+      print('_handleShowMore - Error: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to load job details: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: Duration(seconds: 2),
       );
-      
-      Get.toNamed(JobDetailsScreen.id, arguments: {
-        'jobDetails': jobDetails,
-        'flavor': flavor,
-        'isFromAppliedJobs': false,
-        'isFromBuilder': true,
-      });
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return 'Date TBD';
+    }
   }
 
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  String _formatTime(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return 'Time TBD';
+    }
+  }
+
+  /// Formatea un string de tiempo en formato "HH:mm:ss" a "HH:mm"
+  String _formatTimeFromString(String timeString) {
+    try {
+      if (timeString.isEmpty) return 'Time TBD';
+      
+      // Si ya está en formato "HH:mm:ss", extraer solo "HH:mm"
+      if (timeString.contains(':')) {
+        final parts = timeString.split(':');
+        if (parts.length >= 2) {
+          return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}';
+        }
+      }
+      
+      return timeString;
+    } catch (e) {
+      return 'Time TBD';
+    }
+  }
+
+  /// Formatea el payment_day de ISO string a formato legible
+  String _formatPaymentDay(String paymentDayString) {
+    try {
+      if (paymentDayString.isEmpty) return 'Payment day TBD';
+      
+      final date = DateTime.parse(paymentDayString);
+      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+    } catch (e) {
+      return 'Payment day TBD';
+    }
+  }
+
+  /// Obtiene el nombre de la skill del job (igual que en el controlador)
+  String _getSkillName(DtoReceiveJob job) {
+    // Buscar en job_skills para obtener el nombre de la subcategoría
+    if (job.jobSkills.isNotEmpty) {
+      final firstSkill = job.jobSkills.first;
+      if (firstSkill.skillSubcategory != null) {
+        return firstSkill.skillSubcategory!.name;
+      }
+      if (firstSkill.skillCategory != null) {
+        return firstSkill.skillCategory!.name;
+      }
+    }
+    
+    // Fallback: usar description si no hay skills
+    if (job.description.isNotEmpty) {
+      return job.description;
+    }
+    
+    // Último fallback
+    return 'Skill';
   }
 
 
 
   void _handleVisibilityChanged(String jobId, bool isVisible) {
     controller.updateJobVisibility(jobId, isVisible);
-    Get.snackbar(
-      'Success',
-      'Job visibility updated',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: Duration(seconds: 2),
-    );
   }
 }

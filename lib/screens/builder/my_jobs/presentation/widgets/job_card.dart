@@ -109,7 +109,7 @@ class JobCard extends StatelessWidget {
             // Detalles del trabajo
             _buildJobDetail(
               icon: Icons.attach_money,
-              text: '\$${job.rate.toStringAsFixed(2)}/hr',
+              text: '${job.rate.toStringAsFixed(2)}/hr',
               screenWidth: screenWidth,
             ),
             _buildJobDetail(

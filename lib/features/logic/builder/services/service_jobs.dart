@@ -2,7 +2,9 @@ import '../../../../utils/crud_service.dart';
 import '../../../../utils/response_handler.dart';
 import '../api_builder_constants.dart';
 import '../models/receive/dto_receive_job.dart';
+import '../models/receive/dto_receive_job_visibility_update.dart';
 import '../models/send/dto_send_job.dart';
+import '../models/send/dto_send_job_visibility.dart';
 
 /// Servicio para operaciones de jobs del API
 class ServiceJobs {
@@ -62,11 +64,19 @@ class ServiceJobs {
       print('ServiceJobs.getJobs - Response jsonListBody: ${response.jsonListBody}');
       
       // Procesar la respuesta y convertir a List<DtoReceiveJob>
+      // La nueva estructura es: {"jobs": [...], "message": "..."}
       final result = await _responseHandler.handleResponse<List<DtoReceiveJob>>(
         response,
-        fromJsonList: (jsonList) {
-          print('ServiceJobs.getJobs - fromJsonList called with ${jsonList.length} items');
-          return jsonList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
+        fromJson: (json) {
+          print('ServiceJobs.getJobs - fromJson called with keys: ${json.keys.toList()}');
+          // Extraer el array 'jobs' de la respuesta
+          if (json.containsKey('jobs') && json['jobs'] != null) {
+            final jobsList = json['jobs'] as List;
+            print('ServiceJobs.getJobs - Found jobs array with ${jobsList.length} items');
+            return jobsList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
+          }
+          print('ServiceJobs.getJobs - Jobs array not found in response');
+          throw Exception('Jobs array not found in response');
         },
       );
 
@@ -186,10 +196,16 @@ class ServiceJobs {
       final response = await _crudService.getAll(ApiBuilderConstants.jobs);
       
       // Procesar la respuesta y convertir a List<DtoReceiveJob>
+      // La nueva estructura es: {"jobs": [...], "message": "..."}
       final result = await _responseHandler.handleResponse<List<DtoReceiveJob>>(
         response,
-        fromJsonList: (jsonList) {
-          return jsonList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
+        fromJson: (json) {
+          // Extraer el array 'jobs' de la respuesta
+          if (json.containsKey('jobs') && json['jobs'] != null) {
+            final jobsList = json['jobs'] as List;
+            return jobsList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
+          }
+          throw Exception('Jobs array not found in response');
         },
       );
 
@@ -197,6 +213,41 @@ class ServiceJobs {
     } catch (e) {
       return ApiResult<List<DtoReceiveJob>>.error(
         message: 'Error getting jobs by jobsite ID: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Actualiza la visibilidad de un job
+  Future<ApiResult<DtoReceiveJobVisibilityUpdate>> updateJobVisibility(String jobId, DtoSendJobVisibility visibilityData) async {
+    try {
+      // Asegurar que el header de JWT esté configurado
+      await _crudService.headerManager.loadBearerToken();
+      
+      // Construir la URL completa
+      final url = ApiBuilderConstants.jobVisibility(jobId);
+      print('🔍 ServiceJobs.updateJobVisibility - URL: $url');
+      print('🔍 ServiceJobs.updateJobVisibility - Body: ${visibilityData.toJson()}');
+      
+      // Usar el método personalizado para endpoint completo
+      final response = await _crudService.updateWithFullEndpoint(
+        url,
+        visibilityData.toJson(),
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceiveJobVisibilityUpdate
+      final result = await _responseHandler.handleResponse<DtoReceiveJobVisibilityUpdate>(
+        response,
+        fromJson: (json) {
+          // La respuesta tiene estructura: {"job": {...}, "message": "..."}
+          return DtoReceiveJobVisibilityUpdate.fromJson(json);
+        },
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobVisibilityUpdate>.error(
+        message: 'Error updating job visibility: $e',
         error: e,
       );
     }

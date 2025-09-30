@@ -4,6 +4,7 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/logic/masters/use_case/master_use_case.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_license.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_skill.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_job_requirement.dart';
 import '../../../../../features/logic/builder/use_case/jobs_use_case.dart';
 import '../../../../../features/logic/builder/models/send/dto_send_job.dart';
 import '../../../../../features/logic/masters/models/receive/dto_receive_job_type.dart';
@@ -72,7 +73,7 @@ class UnifiedPostJobController extends GetxController {
   final RxList<String> selectedCredentials = <String>[].obs;
 
   // Variables para datos dinámicos de la API
-  final RxList<dynamic> jobRequirementsFromApi = <dynamic>[].obs;
+  final RxList<DtoReceiveJobRequirement> jobRequirementsFromApi = <DtoReceiveJobRequirement>[].obs;
   final RxBool isLoadingJobRequirements = false.obs;
   final RxString description = ''.obs;
 
@@ -276,6 +277,10 @@ class UnifiedPostJobController extends GetxController {
     if (expandedCategories.contains(category)) {
       expandedCategories.remove(category);
     } else {
+      // Limpiar todas las categorías expandidas y selecciones previas
+      expandedCategories.clear();
+      selectedSkills.clear();
+      // Expandir solo la categoría seleccionada
       expandedCategories.add(category);
     }
   }
@@ -284,15 +289,15 @@ class UnifiedPostJobController extends GetxController {
     final uniqueId = "${category}_$subcategory";
     if (selectedSkills.contains(uniqueId)) {
       selectedSkills.remove(uniqueId);
+      // Limpiar selectedSkill cuando se deselecciona
+      _postJobData.value = _postJobData.value.copyWith(selectedSkill: null);
     } else {
-      // Remover todas las subskills de esta categoría específica
-      final subcategories = getSubcategoriesForCategory(category);
-      for (final sub in subcategories) {
-        final subId = "${category}_$sub";
-        selectedSkills.remove(subId);
-      }
+      // Limpiar todas las selecciones previas (solo permitir 1 skill y 1 subskill)
+      selectedSkills.clear();
       // Agregar la nueva subskill seleccionada
       selectedSkills.add(uniqueId);
+      // Actualizar selectedSkill con el nombre de la subcategoría seleccionada
+      _postJobData.value = _postJobData.value.copyWith(selectedSkill: subcategory);
       // Cerrar la sección de subcategorías
       expandedCategories.remove(category);
     }
@@ -342,6 +347,8 @@ class UnifiedPostJobController extends GetxController {
   void resetSelections() {
     selectedSkills.clear();
     expandedCategories.clear();
+    // Limpiar selectedSkill cuando se resetean las selecciones
+    _postJobData.value = _postJobData.value.copyWith(selectedSkill: null);
   }
 
   Future<void> loadJobTypesFromApi({bool showSnackbar = true}) async {
@@ -376,8 +383,8 @@ class UnifiedPostJobController extends GetxController {
       final result = await _masterUseCase.getJobRequirements();
       
       if (result.isSuccess && result.data != null) {
-        // Mapear los requisitos de trabajo a una lista simple de nombres
-        jobRequirementsFromApi.value = result.data!.requirements.map((requirement) => requirement.name).toList();
+        // Almacenar los requisitos de trabajo completos con IDs
+        jobRequirementsFromApi.value = result.data!.requirements;
       }
     } catch (e) {
       if (showSnackbar) {
@@ -527,8 +534,8 @@ class UnifiedPostJobController extends GetxController {
     final overtimeRate = _postJobData.value.overtimeRate ?? 0.0;
     final travelAllowance = _postJobData.value.travelAllowance ?? 0.0;
     
-    // Calcular GST usando el porcentaje dinámico de la API
-    final gst = _calculateGST(hourlyRate);
+    // Usar el valor de GST directamente del master (no calcular)
+    final gst = gstPercentage.value;
     
     return hourlyRate + siteAllowance + leadingHandAllowance + productivityAllowance + 
            overtimeRate + travelAllowance + gst;
@@ -948,9 +955,8 @@ class UnifiedPostJobController extends GetxController {
       return license?.id ?? '';
     }).where((id) => id.isNotEmpty).toList();
 
-    // Obtener IDs de categorías y subcategorías de habilidades
-    final skillCategoryIds = <String>[];
-    final skillSubcategoryIds = <String>[];
+    // Obtener job skills con categorías y subcategorías
+    final jobSkills = <JobSkill>[];
     
     for (final skillId in selectedSkills) {
       final category = getCategoryFromUniqueId(skillId);
@@ -959,15 +965,22 @@ class UnifiedPostJobController extends GetxController {
       if (category != null) {
         final categorySkill = allSkillsFromApi.firstWhereOrNull((s) => s.name == category);
         if (categorySkill != null) {
-          skillCategoryIds.add(categorySkill.id);
-          
           final subcategoryObj = categorySkill.subcategories.firstWhereOrNull((sub) => sub.name == subcategory);
           if (subcategoryObj != null) {
-            skillSubcategoryIds.add(subcategoryObj.id);
+            jobSkills.add(JobSkill(
+              skillCategoryId: categorySkill.id,
+              skillSubcategoryId: subcategoryObj.id,
+            ));
           }
         }
       }
     }
+
+    // Obtener IDs de job requirements seleccionados
+    final jobRequirementIds = selectedRequirements.map((requirementName) {
+      final requirement = jobRequirementsFromApi.firstWhereOrNull((req) => req.name == requirementName);
+      return requirement?.id ?? '';
+    }).where((id) => id.isNotEmpty).toList();
 
     // Validar solo los campos absolutamente requeridos
     if (data.workersNeeded == null) throw Exception('Workers needed is required');
@@ -980,13 +993,14 @@ class UnifiedPostJobController extends GetxController {
 
     // Obtener el hourlyRate del formulario o usar el mínimo de la API
     final hourlyRate = data.hourlyRate ?? minimumHourlyWage.value;
-    final gstValue = _calculateGST(hourlyRate);
+    // Usar el valor de GST directamente del master (no calcular)
+    final gstValue = gstPercentage.value;
     
     // Debug: Verificar valores antes de enviar
     print('🔍 Creating job data:');
     print('  - Hourly Rate: \$${hourlyRate.toStringAsFixed(2)}');
     print('  - Travel Allowance: \$${(data.travelAllowance ?? 0.0).toStringAsFixed(2)}');
-    print('  - GST: \$${gstValue.toStringAsFixed(2)} (${gstPercentage.value}%)');
+    print('  - GST: \$${gstValue.toStringAsFixed(2)} (valor del master)');
     
     // Crear DtoSendJob con valores del formulario y fallbacks apropiados
     return DtoSendJob(
@@ -1008,14 +1022,14 @@ class UnifiedPostJobController extends GetxController {
       startTime: startTime ?? '08:00:00',
       endTime: endTime ?? '17:00:00',
       description: description.value.isNotEmpty ? description.value : (data.jobDescription ?? 'Job description'),
-      paymentDay: data.payDay?.day ?? 1,
+      paymentDay: data.payDay != null ? '${data.payDay!.toIso8601String().split('.')[0]}Z' : '',
       requiresSupervisorSignature: data.requiresSupervisorSignature ?? false,
       supervisorName: data.supervisorName ?? 'Supervisor',
       visibility: isPublic.value ? 'PUBLIC' : 'PRIVATE',
       paymentType: _getValidPaymentType(data.paymentFrequency),
       licenseIds: licenseIds,
-      skillCategoryIds: skillCategoryIds,
-      skillSubcategoryIds: skillSubcategoryIds,
+      jobSkills: jobSkills,
+      jobRequirementIds: jobRequirementIds,
     );
   }
 

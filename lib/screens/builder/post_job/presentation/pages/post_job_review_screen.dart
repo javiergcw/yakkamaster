@@ -187,9 +187,7 @@ class PostJobReviewScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: Text(
-                                  controller.postJobData.jobTitle ?? 
-                                  controller.postJobData.selectedSkill ?? 
-                                  "Job Title",
+                                  _getJobTitle(),
                                   style: GoogleFonts.poppins(
                                     fontSize: subtitleFontSize,
                                     fontWeight: FontWeight.bold,
@@ -337,6 +335,28 @@ class PostJobReviewScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Construye el título del job con la skill seleccionada y número de labours
+  String _getJobTitle() {
+    final selectedSkill = controller.postJobData.selectedSkill;
+    final workersNeeded = controller.postJobData.workersNeeded;
+    
+    if (selectedSkill != null && selectedSkill.isNotEmpty) {
+      final skillName = selectedSkill;
+      final workersText = workersNeeded != null && workersNeeded > 1 
+          ? '$workersNeeded labours' 
+          : '1 labour';
+      
+      return '$skillName - $workersText';
+    }
+    
+    // Fallback si no hay skill seleccionada
+    final workersText = workersNeeded != null && workersNeeded > 1 
+        ? '$workersNeeded labours' 
+        : '1 labour';
+    
+    return 'Job - $workersText';
   }
 
   Widget _buildJobDetail(

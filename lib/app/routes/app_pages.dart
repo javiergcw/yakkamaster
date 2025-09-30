@@ -25,7 +25,6 @@ import '../../screens/labour/create_profile_labour/presentation/pages/lets_be_cl
 import '../../screens/labour/create_profile_labour/presentation/pages/profile_created_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/create_profile_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/create_profile_step2_builder_screen.dart';
-import '../../screens/builder/create_profile_builder/presentation/pages/location_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/profile_photo_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/license_builder_screen.dart';
 import '../../screens/builder/create_profile_builder/presentation/pages/employee_selection_screen.dart';
@@ -116,10 +115,8 @@ import '../../screens/labour/home/presentation/pages/pdf_viewer_screen.dart';
 
 // Importar pantallas de job listings
 import '../../screens/job_listings/presentation/pages/job_listings_screen.dart';
-import '../../screens/job_listings/presentation/pages/job_details_screen.dart';
 import '../../screens/job_listings/presentation/pages/job_search_screen.dart';
 import '../../screens/job_listings/presentation/pages/job_search_results_screen.dart';
-import '../../screens/job_listings/data/dto/job_details_dto.dart';
 
 // Importar bindings
 import '../bindings/login_binding.dart';
@@ -128,6 +125,9 @@ import '../bindings/builder_binding.dart';
 import '../bindings/create_profile_binding.dart';
 import '../bindings/labour_binding.dart';
 import '../bindings/job_listings_binding.dart';
+
+// Importar controladores
+import '../../screens/job_listings/logic/controllers/job_details_screen_controller.dart';
 
 abstract class AppPages {
   static const duration = Duration(milliseconds: 500);
@@ -746,38 +746,10 @@ abstract class AppPages {
       transition: Transition.fadeIn,
     ),
     GetPage(
-      name: JobDetailsScreen.id,
+      name: '/job-details',
       page: () {
         final args = Get.arguments as Map<String, dynamic>?;
-        return JobDetailsScreen(
-          jobDetails: args?['jobDetails'] ?? JobDetailsDto(
-            id: '1',
-            title: 'Sample Job',
-            hourlyRate: 25.0,
-            location: 'Sydney, NSW',
-            dateRange: '01/01/2024 - 31/01/2024',
-            jobType: 'Casual',
-            source: 'Company Name',
-            postedDate: '01-01',
-            company: 'Company Name',
-            address: '123 Main St',
-            suburb: 'Suburb',
-            city: 'Sydney',
-            startDate: '01/01/2024',
-            time: '9:00 AM - 5:00 PM',
-            paymentExpected: 'Within 7 days',
-            aboutJob: 'Job description',
-            requirements: ['Requirement 1', 'Requirement 2'],
-            latitude: -33.8688,
-            longitude: 151.2093,
-            wageSiteAllowance: 0,
-            wageLeadingHandAllowance: 0.0,
-            wageProductivityAllowance: 0.0,
-            extrasOvertimeRate: 1.5,
-            wageHourlyRate: null,
-            travelAllowance: null,
-            gst: null,
-          ),
+        return Get.find<JobDetailsScreenController>().buildJobDetailsScreen(
           flavor: args?['flavor'],
           isFromAppliedJobs: args?['isFromAppliedJobs'] ?? false,
           isFromBuilder: args?['isFromBuilder'] ?? false,

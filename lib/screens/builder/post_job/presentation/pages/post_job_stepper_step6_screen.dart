@@ -437,33 +437,33 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
     return [
       // First column
       Expanded(
-        child: Obx(() => GestureDetector(
-          onTap: () {
-            controller.toggleRequirement(controller.jobRequirementsFromApi[i]);
-          },
+          child: Obx(() => GestureDetector(
+            onTap: () {
+              controller.toggleRequirement(controller.jobRequirementsFromApi[i].name);
+            },
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding * 0.8,
               vertical: verticalSpacing * 0.6,
             ),
             decoration: BoxDecoration(
-              color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i])
+              color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i].name)
                   ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                   : Colors.white,
               borderRadius: BorderRadius.circular(chipHeight * 0.5),
               border: Border.all(
-                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i])
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i].name)
                     ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                     : Colors.grey[300]!,
                 width: 1,
               ),
             ),
             child: Text(
-              controller.jobRequirementsFromApi[i],
+              controller.jobRequirementsFromApi[i].name,
               style: GoogleFonts.poppins(
                 fontSize: chipFontSize,
                 fontWeight: FontWeight.w500,
-                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i]) ? Colors.white : Colors.black,
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i].name) ? Colors.white : Colors.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -479,7 +479,7 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
         Expanded(
           child: Obx(() => GestureDetector(
             onTap: () {
-              controller.toggleRequirement(controller.jobRequirementsFromApi[i + 1]);
+              controller.toggleRequirement(controller.jobRequirementsFromApi[i + 1].name);
             },
             child: Container(
               padding: EdgeInsets.symmetric(
@@ -487,23 +487,23 @@ class _PostJobStepperStep6ScreenState extends State<PostJobStepperStep6Screen> {
                 vertical: verticalSpacing * 0.6,
               ),
               decoration: BoxDecoration(
-                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1])
+                color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1].name)
                     ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                     : Colors.white,
                 borderRadius: BorderRadius.circular(chipHeight * 0.5),
                 border: Border.all(
-                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1])
+                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1].name)
                       ? Color(AppFlavorConfig.getPrimaryColor(currentFlavor))
                       : Colors.grey[300]!,
                   width: 1,
                 ),
               ),
               child: Text(
-                controller.jobRequirementsFromApi[i + 1],
+                controller.jobRequirementsFromApi[i + 1].name,
                 style: GoogleFonts.poppins(
                   fontSize: chipFontSize,
                   fontWeight: FontWeight.w500,
-                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1]) ? Colors.white : Colors.black,
+                  color: controller.selectedRequirements.contains(controller.jobRequirementsFromApi[i + 1].name) ? Colors.white : Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),

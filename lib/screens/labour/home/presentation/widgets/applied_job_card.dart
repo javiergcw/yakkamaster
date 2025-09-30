@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../data/applied_job_dto.dart';
-import '../../../../job_listings/presentation/pages/job_details_screen.dart';
-import '../../../../job_listings/data/dto/job_details_dto.dart';
 import 'quick_notify_modal.dart';
 import 'timesheet_modal.dart';
 
@@ -224,49 +223,16 @@ class AppliedJobCard extends StatelessWidget {
           Center(
             child: TextButton(
               onPressed: () {
-                // Convertir AppliedJobDto a JobDetailsDto para la navegación
-                final jobDetails = JobDetailsDto(
-                  id: job.id,
-                  title: job.jobTitle,
-                  hourlyRate: 25.0,
-                  location: job.location,
-                  dateRange: '${job.appliedDate.toString().split(' ')[0]} - ${job.appliedDate.toString().split(' ')[0]}',
-                  jobType: 'Full-time',
-                  source: job.companyName,
-                  postedDate: job.appliedDate.toString().split(' ')[0],
-                  company: job.companyName,
-                  address: job.location,
-                  suburb: '',
-                  city: '',
-                  startDate: job.appliedDate.toString().split(' ')[0],
-                  time: '9:00 AM - 5:00 PM',
-                  paymentExpected: 'Within 7 days',
-                  aboutJob: 'This is a detailed description of the job position.',
-                  requirements: [
-                    'Valid driver license',
-                    'Previous experience required',
-                    'Good communication skills',
-                  ],
-                  latitude: -33.8688,
-                  longitude: 151.2093,
-                  wageSiteAllowance: 0,
-                  wageLeadingHandAllowance: 0.0,
-                  wageProductivityAllowance: 0.0,
-                  extrasOvertimeRate: 1.5,
-                  wageHourlyRate: null,
-                  travelAllowance: null,
-                  gst: null,
+                Get.toNamed(
+                  '/job-details',
+                  arguments: {
+                    'jobId': job.id,
+                    'flavor': AppFlavorConfig.currentFlavor,
+                    'isFromAppliedJobs': true,
+                    'isFromBuilder': false,
+                    'hasApplied': true,
+                  },
                 );
-                
-                                 Navigator.of(context).push(
-                   MaterialPageRoute(
-                     builder: (context) => JobDetailsScreen(
-                       jobDetails: jobDetails,
-                       flavor: AppFlavorConfig.currentFlavor,
-                       isFromAppliedJobs: true,
-                     ),
-                   ),
-                 );
               },
               child: Text(
                 'Show details',

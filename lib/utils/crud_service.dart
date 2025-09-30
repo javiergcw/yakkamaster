@@ -106,4 +106,9 @@ class CrudService {
         throw ArgumentError('Método HTTP no soportado: $method');
     }
   }
+
+  /// Actualiza un recurso con endpoint completo (sin concatenar ID)
+  Future<HttpResponse> updateWithFullEndpoint(String fullEndpoint, Map<String, dynamic> data) async {
+    return await _httpClient.put(fullEndpoint, body: data);
+  }
 }

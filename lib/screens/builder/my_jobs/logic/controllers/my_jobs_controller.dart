@@ -3,7 +3,6 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/logic/builder/use_case/jobs_use_case.dart';
 import '../../../../../features/logic/builder/models/receive/dto_receive_job.dart';
-import '../../../../../features/logic/builder/models/send/dto_send_job.dart';
 import '../../data/dto/job_dto.dart';
 
 class MyJobsController extends GetxController {
@@ -66,52 +65,48 @@ class MyJobsController extends GetxController {
 
   Future<void> updateJobVisibility(String jobId, bool isVisible) async {
     try {
-      // Para actualizar la visibilidad, necesitamos obtener el job original de la API
-      // y crear un DtoSendJob con la nueva visibilidad
-      final result = await _jobsUseCase.getJobs();
+      // Usar el nuevo método específico para actualizar visibilidad
+      final visibility = isVisible ? 'PUBLIC' : 'PRIVATE';
+      final result = await _jobsUseCase.updateJobVisibility(jobId, visibility);
       
       if (result.isSuccess && result.data != null) {
-        final originalJob = result.data!.firstWhere((job) => job.id == jobId);
+        print('Job visibility updated: ${result.data!.message}');
+        print('New visibility: ${result.data!.visibility}');
         
-        // Crear un DtoSendJob con los datos del job original y la nueva visibilidad
-        final updatedJob = DtoSendJob(
-          jobsiteId: originalJob.jobsiteId,
-          jobTypeId: originalJob.jobTypeId,
-          manyLabours: originalJob.manyLabours,
-          ongoingWork: originalJob.ongoingWork,
-          wageSiteAllowance: originalJob.wageSiteAllowance,
-          wageLeadingHandAllowance: originalJob.wageLeadingHandAllowance,
-          wageProductivityAllowance: originalJob.wageProductivityAllowance,
-          extrasOvertimeRate: originalJob.extrasOvertimeRate,
-          startDateWork: originalJob.startDateWork,
-          endDateWork: originalJob.endDateWork,
-          workSaturday: originalJob.workSaturday,
-          workSunday: originalJob.workSunday,
-          startTime: originalJob.startTime,
-          endTime: originalJob.endTime,
-          description: originalJob.description,
-          paymentDay: originalJob.paymentDay,
-          requiresSupervisorSignature: originalJob.requiresSupervisorSignature,
-          supervisorName: originalJob.supervisorName,
-          visibility: isVisible ? 'PUBLIC' : 'PRIVATE', // Solo cambiar la visibilidad
-          paymentType: originalJob.paymentType,
-          licenseIds: const [], // Estos campos no están disponibles en DtoReceiveJob
-          skillCategoryIds: const [],
-          skillSubcategoryIds: const [],
-        );
-        
-        final updateResult = await _jobsUseCase.updateJob(jobId, updatedJob);
-        
-        if (updateResult.isSuccess) {
-          await loadJobs(); // Recargar la lista
-        } else {
-          _errorMessage.value = updateResult.message ?? 'Error updating job visibility';
-        }
+        // Actualizar solo el job específico en la lista sin recargar
+        _updateJobInList(jobId, result.data!.job);
       } else {
-        _errorMessage.value = 'Error loading job details';
+        _errorMessage.value = result.message ?? 'Error updating job visibility';
       }
     } catch (e) {
       _errorMessage.value = 'Error updating job visibility: $e';
+    }
+  }
+
+  /// Actualiza un job específico en la lista sin recargar toda la lista
+  void _updateJobInList(String jobId, DtoReceiveJob updatedJob) {
+    try {
+      // Buscar el índice del job en la lista
+      final jobIndex = _jobs.indexWhere((job) => job.id == jobId);
+      
+      if (jobIndex != -1) {
+        // Convertir el job actualizado a JobDto
+        final updatedJobDto = _convertToJobDto(updatedJob);
+        
+        // Actualizar el job en la lista
+        _jobs[jobIndex] = updatedJobDto;
+        
+        // Notificar a la UI que la lista ha cambiado
+        _jobs.refresh();
+        
+        print('Job $jobId updated in list. New visibility: ${updatedJobDto.isVisible}');
+      } else {
+        print('Job $jobId not found in current list');
+      }
+    } catch (e) {
+      print('Error updating job in list: $e');
+      // Si hay error, recargar toda la lista como fallback
+      loadJobs();
     }
   }
 
@@ -165,15 +160,23 @@ Check out this job opportunity on Yakka Sports!
 
   /// Convierte DtoReceiveJob a JobDto para compatibilidad con la UI
   JobDto _convertToJobDto(DtoReceiveJob job) {
+    // Crear título con skill + número de labours
+    final skillName = _getSkillName(job);
+    final title = '${skillName} x${job.manyLabours}';
+    
+    // Usar total_wage si está disponible, sino calcular o usar wage_site_allowance como fallback
+    // El totalWage del API es un número, no incluye el símbolo de dólar
+    final totalWage = job.totalWage ?? job.wageSiteAllowance;
+    
     return JobDto(
       id: job.id,
-      title: job.description, // Usar description como título
-      rate: job.wageSiteAllowance, // Usar wage_site_allowance como rate
-      location: job.jobsiteId, // Usar jobsiteId como location
+      title: title,
+      rate: totalWage, // Usar total_wage como rate
+      location: job.jobsite?.name ?? job.jobsiteId, // Usar jobsite name si está disponible, sino jobsiteId
       startDate: _parseDate(job.startDateWork),
       endDate: _parseDate(job.endDateWork),
-      jobType: job.paymentType, // Usar paymentType como jobType
-      source: 'Builder', // Fuente fija para jobs del builder
+      jobType: job.jobType?.name ?? job.paymentType, // Usar jobType name si está disponible, sino paymentType
+      source: job.builderProfile?.displayName ?? 'Builder', // Usar builder profile name si está disponible
       postedDate: _parseDate(job.createdAt),
       isVisible: job.visibility == 'PUBLIC', // Convertir visibility a boolean
       isActive: job.isActive, // Usar el getter isActive del DtoReceiveJob
@@ -192,6 +195,28 @@ Check out this job opportunity on Yakka Sports!
   /// Formatea una fecha DateTime a string
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  /// Obtiene el nombre de la skill del job
+  String _getSkillName(DtoReceiveJob job) {
+    // Buscar en job_skills para obtener el nombre de la subcategoría
+    if (job.jobSkills.isNotEmpty) {
+      final firstSkill = job.jobSkills.first;
+      if (firstSkill.skillSubcategory != null) {
+        return firstSkill.skillSubcategory!.name;
+      }
+      if (firstSkill.skillCategory != null) {
+        return firstSkill.skillCategory!.name;
+      }
+    }
+    
+    // Fallback: usar description si no hay skills
+    if (job.description.isNotEmpty) {
+      return job.description;
+    }
+    
+    // Último fallback
+    return 'Skill';
   }
 
   /// Obtiene un job real por ID de la API

@@ -205,17 +205,20 @@ class PostJobStepperStep3Screen extends StatelessWidget {
                                 ? "Minimum wage is \$${minimumWage.toStringAsFixed(2)}"
                                 : null;
                         
+                        // Usar el valor mínimo de la API como valor por defecto
+                        final defaultValue = hourlyRate ?? minimumWage;
+                        
                         return _buildCostCard(
                           context,
                           "Wage (Hourly Rate)*",
-                          hourlyRate ?? minimumWage,
+                          defaultValue,
                           isRequired: true,
                           hasError: hasError,
                           errorMessage: errorMessage,
                           onTap: () => _showCostModal(
                             context,
                             "Wage (Hourly Rate)",
-                            hourlyRate ?? minimumWage,
+                            defaultValue,
                             controller.updateHourlyRate,
                           ),
                         );

@@ -2,6 +2,7 @@ import '../../../../utils/response_handler.dart';
 import '../services/service_labour_jobs.dart';
 import '../models/receive/dto_receive_labour_jobs.dart';
 import '../models/receive/dto_receive_labour_job.dart';
+import '../models/receive/dto_receive_job_detail.dart';
 
 /// Caso de uso para operaciones de jobs de labour
 class JobsUseCase {
@@ -167,32 +168,19 @@ class JobsUseCase {
     }
   }
 
-  /// Obtiene un job específico por ID
+  /// Obtiene un job específico por ID con detalles completos
   /// 
   /// [jobId] - ID del job a buscar
   /// Retorna un [ApiResult] con el job encontrado o null
-  Future<ApiResult<DtoReceiveLabourJob?>> getJobById(String jobId) async {
+  Future<ApiResult<DtoReceiveJobDetail?>> getJobById(String jobId) async {
     try {
-      // Obtener todos los jobs
-      final result = await getJobs();
+      // Llamar al servicio para obtener los detalles del job
+      final result = await _serviceLabourJobs.getJobById(jobId);
       
-      if (result.isSuccess && result.data != null) {
-        // Buscar por ID
-        final job = result.data!.jobs.firstWhere(
-          (job) => job.jobId == jobId,
-          orElse: () => throw StateError('Job not found'),
-        );
-        
-        return ApiResult<DtoReceiveLabourJob?>.success(job);
-      }
-      
-      return ApiResult<DtoReceiveLabourJob?>.error(
-        message: result.message ?? 'Unknown error getting job',
-        error: result.error,
-      );
+      return result;
     } catch (e) {
-      return ApiResult<DtoReceiveLabourJob?>.error(
-        message: 'Error getting job by ID $jobId: $e',
+      return ApiResult<DtoReceiveJobDetail?>.error(
+        message: 'Error in use case getting job by ID: $e',
         error: e,
       );
     }

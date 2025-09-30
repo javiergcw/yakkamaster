@@ -89,9 +89,23 @@ class JobSearchResultsScreenController extends GetxController {
       final result = await _jobsUseCase.getJobs();
       
       if (result.isSuccess && result.data != null) {
-        // Usar directamente los DtoReceiveLabourJob del API
+        // Mapear los jobs con la nueva estructura del API
         jobList.value = result.data!.jobs;
         jobCount.value = result.data!.total;
+        
+        print('JobSearchResultsScreenController.loadJobs - Loaded ${jobList.length} jobs');
+        print('JobSearchResultsScreenController.loadJobs - Total: ${jobCount.value}');
+        
+        // Debug: Verificar estructura de los jobs
+        if (jobList.isNotEmpty) {
+          final firstJob = jobList.first;
+          print('JobSearchResultsScreenController.loadJobs - First job skills: ${firstJob.skills.length}');
+          if (firstJob.skills.isNotEmpty) {
+            final firstSkill = firstJob.skills.first;
+            print('JobSearchResultsScreenController.loadJobs - First skill category: ${firstSkill.skillCategory?.name}');
+            print('JobSearchResultsScreenController.loadJobs - First skill subcategory: ${firstSkill.skillSubcategory?.name}');
+          }
+        }
       } else {
         errorMessage.value = result.message ?? 'Error loading jobs';
         jobList.clear();
@@ -202,5 +216,40 @@ class JobSearchResultsScreenController extends GetxController {
       'Aplicando: $lastSearch',
       snackPosition: SnackPosition.BOTTOM,
     );
+  }
+
+  /// Obtiene el nombre de la skill del job para el título de la card
+  String getSkillName(DtoReceiveLabourJob job) {
+    print('JobSearchResultsScreenController.getSkillName - job.skills.length: ${job.skills.length}');
+    
+    if (job.skills.isNotEmpty) {
+      final firstSkill = job.skills.first;
+      print('JobSearchResultsScreenController.getSkillName - firstSkill: ${firstSkill.toString()}');
+      
+      if (firstSkill.skillSubcategory != null) {
+        print('JobSearchResultsScreenController.getSkillName - skillSubcategory: ${firstSkill.skillSubcategory!.name}');
+        return firstSkill.skillSubcategory!.name;
+      }
+      if (firstSkill.skillCategory != null) {
+        print('JobSearchResultsScreenController.getSkillName - skillCategory: ${firstSkill.skillCategory!.name}');
+        return firstSkill.skillCategory!.name;
+      }
+    }
+    
+    // Si no hay skills, usar el título como fallback
+    if (job.title.isNotEmpty) {
+      print('JobSearchResultsScreenController.getSkillName - title: ${job.title}');
+      return job.title;
+    }
+    
+    print('JobSearchResultsScreenController.getSkillName - fallback: Skill');
+    return 'Skill';
+  }
+
+  /// Obtiene el número de labours para el título de la card
+  int getManyLabours(DtoReceiveLabourJob job) {
+    // Por ahora, usar un valor por defecto ya que no viene en la nueva estructura
+    // TODO: Verificar si este campo viene en otra parte del API
+    return 1; // Valor por defecto
   }
 }

@@ -1,5 +1,7 @@
 import '../models/receive/dto_receive_job.dart';
+import '../models/receive/dto_receive_job_visibility_update.dart';
 import '../models/send/dto_send_job.dart';
+import '../models/send/dto_send_job_visibility.dart';
 import '../services/service_jobs.dart';
 import '../../../../utils/response_handler.dart';
 
@@ -208,8 +210,7 @@ class JobsUseCase {
     String visibility = 'PUBLIC',
     String paymentType = 'WEEKLY',
     List<String> licenseIds = const [],
-    List<String> skillCategoryIds = const [],
-    List<String> skillSubcategoryIds = const [],
+    List<JobSkill> jobSkills = const [],
   }) {
     return DtoSendJob.create(
       jobsiteId: jobsiteId,
@@ -227,14 +228,45 @@ class JobsUseCase {
       startTime: startTime,
       endTime: endTime,
       description: description,
-      paymentDay: paymentDay,
+      paymentDay: paymentDay.toString(),
       requiresSupervisorSignature: requiresSupervisorSignature,
       supervisorName: supervisorName,
       visibility: visibility,
       paymentType: paymentType,
       licenseIds: licenseIds,
-      skillCategoryIds: skillCategoryIds,
-      skillSubcategoryIds: skillSubcategoryIds,
+      jobSkills: jobSkills,
     );
+  }
+
+  /// Actualiza la visibilidad de un job
+  Future<ApiResult<DtoReceiveJobVisibilityUpdate>> updateJobVisibility(String jobId, String visibility) async {
+    try {
+      // Validar visibilidad
+      if (visibility != 'PUBLIC' && visibility != 'PRIVATE') {
+        return ApiResult<DtoReceiveJobVisibilityUpdate>.error(
+          message: 'Invalid visibility value. Must be PUBLIC or PRIVATE',
+        );
+      }
+
+      // Crear DTO de visibilidad
+      final visibilityData = DtoSendJobVisibility(visibility: visibility);
+
+      // Llamar al servicio para actualizar la visibilidad
+      final result = await _serviceJobs.updateJobVisibility(jobId, visibilityData);
+      
+      if (result.isSuccess && result.data != null) {
+        print('Job visibility updated successfully for job: ${result.data!.jobId} to ${result.data!.visibility}');
+        print('Response message: ${result.data!.message}');
+      } else {
+        print('Error updating job visibility: ${result.message}');
+      }
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobVisibilityUpdate>.error(
+        message: 'Error in updateJobVisibility use case: $e',
+        error: e,
+      );
+    }
   }
 }

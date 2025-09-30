@@ -176,7 +176,7 @@ class JobListingsController {
       gst: 0,
     );
     
-    Get.toNamed(JobDetailsScreen.id, arguments: {
+    Get.toNamed('/job-details', arguments: {
       'jobDetails': jobDetails,
       'flavor': _flavor,
       'isFromAppliedJobs': false,

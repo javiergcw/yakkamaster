@@ -8,7 +8,7 @@ class JobListingsBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<JobListingsScreenController>(() => JobListingsScreenController());
-    Get.lazyPut<JobDetailsScreenController>(() => JobDetailsScreenController());
+    Get.put<JobDetailsScreenController>(JobDetailsScreenController());
     Get.lazyPut<JobSearchScreenController>(() => JobSearchScreenController());
     Get.lazyPut<JobSearchResultsScreenController>(() => JobSearchResultsScreenController());
   }
