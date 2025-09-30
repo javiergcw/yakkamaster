@@ -116,7 +116,8 @@ import '../../screens/labour/home/presentation/pages/pdf_viewer_screen.dart';
 // Importar pantallas de job listings
 import '../../screens/job_listings/presentation/pages/job_listings_screen.dart';
 import '../../screens/job_listings/presentation/pages/job_search_screen.dart';
-import '../../screens/job_listings/presentation/pages/job_search_results_screen.dart';
+import '../../screens/labour/home/presentation/pages/job_search_results_screen.dart';
+import '../../screens/labour/home/presentation/pages/labour_job_details_screen.dart';
 
 // Importar bindings
 import '../bindings/login_binding.dart';
@@ -125,6 +126,7 @@ import '../bindings/builder_binding.dart';
 import '../bindings/create_profile_binding.dart';
 import '../bindings/labour_binding.dart';
 import '../bindings/job_listings_binding.dart';
+import '../bindings/labour_job_details_binding.dart';
 
 // Importar controladores
 import '../../screens/job_listings/logic/controllers/job_details_screen_controller.dart';
@@ -756,6 +758,19 @@ abstract class AppPages {
         );
       },
       binding: JobListingsBinding(),
+      transitionDuration: duration,
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: '/labour-job-details',
+      page: () {
+        final args = Get.arguments as Map<String, dynamic>?;
+        return LabourJobDetailsScreen(
+          flavor: args?['flavor'],
+          isFromAppliedJobs: args?['isFromAppliedJobs'] ?? false,
+        );
+      },
+      binding: LabourJobDetailsBinding(),
       transitionDuration: duration,
       transition: Transition.fadeIn,
     ),

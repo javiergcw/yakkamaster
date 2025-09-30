@@ -226,14 +226,14 @@ class JobSearchResultsScreenController extends GetxController {
       final firstSkill = job.skills.first;
       print('JobSearchResultsScreenController.getSkillName - firstSkill: ${firstSkill.toString()}');
       
-      if (firstSkill.skillSubcategory != null) {
-        print('JobSearchResultsScreenController.getSkillName - skillSubcategory: ${firstSkill.skillSubcategory!.name}');
-        return firstSkill.skillSubcategory!.name;
-      }
-      if (firstSkill.skillCategory != null) {
-        print('JobSearchResultsScreenController.getSkillName - skillCategory: ${firstSkill.skillCategory!.name}');
-        return firstSkill.skillCategory!.name;
-      }
+      // Obtener skill category y subcategory
+      final skillCategory = firstSkill.skillCategory?.name ?? 'Skill';
+      final skillSubcategory = firstSkill.skillSubcategory?.name ?? 'Specialization';
+      
+      print('JobSearchResultsScreenController.getSkillName - skillCategory: $skillCategory');
+      print('JobSearchResultsScreenController.getSkillName - skillSubcategory: $skillSubcategory');
+      
+      return '$skillCategory, $skillSubcategory';
     }
     
     // Si no hay skills, usar el título como fallback
@@ -243,7 +243,7 @@ class JobSearchResultsScreenController extends GetxController {
     }
     
     print('JobSearchResultsScreenController.getSkillName - fallback: Skill');
-    return 'Skill';
+    return 'Skill, Specialization';
   }
 
   /// Obtiene el número de labours para el título de la card

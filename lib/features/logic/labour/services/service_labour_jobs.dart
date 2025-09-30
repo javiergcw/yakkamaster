@@ -3,6 +3,7 @@ import '../../../../utils/response_handler.dart';
 import '../api_labour_constants.dart';
 import '../models/receive/dto_receive_labour_jobs.dart';
 import '../models/receive/dto_receive_job_detail.dart';
+import '../models/receive/dto_receive_job_detail_response.dart';
 
 /// Servicio para operaciones de jobs de labour
 class ServiceLabourJobs {
@@ -56,6 +57,30 @@ class ServiceLabourJobs {
     } catch (e) {
       return ApiResult<DtoReceiveJobDetail>.error(
         message: 'Error getting job by ID: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene los detalles completos de un job con información de aplicación
+  Future<ApiResult<DtoReceiveJobDetailResponse>> getJobDetailWithApplication(String jobId) async {
+    try {
+      // Asegurar que el header de JWT esté configurado
+      await _crudService.headerManager.loadBearerToken();
+      
+      // Realizar petición GET al endpoint /api/v1/labour/jobs/{jobId}
+      final response = await _crudService.getById(ApiLabourConstants.jobs, jobId);
+      
+      // Procesar la respuesta y convertir a DtoReceiveJobDetailResponse
+      final result = await _responseHandler.handleResponse<DtoReceiveJobDetailResponse>(
+        response,
+        fromJson: DtoReceiveJobDetailResponse.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveJobDetailResponse>.error(
+        message: 'Error getting job detail with application: $e',
         error: e,
       );
     }

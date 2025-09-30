@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../config/app_flavor.dart';
-import '../../presentation/pages/job_search_results_screen.dart';
+import '../../../labour/home/presentation/pages/job_search_results_screen.dart';
 import '../../../../app/bindings/job_listings_binding.dart';
 
 class JobSearchScreenController extends GetxController {

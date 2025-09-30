@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../../../config/app_flavor.dart';
-import '../../../../config/constants.dart';
-import '../../logic/controllers/job_search_results_screen_controller.dart';
-import '../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
-import '../../data/dto/job_details_dto.dart';
+import '../../../../../config/app_flavor.dart';
+import '../../../../../config/constants.dart';
+import '../../../../job_listings/logic/controllers/job_search_results_screen_controller.dart';
+import '../../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
 
 class JobSearchResultsScreen extends StatefulWidget {
   static const String id = '/job-search-results';
@@ -486,71 +485,32 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
 
   void _handleViewDetails(DtoReceiveLabourJob job) async {
     print('_handleViewDetails called with job: ${job.jobId}');
+    print('_handleViewDetails - Job data: ${job.toString()}');
+    print('_handleViewDetails - Current flavor: ${controller.currentFlavor.value}');
+    
     try {
-      // Crear título con skill + número de labours (igual que en la card)
-      final skillName = controller.getSkillName(job);
-      final manyLabours = controller.getManyLabours(job);
-      final title = '${skillName} x${manyLabours}';
-      
-      // Crear JobDetailsDto directamente desde DtoReceiveLabourJob
-      final jobDetails = JobDetailsDto(
-        id: job.jobId,
-        title: title,
-        hourlyRate: job.totalWage,
-        location: job.location.isNotEmpty ? job.location : 'Location TBD',
-        dateRange: '${_formatDate(job.startDate)} - ${_formatDate(job.endDate)}',
-        jobType: job.jobType,
-        source: job.builder.displayName,
-        postedDate: _formatDate(job.createdAt),
-        company: job.builder.displayName,
-        address: job.jobsite?.address ?? 'Address TBD',
-        suburb: job.jobsite?.suburb ?? '',
-        city: job.jobsite?.suburb ?? '', // Usar suburb como city
-        startDate: _formatDate(job.startDate),
-        time: '${_formatTimeFromString(job.startDate)} - ${_formatTimeFromString(job.endDate)}',
-        paymentExpected: _formatPaymentDay(job.createdAt), // Usar createdAt como fallback
-        aboutJob: job.description.isNotEmpty ? job.description : 'Construction work position.',
-        requirements: job.skills.map((skill) => 
-          '${skill.skillCategory?.name ?? 'Skill'} - ${skill.skillSubcategory?.name ?? 'Specialization'}'
-        ).toList(),
-        latitude: job.jobsite?.latitude ?? -33.8688,
-        longitude: job.jobsite?.longitude ?? 151.2093,
-        wageSiteAllowance: 0, // No disponible en labour job
-        wageLeadingHandAllowance: 0,
-        wageProductivityAllowance: 0,
-        extrasOvertimeRate: 0,
-        wageHourlyRate: job.totalWage,
-        travelAllowance: 0,
-        gst: 0,
-      );
-      
-      Get.toNamed('/job-details', arguments: {
-        'jobDetails': jobDetails,
+      // Navegar a la pantalla de detalles específica de labour
+      // Pasar solo el jobId para que la pantalla de detalles use el use case
+      Get.toNamed('/labour-job-details', arguments: {
+        'jobId': job.jobId,
         'flavor': controller.currentFlavor.value,
         'isFromAppliedJobs': false,
-        'isFromBuilder': false,
-        'hasApplied': job.hasApplied,
       });
+      
+      print('_handleViewDetails - Navigation completed successfully');
     } catch (e) {
       print('_handleViewDetails - Error: $e');
+      print('_handleViewDetails - Error type: ${e.runtimeType}');
+      print('_handleViewDetails - Stack trace: ${StackTrace.current}');
       Get.snackbar(
         'Error',
-        'Failed to load job details: $e',
+        'Failed to navigate to job details: $e',
         snackPosition: SnackPosition.BOTTOM,
         duration: Duration(seconds: 2),
       );
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
 
-  String _formatTimeFromString(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
 
-  String _formatPaymentDay(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
 }
