@@ -9,6 +9,7 @@ class DtoReceiveLabourJob {
   final String description;
   final String location;
   final String jobType;
+  final int manyLabours;
   final String experienceLevel;
   final String status;
   final String visibility;
@@ -30,6 +31,7 @@ class DtoReceiveLabourJob {
     required this.description,
     required this.location,
     required this.jobType,
+    required this.manyLabours,
     required this.experienceLevel,
     required this.status,
     required this.visibility,
@@ -54,6 +56,7 @@ class DtoReceiveLabourJob {
       description: json['description']?.toString() ?? '',
       location: json['location']?.toString() ?? '',
       jobType: json['job_type']?.toString() ?? '',
+      manyLabours: json['many_labours'] ?? 1,
       experienceLevel: json['experience_level']?.toString() ?? '',
       status: json['status']?.toString() ?? '',
       visibility: json['visibility']?.toString() ?? '',
@@ -83,6 +86,7 @@ class DtoReceiveLabourJob {
       'description': description,
       'location': location,
       'job_type': jobType,
+      'many_labours': manyLabours,
       'experience_level': experienceLevel,
       'status': status,
       'visibility': visibility,

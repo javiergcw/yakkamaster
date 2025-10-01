@@ -248,8 +248,6 @@ class JobSearchResultsScreenController extends GetxController {
 
   /// Obtiene el número de labours para el título de la card
   int getManyLabours(DtoReceiveLabourJob job) {
-    // Por ahora, usar un valor por defecto ya que no viene en la nueva estructura
-    // TODO: Verificar si este campo viene en otra parte del API
-    return 1; // Valor por defecto
+    return job.manyLabours;
   }
 }

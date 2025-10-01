@@ -18,10 +18,35 @@ class ApplicantsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ApplicantController controller = Get.find<ApplicantController>();
+    // Asegurar que el controlador esté inicializado y registrado
+    ApplicantController controller;
+    bool isNewController = false;
+    
+    try {
+      controller = Get.find<ApplicantController>();
+      print('ApplicantsScreen.build - Controlador encontrado: ${controller.runtimeType}');
+    } catch (e) {
+      print('ApplicantsScreen.build - Controlador no encontrado, creando nuevo: $e');
+      controller = Get.put(ApplicantController());
+      isNewController = true;
+    }
+    
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
+
+    // Debug: verificar que el controlador esté funcionando
+    print('ApplicantsScreen.build - Estado del controlador:');
+    print('  - isLoading: ${controller.isLoading}');
+    print('  - errorMessage: ${controller.errorMessage}');
+    print('  - jobsiteApplicants: ${controller.jobsiteApplicants.length}');
+    print('  - isNewController: $isNewController');
+    
+    // Si no es un controlador nuevo, forzar la recarga de datos
+    if (!isNewController) {
+      print('ApplicantsScreen.build - Controlador existente, forzando recarga de datos...');
+      controller.forceReload();
+    }
 
     return Scaffold(
       backgroundColor: Colors.white,
