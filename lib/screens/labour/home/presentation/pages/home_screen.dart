@@ -237,12 +237,14 @@ class HomeScreen extends StatelessWidget {
 
     return Column(
       children: [
-        // Header (Dark Grey)
-        Container(
+        // Header (Dark Grey) con animación dinámica
+        Obx(() => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           width: double.infinity,
           padding: EdgeInsets.symmetric(
             horizontal: horizontalPadding,
-            vertical: verticalSpacing * 2.5,
+            vertical: verticalSpacing * 2.5 * controller.headerHeight.value,
           ),
           decoration: BoxDecoration(color: AppConstants.darkGreyColor),
           child: Column(
@@ -299,37 +301,57 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
 
-              SizedBox(height: verticalSpacing * 1.5),
-
-              // Search Bar
-              SearchButtonBar(
-                placeholder: "Apply and Find jobs",
-                onTap: () {
-                  print(
-                    'SearchButtonBar tapped - navigating to: ${JobSearchScreen.id}',
-                  );
-                  Get.toNamed(
-                    JobSearchScreen.id,
-                    arguments: {'flavor': controller.currentFlavor.value},
-                  );
-                },
-                horizontalPadding: horizontalPadding,
-                verticalSpacing: verticalSpacing,
-                bodyFontSize: bodyFontSize,
-                iconSize: screenWidth * 0.05,
-                flavor: controller.currentFlavor.value,
+              // Search Bar con animación de visibilidad
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                opacity: controller.showSearchBar.value ? 1.0 : 0.0,
+                child: AnimatedSlide(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  offset: controller.showSearchBar.value 
+                      ? Offset.zero 
+                      : const Offset(0, -0.5),
+                  child: controller.showSearchBar.value
+                      ? Column(
+                          children: [
+                            SizedBox(height: verticalSpacing * 1.5),
+                            SearchButtonBar(
+                              placeholder: "Apply and Find jobs",
+                              onTap: () {
+                                print(
+                                  'SearchButtonBar tapped - navigating to: ${JobSearchScreen.id}',
+                                );
+                                Get.toNamed(
+                                  JobSearchScreen.id,
+                                  arguments: {'flavor': controller.currentFlavor.value},
+                                );
+                              },
+                              horizontalPadding: horizontalPadding,
+                              verticalSpacing: verticalSpacing,
+                              bodyFontSize: bodyFontSize,
+                              iconSize: screenWidth * 0.05,
+                              flavor: controller.currentFlavor.value,
+                            ),
+                          ],
+                        )
+                      : const SizedBox.shrink(),
+                ),
               ),
             ],
           ),
-        ),
+        )),
 
         // Main Content (Scrollable)
         Expanded(
           child: NotificationListener<ScrollNotification>(
             onNotification: (ScrollNotification scrollInfo) {
-              // Controlar visibilidad de los botones flotantes basado en la posición del scroll
+              // Controlar visibilidad de los botones flotantes y header basado en la posición del scroll
               if (scrollInfo is ScrollUpdateNotification) {
                 controller.updateFloatingButtonsVisibility(
+                  scrollInfo.metrics.pixels,
+                );
+                controller.updateHeaderVisibility(
                   scrollInfo.metrics.pixels,
                 );
               }

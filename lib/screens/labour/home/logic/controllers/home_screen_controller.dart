@@ -38,6 +38,10 @@ class HomeScreenController extends GetxController {
   final ScrollController scrollController = ScrollController();
   final RxBool showFloatingButtons = true.obs;
   
+  // Control de visibilidad del search bar
+  final RxBool showSearchBar = true.obs;
+  final RxDouble headerHeight = 0.0.obs;
+  
   // Datos de ejemplo de shifts
   late final Map<String, List<Shift>> shiftsData;
   
@@ -217,5 +221,20 @@ class HomeScreenController extends GetxController {
   void updateFloatingButtonsVisibility(double scrollOffset) {
     // Mostrar botones solo cuando el scroll esté en la parte superior (offset <= 50)
     showFloatingButtons.value = scrollOffset <= 50;
+  }
+
+  // Método para actualizar la visibilidad del search bar y altura del header
+  void updateHeaderVisibility(double scrollOffset) {
+    // Ocultar search bar cuando se hace scroll hacia abajo (offset > 100)
+    showSearchBar.value = scrollOffset <= 100;
+    
+    // Ajustar altura del header dinámicamente
+    if (scrollOffset <= 100) {
+      // Header completo cuando está en la parte superior
+      headerHeight.value = 1.0;
+    } else {
+      // Header reducido cuando se hace scroll
+      headerHeight.value = 0.6;
+    }
   }
 }

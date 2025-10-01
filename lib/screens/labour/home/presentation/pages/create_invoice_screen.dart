@@ -5,11 +5,15 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../logic/controllers/create_invoice_controller.dart';
+import '../widgets/under_construction_widget.dart';
 
 class CreateInvoiceScreen extends StatelessWidget {
   static const String id = '/labour/create-invoice';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   const CreateInvoiceScreen({
     super.key,
@@ -18,6 +22,46 @@ class CreateInvoiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar y BottomNavigationBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Create Invoice',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on improving the invoice creation experience. This feature will be available soon with enhanced functionality!",
+            ),
+          ),
+        ),
+      );
+    }
+
     final CreateInvoiceController controller = Get.put(CreateInvoiceController());
     
     // Establecer el flavor en el controlador si se proporciona

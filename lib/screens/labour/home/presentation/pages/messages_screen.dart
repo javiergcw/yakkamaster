@@ -4,17 +4,84 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../logic/controllers/messages_screen_controller.dart';
+import '../../logic/controllers/home_screen_controller.dart';
+import '../widgets/under_construction_widget.dart';
 
 class MessagesScreen extends StatelessWidget {
   static const String id = '/labour/messages';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
+  
   MessagesScreen({super.key, this.flavor});
 
   final MessagesScreenController controller = Get.put(MessagesScreenController());
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con header personalizado
+    if (showUnderConstruction) {
+      return Column(
+        children: [
+          // Header personalizado para Messages
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.02,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () {
+                    // Navegar al tab Home (índice 0)
+                    Get.find<HomeScreenController>().selectedIndex.value = 0;
+                  },
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: MediaQuery.of(context).size.width * 0.06,
+                  ),
+                ),
+                SizedBox(width: MediaQuery.of(context).size.width * 0.02),
+                Text(
+                  'Messages',
+                  style: GoogleFonts.poppins(
+                    fontSize: MediaQuery.of(context).size.width * 0.055,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Widget de construcción
+          Expanded(
+            child: Container(
+              color: Colors.grey[50],
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.06,
+                    vertical: MediaQuery.of(context).size.height * 0.05,
+                  ),
+                  child: UnderConstructionWidget(
+                    flavor: flavor ?? AppFlavorConfig.currentFlavor,
+                    customMessage: "We are working on improving your messaging and communication features. This will be available soon with enhanced chat functionality!",
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     // Establecer el flavor en el controlador si se proporciona
     if (flavor != null) {
       controller.currentFlavor.value = flavor!;

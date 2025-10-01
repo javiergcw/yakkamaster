@@ -6,6 +6,7 @@ import '../../../../../config/assets_config.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../logic/controllers/edit_bank_details_controller.dart';
+import '../widgets/under_construction_widget.dart';
 
 /*
  * CONFIGURACIÓN DE VERIFICACIÓN BANCARIA:
@@ -20,6 +21,9 @@ class EditBankDetailsScreen extends StatelessWidget {
   static const String id = '/edit-bank-details';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   const EditBankDetailsScreen({
     super.key,
@@ -30,6 +34,45 @@ class EditBankDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Edit Bank Details',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on improving your bank details management. This will be available soon with enhanced financial security features!",
+            ),
+          ),
+        ),
+      );
+    }
     final EditBankDetailsController controller = Get.find<EditBankDetailsController>();
     final mediaQuery = MediaQuery.of(context);
     final screenWidth = mediaQuery.size.width;

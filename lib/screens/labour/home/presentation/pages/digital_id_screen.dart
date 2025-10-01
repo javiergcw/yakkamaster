@@ -14,11 +14,15 @@ import '../../../../../config/constants.dart';
 import '../../logic/digital_id_controller.dart';
 import '../widgets/digital_id_avatar.dart';
 import '../widgets/qr_code_widget.dart';
+import '../widgets/under_construction_widget.dart';
 
 class DigitalIdScreen extends StatelessWidget {
   static const String id = '/digital-id';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   const DigitalIdScreen({
     super.key,
@@ -52,6 +56,46 @@ class DigitalIdScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar y BottomNavigationBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Show your QR',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on enhancing your digital ID and QR code features. This will be available soon with improved functionality!",
+            ),
+          ),
+        ),
+      );
+    }
+
     final DigitalIdController controller = Get.put(DigitalIdController());
     final GlobalKey globalKey = GlobalKey();
     final mediaQuery = MediaQuery.of(context);
