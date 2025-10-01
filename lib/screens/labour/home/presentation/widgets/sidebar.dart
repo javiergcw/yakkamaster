@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
 import '../../../../../config/constants.dart';
 import '../../../../job_listings/presentation/pages/job_listings_screen.dart';
 import '../pages/wallet_screen.dart';
 import '../pages/applied_jobs_screen.dart';
-import '../pages/notifications_screen.dart';
 import '../pages/messages_screen.dart';
 import '../../data/applied_job_dto.dart';
+import '../../logic/controllers/sidebar_controller.dart';
 
-class Sidebar extends StatelessWidget {
+class Sidebar extends StatefulWidget {
   final AppFlavor? flavor;
   final VoidCallback onClose;
 
@@ -21,7 +22,26 @@ class Sidebar extends StatelessWidget {
     required this.onClose,
   });
 
-  AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
+  @override
+  State<Sidebar> createState() => _SidebarState();
+}
+
+class _SidebarState extends State<Sidebar> {
+  late SidebarController _controller;
+  
+  AppFlavor get _currentFlavor => widget.flavor ?? AppFlavorConfig.currentFlavor;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.put(SidebarController());
+  }
+
+  @override
+  void dispose() {
+    Get.delete<SidebarController>();
+    super.dispose();
+  }
 
   // Datos de ejemplo para las aplicaciones
   List<AppliedJobDto> get _appliedJobs => [
@@ -95,22 +115,58 @@ class Sidebar extends StatelessWidget {
                   SizedBox(height: verticalSpacing * 0.5),
                   
                   // User Information
-                  Text(
-                    "testing",
-                    style: GoogleFonts.poppins(
-                      fontSize: titleFontSize * 0.9,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: verticalSpacing * 0.2),
-                  Text(
-                    "testing22@gmail.com",
-                    style: GoogleFonts.poppins(
-                      fontSize: bodyFontSize * 0.9,
-                      color: Colors.grey[300],
-                    ),
-                  ),
+                  Obx(() {
+                    if (_controller.isLoading) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: screenWidth * 0.3,
+                            height: titleFontSize * 0.9,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: verticalSpacing * 0.2),
+                          Container(
+                            width: screenWidth * 0.4,
+                            height: bodyFontSize * 0.9,
+                            color: Colors.grey[400],
+                          ),
+                        ],
+                      );
+                    }
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _controller.userFullName,
+                          style: GoogleFonts.poppins(
+                            fontSize: titleFontSize * 0.9,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: verticalSpacing * 0.2),
+                        Text(
+                          _controller.userEmail,
+                          style: GoogleFonts.poppins(
+                            fontSize: bodyFontSize * 0.9,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                        if (_controller.errorMessage.isNotEmpty) ...[
+                          SizedBox(height: verticalSpacing * 0.3),
+                          Text(
+                            'Error: ${_controller.errorMessage}',
+                            style: GoogleFonts.poppins(
+                              fontSize: bodyFontSize * 0.7,
+                              color: Colors.red[300],
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  }),
                 ],
               ),
             ),
@@ -149,6 +205,19 @@ class Sidebar extends StatelessWidget {
                       iconSize: iconSize,
                     ),
                     
+                    // Refresh profile
+                    _buildMenuItem(
+                      icon: Icons.refresh,
+                      title: "Refresh profile",
+                      onTap: () {
+                        _controller.refreshProfile();
+                      },
+                      horizontalPadding: horizontalPadding,
+                      verticalSpacing: verticalSpacing,
+                      bodyFontSize: bodyFontSize,
+                      iconSize: iconSize,
+                    ),
+                    
                     // Separator
                     _buildSeparator(horizontalPadding, verticalSpacing),
                     
@@ -164,7 +233,7 @@ class Sidebar extends StatelessWidget {
                           ),
                         );
                         // Cerrar sidebar antes de navegar
-                        onClose();
+                        widget.onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -182,7 +251,7 @@ class Sidebar extends StatelessWidget {
                             builder: (context) => MessagesScreen(flavor: _currentFlavor),
                           ),
                         );
-                        onClose();
+                        widget.onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -203,7 +272,7 @@ class Sidebar extends StatelessWidget {
                             ),
                           ),
                         );
-                        onClose();
+                        widget.onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -251,7 +320,7 @@ class Sidebar extends StatelessWidget {
                           print('Error launching URL: $e');
                           _showUrlDialog(context, AppConstants.reportHarassmentUrl);
                         }
-                        onClose();
+                        widget.onClose();
                       },
                       horizontalPadding: horizontalPadding,
                       verticalSpacing: verticalSpacing,
@@ -331,14 +400,44 @@ class Sidebar extends StatelessWidget {
                 top: verticalSpacing * 0.3,
                 bottom: verticalSpacing * 0.2,
               ),
-              child: Text(
-                "Version 2.1",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: bodyFontSize * 0.8,
-                  color: Colors.grey[500],
-                ),
-              ),
+              child: Obx(() {
+                return Column(
+                  children: [
+                    if (_controller.hasLabourProfile) ...[
+                      Text(
+                        "Perfil Labour: ${_controller.isLabourProfileComplete ? 'Completo' : 'Incompleto'}",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: bodyFontSize * 0.7,
+                          color: _controller.isLabourProfileComplete ? Colors.green[600] : Colors.orange[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: verticalSpacing * 0.1),
+                    ],
+                    if (_controller.hasBuilderProfile) ...[
+                      Text(
+                        "También tienes perfil Builder",
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.poppins(
+                          fontSize: bodyFontSize * 0.7,
+                          color: Colors.blue[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: verticalSpacing * 0.1),
+                    ],
+                    Text(
+                      "Version 2.1",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: bodyFontSize * 0.8,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                );
+              }),
             ),
           ],
         ),

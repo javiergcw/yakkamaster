@@ -37,9 +37,50 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF2C2C2C), // Fondo gris oscuro
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
+        child: Obx(() {
+          if (controller.isLoading) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              ),
+            );
+          }
+
+          if (controller.errorMessage.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error',
+                    style: GoogleFonts.poppins(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    controller.errorMessage,
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: Colors.grey[400],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => controller.refreshProfile(),
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
             // Header con información del perfil
             Container(
               width: double.infinity,
@@ -51,7 +92,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   // Nombre del usuario
                   Text(
-                    "testing testing",
+                    controller.userFullName,
                     style: GoogleFonts.poppins(
                       fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
@@ -65,7 +106,7 @@ class ProfileScreen extends StatelessWidget {
                   SizedBox(height: verticalSpacing * 0.3),
                   
                   Text(
-                    "user ID #0",
+                    "user ID #${controller.userId}",
                     style: GoogleFonts.poppins(
                       fontSize: subtitleFontSize,
                       color: Colors.grey[300],
@@ -286,8 +327,8 @@ class ProfileScreen extends StatelessWidget {
             
             SizedBox(height: verticalSpacing * 2), // Espaciado al final
             ],
-          ),
-        ),
+          ));
+        }),
       ),
     );
   }

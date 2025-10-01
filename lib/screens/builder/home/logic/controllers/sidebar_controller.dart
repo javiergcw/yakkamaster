@@ -3,11 +3,10 @@ import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/constants.dart';
-import '../../../../../features/logic/builder/use_case/auth_profile_use_case.dart';
-import '../../../../../features/logic/builder/models/receive/dto_receive_auth_profile_response.dart';
+import '../../../../../features/logic/generals/use_case/auth_profile_use_case.dart';
+import '../../../../../features/logic/generals/models/receive/dto_receive_auth_profile_response.dart';
 
-class ProfileScreenController extends GetxController {
-  final RxInt selectedIndex = 3.obs; // Profile tab selected
+class SidebarController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
   
   // Caso de uso para auth profile
@@ -86,13 +85,13 @@ class ProfileScreenController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
       
-      print('ProfileScreenController.loadAuthProfile - Iniciando carga de perfil...');
+      print('SidebarController.loadAuthProfile - Iniciando carga de perfil...');
       
       final result = await _authProfileUseCase.getAuthProfile();
       
       if (result.isSuccess && result.data != null) {
         _authProfile.value = result.data!;
-        print('ProfileScreenController.loadAuthProfile - Perfil cargado exitosamente:');
+        print('SidebarController.loadAuthProfile - Perfil cargado exitosamente:');
         print('  - Usuario: ${userFullName}');
         print('  - Email: ${userEmail}');
         print('  - Rol: ${currentRole}');
@@ -100,11 +99,11 @@ class ProfileScreenController extends GetxController {
         print('  - Empresa: $builderCompanyName');
       } else {
         _errorMessage.value = result.message ?? 'Error loading profile';
-        print('ProfileScreenController.loadAuthProfile - Error: ${result.message}');
+        print('SidebarController.loadAuthProfile - Error: ${result.message}');
       }
     } catch (e) {
       _errorMessage.value = 'Error loading profile: $e';
-      print('ProfileScreenController.loadAuthProfile - Excepción: $e');
+      print('SidebarController.loadAuthProfile - Excepción: $e');
     } finally {
       _isLoading.value = false;
     }
@@ -112,7 +111,7 @@ class ProfileScreenController extends GetxController {
 
   /// Recarga el perfil de autenticación
   Future<void> refreshProfile() async {
-    print('ProfileScreenController.refreshProfile - Refrescando perfil...');
+    print('SidebarController.refreshProfile - Refrescando perfil...');
     await loadAuthProfile();
   }
 
@@ -130,19 +129,17 @@ class ProfileScreenController extends GetxController {
     };
   }
 
+  /// Maneja la ayuda (WhatsApp)
   void handleHelp() async {
-    // Crear URL de WhatsApp usando las constantes generales
     final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
 
     try {
-      // Intentar abrir WhatsApp
       if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
         await launchUrl(
           Uri.parse(whatsappUrl),
           mode: LaunchMode.externalApplication,
         );
       } else {
-        // Si no se puede abrir WhatsApp, mostrar mensaje
         Get.snackbar(
           'Error',
           'No se pudo abrir WhatsApp. Asegúrate de tener la aplicación instalada.',
@@ -151,7 +148,6 @@ class ProfileScreenController extends GetxController {
         );
       }
     } catch (e) {
-      // Manejar errores
       Get.snackbar(
         'Error',
         'Error al abrir WhatsApp: $e',
@@ -161,11 +157,11 @@ class ProfileScreenController extends GetxController {
     }
   }
 
+  /// Maneja términos y condiciones
   void handleTermsAndConditions() async {
     try {
       print('Intentando abrir URL: ${AppConstants.termsAndConditionsUrl}');
       
-      // Intentar abrir la URL directamente
       final bool launched = await launchUrl(
         Uri.parse(AppConstants.termsAndConditionsUrl),
         mode: LaunchMode.externalApplication,
@@ -190,11 +186,11 @@ class ProfileScreenController extends GetxController {
     }
   }
 
+  /// Maneja eliminación de cuenta
   void handleDeleteAccount() async {
     try {
       print('Intentando abrir URL de eliminación de cuenta: ${AppConstants.deleteAccountUrl}');
       
-      // Intentar abrir la URL directamente
       final bool launched = await launchUrl(
         Uri.parse(AppConstants.deleteAccountUrl),
         mode: LaunchMode.externalApplication,
@@ -219,23 +215,15 @@ class ProfileScreenController extends GetxController {
     }
   }
 
-  void onItemTapped(int index) {
-    selectedIndex.value = index;
-
-    if (index == 0) {
-      // Home
-      Get.offAllNamed('/builder/home', arguments: {'flavor': currentFlavor.value});
-    } else if (index == 1) {
-      // Map
-      Get.offAllNamed('/builder/map', arguments: {'flavor': currentFlavor.value});
-    } else if (index == 2) {
-      // Messages
-      Get.offAllNamed('/builder/messages', arguments: {'flavor': currentFlavor.value});
-    }
-    // Profile (index == 3) - already on this screen
-  }
-
-  void navigateToEditPersonalDetails() {
-    Get.toNamed('/builder/edit-personal-details', arguments: {'flavor': currentFlavor.value});
+  /// Maneja logout
+  void handleLogout() {
+    // TODO: Implementar logout real
+    print('Log out confirmed');
+    Get.snackbar(
+      'Logout',
+      'Logout functionality not implemented yet',
+      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+      colorText: Colors.white,
+    );
   }
 }

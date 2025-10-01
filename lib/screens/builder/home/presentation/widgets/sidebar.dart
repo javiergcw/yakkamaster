@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:get/get.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/assets_config.dart';
-import '../../../../../config/constants.dart';
 import '../pages/edit_personal_details_screen.dart';
+import '../../logic/controllers/sidebar_controller.dart';
 
 class Sidebar extends StatelessWidget {
   final AppFlavor? flavor;
@@ -17,26 +17,68 @@ class Sidebar extends StatelessWidget {
   });
 
   AppFlavor get _currentFlavor => flavor ?? AppFlavorConfig.currentFlavor;
+  
+  // Obtener el controlador del sidebar
+  SidebarController get controller => Get.put(SidebarController());
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
-    
-    // Calcular valores responsive
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
-    final titleFontSize = screenWidth * 0.055;
-    final bodyFontSize = screenWidth * 0.035;
-    final iconSize = screenWidth * 0.06;
 
     return Container(
       width: double.infinity, // Ocupar todo el ancho
       height: double.infinity,
       color: Colors.grey[900]!.withOpacity(0.95), // Fondo semi-transparente
-      child: Column(
-        children: [
+      child: Obx(() {
+        // Mostrar loading si está cargando
+        if (controller.isLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              color: Color(AppFlavorConfig.getPrimaryColor(_currentFlavor)),
+            ),
+          );
+        }
+
+        // Mostrar error si hay error
+        if (controller.errorMessage.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  color: Colors.red,
+                  size: 48,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Error',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  controller.errorMessage,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[400],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => controller.refreshProfile(),
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: [
           // Profile Information Section
           Container(
             padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -78,9 +120,9 @@ class Sidebar extends StatelessWidget {
                 
                 SizedBox(height: 16),
                 
-                // User Name
+                // User Name (Display name del builder o user full name)
                 Text(
-                  'testing builder',
+                  controller.hasBuilderProfile ? controller.builderDisplayName : controller.userFullName,
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -90,9 +132,21 @@ class Sidebar extends StatelessWidget {
                 
                 SizedBox(height: 8),
                 
-                // User ID
+                // Company (solo si tiene perfil builder y empresa)
+                if (controller.hasBuilderProfile && controller.builderCompanyName.isNotEmpty)
+                  Text(
+                    'Company: ${controller.builderCompanyName}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+                
+                // User/Builder ID
                 Text(
-                  'user ID #1321',
+                  controller.hasBuilderProfile 
+                      ? 'builder ID #${controller.builderProfileId}'
+                      : 'user ID #${controller.userId}',
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     color: Colors.grey[400],
@@ -113,18 +167,8 @@ class Sidebar extends StatelessWidget {
                   _buildMenuItem(
                     icon: Icons.help_outline,
                     title: 'Help',
-                    onTap: () async {
-                      final String whatsappUrl = 'https://wa.me/${AppConstants.whatsappSupportNumber}?text=${Uri.encodeComponent(AppConstants.whatsappSupportMessage)}';
-                      try {
-                        if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-                          await launchUrl(
-                            Uri.parse(whatsappUrl),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        }
-                      } catch (e) {
-                        print('Error al abrir WhatsApp: $e');
-                      }
+                    onTap: () {
+                      controller.handleHelp();
                       onClose();
                     },
                   ),
@@ -143,36 +187,16 @@ class Sidebar extends StatelessWidget {
                   _buildMenuItem(
                     icon: Icons.description_outlined,
                     title: 'Terms and conditions',
-                    onTap: () async {
-                      try {
-                        final bool launched = await launchUrl(
-                          Uri.parse(AppConstants.termsAndConditionsUrl),
-                          mode: LaunchMode.externalApplication,
-                        );
-                        if (!launched) {
-                          print('No se pudo abrir los términos y condiciones');
-                        }
-                      } catch (e) {
-                        print('Error al abrir términos y condiciones: $e');
-                      }
+                    onTap: () {
+                      controller.handleTermsAndConditions();
                       onClose();
                     },
                   ),
                   _buildMenuItem(
                     icon: Icons.delete_outline,
                     title: 'Delete account',
-                    onTap: () async {
-                      try {
-                        final bool launched = await launchUrl(
-                          Uri.parse(AppConstants.deleteAccountUrl),
-                          mode: LaunchMode.externalApplication,
-                        );
-                        if (!launched) {
-                          print('No se pudo abrir el formulario de eliminación de cuenta');
-                        }
-                      } catch (e) {
-                        print('Error al abrir formulario de eliminación de cuenta: $e');
-                      }
+                    onTap: () {
+                      controller.handleDeleteAccount();
                       onClose();
                     },
                   ),
@@ -195,8 +219,7 @@ class Sidebar extends StatelessWidget {
                               TextButton(
                                 onPressed: () {
                                   Navigator.of(context).pop();
-                                  // TODO: Implementar logout real
-                                  print('Log out confirmed');
+                                  controller.handleLogout();
                                   onClose();
                                 },
                                 child: Text('Log out'),
@@ -224,7 +247,8 @@ class Sidebar extends StatelessWidget {
             ),
           ),
         ],
-      ),
+        );
+      }),
     );
   }
 

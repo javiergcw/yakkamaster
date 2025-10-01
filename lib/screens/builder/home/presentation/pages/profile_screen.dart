@@ -15,49 +15,90 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenWidth = mediaQuery.size.width;
-    final screenHeight = mediaQuery.size.height;
 
     return Scaffold(
       backgroundColor: Colors.grey[900],
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-            // Profile Information Section
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        child: Obx(() {
+          if (controller.isLoading) {
+            return Center(
+              child: CircularProgressIndicator(
+                color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+              ),
+            );
+          }
+
+          if (controller.errorMessage.isNotEmpty) {
+            return Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // User Name
                   Text(
-                    'testing builder',
+                    'Error',
                     style: GoogleFonts.poppins(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Colors.red,
                     ),
                   ),
-                  
-                  SizedBox(height: 8),
-                  
-                  // Company & User ID
+                  SizedBox(height: 16),
                   Text(
-                    'Company linked: Test company by Yakka',
+                    controller.errorMessage,
                     style: GoogleFonts.poppins(
-                      fontSize: 14,
+                      fontSize: 16,
                       color: Colors.grey[400],
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  
-                  Text(
-                    'user ID #1321',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: Colors.grey[400],
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => controller.refreshProfile(),
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+              // Profile Information Section
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                child: Column(
+                  children: [
+                    // User Name (Display name del builder o user full name)
+                    Text(
+                      controller.hasBuilderProfile ? controller.builderDisplayName : controller.userFullName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
+                    
+                    SizedBox(height: 8),
+                    
+                    // Company & User ID
+                    if (controller.hasBuilderProfile && controller.builderCompanyName.isNotEmpty)
+                      Text(
+                        'Company linked: ${controller.builderCompanyName}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[400],
+                        ),
+                      ),
+                    
+                    Text(
+                      controller.hasBuilderProfile 
+                          ? 'builder ID #${controller.builderProfileId}'
+                          : 'user ID #${controller.userId}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.grey[400],
+                      ),
+                    ),
                   
                   SizedBox(height: 24),
                   
@@ -204,9 +245,10 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
             ),
-            ],
-          ),
-        ),
+              ],
+            ),
+          );
+        }),
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
     );

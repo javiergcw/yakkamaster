@@ -8,6 +8,8 @@ import '../../../../../config/constants.dart';
 import '../../../../../screens/labour/home/presentation/pages/edit_personal_details_screen.dart' as labour_edit_personal;
 import '../../../../../screens/labour/home/presentation/pages/edit_documents_screen.dart';
 import '../../../../../screens/labour/home/presentation/pages/edit_bank_details_screen.dart';
+import '../../../../../features/logic/generals/use_case/auth_profile_use_case.dart';
+import '../../../../../features/logic/generals/models/receive/dto_receive_auth_profile_response.dart';
 
 class ProfileScreenController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
@@ -15,6 +17,50 @@ class ProfileScreenController extends GetxController {
   final Rx<XFile?> selectedImage = Rx<XFile?>(null);
   final RxDouble userRating = 5.0.obs;
   final RxInt jobsCount = 0.obs;
+  
+  // Caso de uso para auth profile
+  final AuthProfileUseCase _authProfileUseCase = AuthProfileUseCase();
+  
+  // Estados reactivos para el perfil
+  final RxBool _isLoading = false.obs;
+  final RxString _errorMessage = ''.obs;
+  final Rx<DtoReceiveAuthProfileResponse?> _authProfile = Rx<DtoReceiveAuthProfileResponse?>(null);
+  
+  // Getters
+  bool get isLoading => _isLoading.value;
+  String get errorMessage => _errorMessage.value;
+  DtoReceiveAuthProfileResponse? get authProfile => _authProfile.value;
+  
+  // Getters para datos del perfil
+  String get userFullName => _authProfile.value != null 
+      ? _authProfileUseCase.getUserFullName(_authProfile.value!) 
+      : 'Usuario';
+  
+  String get userEmail => _authProfile.value != null 
+      ? _authProfileUseCase.getUserEmail(_authProfile.value!) 
+      : '';
+  
+  String get userId => _authProfile.value != null 
+      ? _authProfileUseCase.getUserId(_authProfile.value!).length > 5 
+          ? _authProfileUseCase.getUserId(_authProfile.value!).substring(0, 5)
+          : _authProfileUseCase.getUserId(_authProfile.value!)
+      : '';
+  
+  String get currentRole => _authProfile.value != null 
+      ? _authProfileUseCase.getCurrentRole(_authProfile.value!) 
+      : '';
+  
+  bool get hasBuilderProfile => _authProfile.value != null 
+      ? _authProfileUseCase.hasBuilderProfile(_authProfile.value!) 
+      : false;
+  
+  bool get hasLabourProfile => _authProfile.value != null 
+      ? _authProfileUseCase.hasLabourProfile(_authProfile.value!) 
+      : false;
+  
+  bool get isLabourProfileComplete => _authProfile.value != null 
+      ? _authProfileUseCase.getLabourProfileInfo(_authProfile.value!)['isComplete'] as bool
+      : false;
 
   @override
   void onInit() {
@@ -24,6 +70,58 @@ class ProfileScreenController extends GetxController {
     if (arguments != null && arguments['flavor'] != null) {
       currentFlavor.value = arguments['flavor'];
     }
+    // Cargar perfil automáticamente
+    loadAuthProfile();
+  }
+
+  /// Carga el perfil de autenticación del usuario
+  Future<void> loadAuthProfile() async {
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = '';
+      
+      print('ProfileScreenController.loadAuthProfile - Iniciando carga de perfil...');
+      
+      final result = await _authProfileUseCase.getAuthProfile();
+      
+      if (result.isSuccess && result.data != null) {
+        _authProfile.value = result.data!;
+        print('ProfileScreenController.loadAuthProfile - Perfil cargado exitosamente:');
+        print('  - Usuario: ${userFullName}');
+        print('  - Email: ${userEmail}');
+        print('  - Rol: ${currentRole}');
+        print('  - Tiene perfil labour: $hasLabourProfile');
+        print('  - Perfil labour completo: $isLabourProfileComplete');
+      } else {
+        _errorMessage.value = result.message ?? 'Error loading profile';
+        print('ProfileScreenController.loadAuthProfile - Error: ${result.message}');
+      }
+    } catch (e) {
+      _errorMessage.value = 'Error loading profile: $e';
+      print('ProfileScreenController.loadAuthProfile - Excepción: $e');
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  /// Recarga el perfil de autenticación
+  Future<void> refreshProfile() async {
+    print('ProfileScreenController.refreshProfile - Refrescando perfil...');
+    await loadAuthProfile();
+  }
+
+  /// Obtiene estadísticas del perfil
+  Map<String, dynamic> getProfileStats() {
+    if (_authProfile.value != null) {
+      return _authProfileUseCase.getProfileStats(_authProfile.value!);
+    }
+    return {
+      'hasBuilderProfile': false,
+      'hasLabourProfile': false,
+      'currentRole': '',
+      'builderProfileComplete': false,
+      'labourProfileComplete': false,
+    };
   }
 
   void handleHelp() async {
