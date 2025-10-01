@@ -4,11 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/expenses_controller.dart';
+import '../../../../labour/home/presentation/widgets/under_construction_widget.dart';
 
 class ExpensesScreen extends StatelessWidget {
   static const String id = '/builder/expenses';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   ExpensesScreen({super.key, this.flavor});
 
@@ -16,6 +20,46 @@ class ExpensesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Expenses',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on improving your expenses tracking and management. This will be available soon with enhanced financial analytics!",
+            ),
+          ),
+        ),
+      );
+    }
+
     // Establecer el flavor en el controlador si viene en los argumentos
     try {
       if (flavor != null) {

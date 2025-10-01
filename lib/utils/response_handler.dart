@@ -45,9 +45,14 @@ class ResponseHandler {
                   jsonList = jsonBody['results'] as List<dynamic>;
                 } else if (jsonBody.containsKey('items') && jsonBody['items'] is List) {
                   jsonList = jsonBody['items'] as List<dynamic>;
-        } else if (jsonBody.containsKey('jobs') && jsonBody['jobs'] is List) {
-          print('ResponseHandler - Found jobs key with ${(jsonBody['jobs'] as List).length} items');
-          jsonList = jsonBody['jobs'] as List<dynamic>;
+        } else if (jsonBody.containsKey('jobs')) {
+          if (jsonBody['jobs'] is List) {
+            print('ResponseHandler - Found jobs key with ${(jsonBody['jobs'] as List).length} items');
+            jsonList = jsonBody['jobs'] as List<dynamic>;
+          } else if (jsonBody['jobs'] == null) {
+            print('ResponseHandler - Found jobs key but it is null, returning empty list');
+            jsonList = <dynamic>[]; // Devolver lista vacía cuando jobs es null
+          }
         } else if (jsonBody.containsKey('jobsites') && jsonBody['jobsites'] is List) {
             jsonList = jsonBody['jobsites'] as List<dynamic>;
           } else if (jsonBody.containsKey('skills') && jsonBody['skills'] is List) {

@@ -33,25 +33,46 @@ class MyJobsController extends GetxController {
       _isLoading.value = true;
       _errorMessage.value = '';
       
+      print('MyJobsController.loadJobs - Starting to load jobs...');
       final result = await _jobsUseCase.getJobs();
       
-      if (result.isSuccess && result.data != null) {
-        // Filtrar jobs activos o archivados según el tab seleccionado
-        final filteredJobs = result.data!.where((job) {
-          if (_isActiveTab.value) {
-            return job.isActive;
-          } else {
-            return job.isClosed;
-          }
-        }).toList();
-        
-        // Convertir DtoReceiveJob a JobDto
-        final jobDtos = filteredJobs.map((job) => _convertToJobDto(job)).toList();
-        _jobs.assignAll(jobDtos);
+      print('MyJobsController.loadJobs - Result isSuccess: ${result.isSuccess}');
+      print('MyJobsController.loadJobs - Result data length: ${result.data?.length ?? 0}');
+      print('MyJobsController.loadJobs - Result message: ${result.message}');
+      
+      if (result.isSuccess) {
+        if (result.data != null && result.data!.isNotEmpty) {
+          print('MyJobsController.loadJobs - Processing ${result.data!.length} jobs...');
+          
+          // Filtrar jobs activos o archivados según el tab seleccionado
+          final filteredJobs = result.data!.where((job) {
+            if (_isActiveTab.value) {
+              return job.isActive;
+            } else {
+              return job.isClosed;
+            }
+          }).toList();
+          
+          print('MyJobsController.loadJobs - Filtered jobs: ${filteredJobs.length}');
+          
+          // Convertir DtoReceiveJob a JobDto
+          final jobDtos = filteredJobs.map((job) => _convertToJobDto(job)).toList();
+          _jobs.assignAll(jobDtos);
+          
+          print('MyJobsController.loadJobs - Final jobs count: ${_jobs.length}');
+        } else {
+          // Caso exitoso pero sin datos (jobs: null o array vacío) - no es un error
+          print('MyJobsController.loadJobs - No jobs found (successful response with null/empty jobs)');
+          _jobs.clear();
+          _errorMessage.value = ''; // Limpiar cualquier error previo
+        }
       } else {
+        // Error real de la API
+        print('MyJobsController.loadJobs - API Error: ${result.message}');
         _errorMessage.value = result.message ?? 'Error loading jobs';
       }
     } catch (e) {
+      print('MyJobsController.loadJobs - Exception: $e');
       _errorMessage.value = 'Error loading jobs: $e';
     } finally {
       _isLoading.value = false;
@@ -230,16 +251,26 @@ Check out this job opportunity on Yakka Sports!
       print('MyJobsController.getRealJobById - Result isSuccess: ${result.isSuccess}');
       print('MyJobsController.getRealJobById - Result data: ${result.data?.id}');
       print('MyJobsController.getRealJobById - Result message: ${result.message}');
+      print('MyJobsController.getRealJobById - Result error: ${result.error}');
       
       if (result.isSuccess && result.data != null) {
         print('MyJobsController.getRealJobById - Success! Returning job: ${result.data!.id}');
+        print('MyJobsController.getRealJobById - Job details:');
+        print('  - Title: ${result.data!.description}');
+        print('  - Many Labours: ${result.data!.manyLabours}');
+        print('  - Total Wage: ${result.data!.totalWage}');
+        print('  - Visibility: ${result.data!.visibility}');
+        print('  - Is Active: ${result.data!.isActive}');
         return result.data!;
       } else {
-        print('MyJobsController.getRealJobById - Job not found with ID: $jobId - ${result.message}');
+        print('MyJobsController.getRealJobById - Job not found with ID: $jobId');
+        print('MyJobsController.getRealJobById - Error message: ${result.message}');
+        print('MyJobsController.getRealJobById - Error details: ${result.error}');
         return null;
       }
     } catch (e) {
-      print('MyJobsController.getRealJobById - Error getting job by ID: $e');
+      print('MyJobsController.getRealJobById - Exception getting job by ID: $e');
+      print('MyJobsController.getRealJobById - Stack trace: ${StackTrace.current}');
       return null;
     }
   }

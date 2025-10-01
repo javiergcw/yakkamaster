@@ -20,7 +20,7 @@ class EditPersonalDetailsScreen extends StatelessWidget {
     this.flavor,
   });
 
-  final EditPersonalDetailsController controller = Get.put(EditPersonalDetailsController());
+  EditPersonalDetailsController get controller => Get.find<EditPersonalDetailsController>(tag: 'builder');
 
   // Sombras tipo tarjeta (igual que en create_profile_builder_screen)
   final List<BoxShadow> strongCardShadows = const [

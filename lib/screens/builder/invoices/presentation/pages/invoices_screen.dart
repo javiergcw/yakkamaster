@@ -6,11 +6,15 @@ import '../../../../../features/widgets/search_input_field.dart';
 import '../widgets/invoice_card.dart';
 import '../widgets/skill_filter_input.dart';
 import '../../logic/controllers/invoices_screen_controller.dart';
+import '../../../../labour/home/presentation/widgets/under_construction_widget.dart';
 
 class InvoicesScreen extends StatelessWidget {
   static const String id = '/builder/invoices';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   InvoicesScreen({
     super.key,
@@ -21,6 +25,46 @@ class InvoicesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () => Get.back(),
+          ),
+          title: Text(
+            'Invoices & Payments',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on improving your invoices and payments management. This will be available soon with enhanced financial tracking features!",
+            ),
+          ),
+        ),
+      );
+    }
+
     // Establecer flavor en el controlador
     if (flavor != null) {
       controller.currentFlavor.value = flavor!;

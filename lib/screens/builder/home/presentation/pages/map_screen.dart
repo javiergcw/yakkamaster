@@ -4,11 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../logic/controllers/map_screen_controller.dart';
+import '../../../../labour/home/presentation/widgets/under_construction_widget.dart';
 
 class MapScreen extends StatelessWidget {
   static const String id = '/builder/map';
   
   final AppFlavor? flavor;
+  
+  // Booleano para controlar si mostrar el widget de construcción o el contenido normal
+  static const bool showUnderConstruction = true;
 
   MapScreen({
     super.key,
@@ -26,6 +30,55 @@ class MapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Si está en modo construcción, mostrar el widget de construcción con AppBar
+    if (showUnderConstruction) {
+      return Scaffold(
+        backgroundColor: Colors.grey[50],
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: Colors.black,
+              size: MediaQuery.of(context).size.width * 0.06,
+            ),
+            onPressed: () {
+              print('MapScreen - Back button pressed');
+              try {
+                Get.back();
+              } catch (e) {
+                print('MapScreen - Error with Get.back(): $e');
+                // Fallback: navegar directamente al home
+                Get.offAllNamed('/builder/home', arguments: {'flavor': flavor});
+              }
+            },
+          ),
+          title: Text(
+            'Map',
+            style: GoogleFonts.poppins(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          centerTitle: true,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.06,
+              vertical: MediaQuery.of(context).size.height * 0.05,
+            ),
+            child: UnderConstructionWidget(
+              flavor: flavor ?? AppFlavorConfig.currentFlavor,
+              customMessage: "We are working on improving your map and location features. This will be available soon with enhanced mapping and navigation tools!",
+            ),
+          ),
+        ),
+      );
+    }
+
     print('=== MapScreen build called ===');
     print('Flavor: $flavor');
     

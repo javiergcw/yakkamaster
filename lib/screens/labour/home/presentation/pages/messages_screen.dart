@@ -17,10 +17,13 @@ class MessagesScreen extends StatelessWidget {
   
   MessagesScreen({super.key, this.flavor});
 
-  final MessagesScreenController controller = Get.put(MessagesScreenController());
+  late final MessagesScreenController controller;
 
   @override
   Widget build(BuildContext context) {
+    // Inicializar el controlador con tag específico para evitar conflictos
+    controller = Get.put(MessagesScreenController(), tag: 'labour_messages');
+    
     // Si está en modo construcción, mostrar el widget de construcción con header personalizado
     if (showUnderConstruction) {
       return Column(

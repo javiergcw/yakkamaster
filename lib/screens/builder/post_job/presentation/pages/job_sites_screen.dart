@@ -144,6 +144,34 @@ class JobSitesScreen extends StatelessWidget {
                           ),
                           textAlign: TextAlign.center,
                         ),
+                        SizedBox(height: verticalSpacing * 1.5),
+                        ElevatedButton.icon(
+                          onPressed: controller.handleCreateJobSite,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(
+                              AppFlavorConfig.getPrimaryColor(
+                                controller.currentFlavor.value,
+                              ),
+                            ),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: horizontalPadding * 1.5,
+                              vertical: verticalSpacing * 0.8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 1,
+                          ),
+                          icon: Icon(Icons.add, size: iconSize * 0.8),
+                          label: Text(
+                            "Create your first job site",
+                            style: GoogleFonts.poppins(
+                              fontSize: buttonFontSize * 0.9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   );

@@ -46,7 +46,20 @@ class JobDetailsScreen extends StatelessWidget {
       // El controlador ya debería haber mapeado los datos, pero por seguridad:
       return controller.convertRealJobToJobDetailsDto(controller.realJob.value!);
     } else {
-      throw Exception('No job data available - controller should load data from API');
+      // Si no hay datos disponibles, intentar procesar argumentos nuevamente
+      print('JobDetailsScreen - No data available, reprocessing arguments...');
+      controller.processArguments();
+      
+      // Verificar nuevamente después de reprocesar
+      if (controller.jobDetails.value != null) {
+        print('JobDetailsScreen - Using controller jobDetails after reprocessing: ${controller.jobDetails.value!.id}');
+        return controller.jobDetails.value!;
+      } else if (controller.realJob.value != null) {
+        print('JobDetailsScreen - Using controller realJob after reprocessing: ${controller.realJob.value!.id}');
+        return controller.convertRealJobToJobDetailsDto(controller.realJob.value!);
+      } else {
+        throw Exception('No job data available - controller should load data from API');
+      }
     }
   }
 

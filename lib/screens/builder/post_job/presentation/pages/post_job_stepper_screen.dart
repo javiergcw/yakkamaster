@@ -128,17 +128,15 @@ class PostJobStepperScreen extends StatelessWidget {
                     
                     // Título principal centrado
                     Center(
-                      child: Obx(() => Text(
-                        controller.selectedSkills.isEmpty 
-                            ? "What kind of worker do you need?"
-                            : "Selected skill",
+                      child: Text(
+                        "What kind of worker do you need?",
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth * 0.075,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                         textAlign: TextAlign.center,
-                      )),
+                      ),
                     ),
 
                     SizedBox(height: verticalSpacing * 0.5),
@@ -273,60 +271,137 @@ class PostJobStepperScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Lista de categorías principales
-                              Wrap(
-                                spacing: 8.0,
-                                runSpacing: 8.0,
-                                children: controller.filteredSkills.map((skill) {
-                                  final isSelected = controller.selectedSkills.contains(skill);
-                                  final isExpanded = controller.expandedCategories.contains(skill);
+                              // Solo mostrar categorías principales si no hay ninguna expandida
+                              if (controller.expandedCategories.isEmpty) ...[
+                                // Lista de categorías principales
+                                Wrap(
+                                  spacing: 8.0,
+                                  runSpacing: 8.0,
+                                  children: controller.filteredSkills.map((skill) {
+                                    final isExpanded = controller.expandedCategories.contains(skill);
+                                    
+                                    return GestureDetector(
+                                      onTap: () => controller.toggleCategory(skill),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isExpanded
+                                              ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                              : Colors.grey[200],
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: isExpanded ? Border.all(
+                                            color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
+                                            width: 2,
+                                          ) : null,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              skill,
+                                              style: GoogleFonts.poppins(
+                                                fontSize: screenWidth * 0.035,
+                                                color: isExpanded ? Colors.white : Colors.black87,
+                                                fontWeight: isExpanded ? FontWeight.w600 : FontWeight.w500,
+                                              ),
+                                            ),
+                                            if (isExpanded) ...[
+                                              SizedBox(width: 4),
+                                              Icon(
+                                                Icons.keyboard_arrow_down,
+                                                size: 16,
+                                                color: Colors.white,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                                
+                                // Mostrar subcategorías de todas las categorías expandidas
+                                if (controller.expandedCategories.isNotEmpty) ...[
+                                  SizedBox(height: verticalSpacing),
+                                  Text(
+                                    "Select a specific skill:",
+                                    style: GoogleFonts.poppins(
+                                      fontSize: screenWidth * 0.035 * 1.1,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  SizedBox(height: verticalSpacing * 0.5),
                                   
-                                  return GestureDetector(
-                                    onTap: () => controller.toggleCategory(skill),
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
+                                  // Mostrar todas las categorías expandidas
+                                  ...controller.expandedCategories.map((category) {
+                                    return Container(
+                                      margin: EdgeInsets.only(bottom: verticalSpacing * 0.8),
+                                      padding: EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: isSelected || isExpanded
-                                            ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
-                                            : Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(20),
-                                        border: isExpanded ? Border.all(
-                                          color: Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value)),
-                                          width: 2,
-                                        ) : null,
+                                        color: Colors.grey[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(color: Colors.grey[300]!),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            skill,
+                                            category,
                                             style: GoogleFonts.poppins(
-                                              fontSize: screenWidth * 0.035,
-                                              color: isSelected || isExpanded ? Colors.white : Colors.black87,
-                                              fontWeight: isSelected || isExpanded ? FontWeight.w600 : FontWeight.w500,
+                                              fontSize: screenWidth * 0.035 * 1.05,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
                                             ),
                                           ),
-                                          if (isExpanded) ...[
-                                            SizedBox(width: 4),
-                                            Icon(
-                                              Icons.keyboard_arrow_down,
-                                              size: 16,
-                                              color: Colors.white,
-                                            ),
-                                          ],
+                                          SizedBox(height: 8),
+                                          Wrap(
+                                            spacing: 6.0,
+                                            runSpacing: 6.0,
+                                            children: controller.getSubcategoriesForCategory(category).map((subcategory) {
+                                              final uniqueId = "${category}_$subcategory";
+                                              final isSelected = controller.selectedSkills.contains(uniqueId);
+                                              
+                                              return GestureDetector(
+                                                onTap: () => controller.toggleSubcategory(subcategory, category),
+                                                child: Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 6,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: isSelected 
+                                                        ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                                        : Colors.white,
+                                                    borderRadius: BorderRadius.circular(16),
+                                                    border: Border.all(
+                                                      color: isSelected 
+                                                          ? Color(AppFlavorConfig.getPrimaryColor(controller.currentFlavor.value))
+                                                          : Colors.grey[300]!,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    subcategory,
+                                                    style: GoogleFonts.poppins(
+                                                      fontSize: screenWidth * 0.035 * 0.9,
+                                                      color: isSelected ? Colors.white : Colors.black87,
+                                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                              
-                              // Mostrar subcategorías de todas las categorías expandidas
-                              if (controller.expandedCategories.isNotEmpty) ...[
-                                SizedBox(height: verticalSpacing),
+                                    );
+                                  }).toList(),
+                                ],
+                              ] else ...[
+                                // Mostrar solo las subcategorías de las categorías expandidas
                                 Text(
                                   "Select a specific skill:",
                                   style: GoogleFonts.poppins(
@@ -337,7 +412,7 @@ class PostJobStepperScreen extends StatelessWidget {
                                 ),
                                 SizedBox(height: verticalSpacing * 0.5),
                                 
-                                // Mostrar todas las categorías expandidas
+                                // Mostrar subcategorías de todas las categorías expandidas
                                 ...controller.expandedCategories.map((category) {
                                   return Container(
                                     margin: EdgeInsets.only(bottom: verticalSpacing * 0.8),
@@ -363,8 +438,8 @@ class PostJobStepperScreen extends StatelessWidget {
                                           spacing: 6.0,
                                           runSpacing: 6.0,
                                           children: controller.getSubcategoriesForCategory(category).map((subcategory) {
-                                            final uniqueId = "${category}_$subcategory";
-                                            final isSelected = controller.selectedSkills.contains(uniqueId);
+                                            final subUniqueId = "${category}_$subcategory";
+                                            final isSelected = controller.selectedSkills.contains(subUniqueId);
                                             
                                             return GestureDetector(
                                               onTap: () => controller.toggleSubcategory(subcategory, category),

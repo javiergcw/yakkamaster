@@ -11,7 +11,7 @@ class ProfileScreen extends StatelessWidget {
 
   ProfileScreen({super.key, this.flavor});
 
-  final ProfileScreenController controller = Get.put(ProfileScreenController());
+  ProfileScreenController get controller => Get.find<ProfileScreenController>(tag: 'builder');
 
   @override
   Widget build(BuildContext context) {

@@ -6,7 +6,6 @@ import '../../../../../features/logic/builder/models/receive/dto_receive_job.dar
 import '../../logic/controllers/my_jobs_controller.dart';
 import '../widgets/widgets.dart';
 import '../../../post_job/presentation/pages/post_job_stepper_screen.dart';
-import '../../../../job_listings/presentation/pages/job_details_screen.dart';
 import '../../../../job_listings/data/dto/job_details_dto.dart';
 
 class MyJobsScreen extends StatelessWidget {
@@ -52,6 +51,7 @@ class MyJobsScreen extends StatelessWidget {
                   );
                 }
 
+                // Verificar si hay un error real de la API
                 if (controller.errorMessage.isNotEmpty) {
                   return Center(
                     child: Column(
@@ -84,6 +84,7 @@ class MyJobsScreen extends StatelessWidget {
                   );
                 }
 
+                // Verificar si no hay jobs (estado vacío normal)
                 if (controller.jobs.isEmpty) {
                   return EmptyStateWidget(
                     flavor: flavor,
@@ -91,6 +92,7 @@ class MyJobsScreen extends StatelessWidget {
                   );
                 }
 
+                // Mostrar lista de jobs
                 return _buildJobsList(context);
               }),
             ),
@@ -342,14 +344,6 @@ class MyJobsScreen extends StatelessWidget {
     }
   }
 
-  String _formatTime(String dateString) {
-    try {
-      final date = DateTime.parse(dateString);
-      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return 'Time TBD';
-    }
-  }
 
   /// Formatea un string de tiempo en formato "HH:mm:ss" a "HH:mm"
   String _formatTimeFromString(String timeString) {

@@ -6,21 +6,116 @@ import '../widgets/sidebar.dart';
 import '../../../applicants/logic/controllers/applicant_controller.dart';
 import '../../logic/controllers/builder_home_controller.dart';
 
-class BuilderHomeScreen extends StatelessWidget {
+class BuilderHomeScreen extends StatefulWidget {
   static const String id = '/builder/home';
 
   final AppFlavor? flavor;
 
   BuilderHomeScreen({super.key, this.flavor});
 
+  @override
+  State<BuilderHomeScreen> createState() => _BuilderHomeScreenState();
+}
+
+class _BuilderHomeScreenState extends State<BuilderHomeScreen>
+    with TickerProviderStateMixin {
+  late ScrollController _scrollController;
+  late AnimationController _headerAnimationController;
+  late AnimationController _buttonAnimationController;
+  late Animation<double> _headerHeightAnimation;
+  late Animation<double> _buttonOpacityAnimation;
+  late Animation<Offset> _buttonSlideAnimation;
+
+  bool _isScrollingDown = false;
+  double _lastScrollPosition = 0;
+
   BuilderHomeController get controller => Get.find<BuilderHomeController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+
+    // Animación para el header
+    _headerAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // Animación para el botón
+    _buttonAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    // Animaciones del header
+    _headerHeightAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.7, // Reducir a 70% de la altura original
+    ).animate(CurvedAnimation(
+      parent: _headerAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Animaciones del botón
+    _buttonOpacityAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _buttonSlideAnimation = Tween<Offset>(
+      begin: Offset.zero,
+      end: const Offset(0, -1.0),
+    ).animate(CurvedAnimation(
+      parent: _buttonAnimationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  void _onScroll() {
+    final currentScrollPosition = _scrollController.position.pixels;
+    final isScrollingDown = currentScrollPosition > _lastScrollPosition;
+    final scrollThreshold = 50.0; // Umbral para activar animaciones
+
+    if (currentScrollPosition > scrollThreshold) {
+      if (isScrollingDown && !_isScrollingDown) {
+        _isScrollingDown = true;
+        _headerAnimationController.forward();
+        _buttonAnimationController.forward();
+      } else if (!isScrollingDown && _isScrollingDown) {
+        _isScrollingDown = false;
+        _headerAnimationController.reverse();
+        _buttonAnimationController.reverse();
+      }
+    } else {
+      if (_isScrollingDown) {
+        _isScrollingDown = false;
+        _headerAnimationController.reverse();
+        _buttonAnimationController.reverse();
+      }
+    }
+
+    _lastScrollPosition = currentScrollPosition;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _headerAnimationController.dispose();
+    _buttonAnimationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     // Establecer el flavor en el controlador si viene en los argumentos
     try {
-      if (flavor != null) {
-        controller.currentFlavor.value = flavor!;
+      if (widget.flavor != null) {
+        controller.currentFlavor.value = widget.flavor!;
       }
     } catch (e) {
       print('⚠️ Error setting flavor: $e');
@@ -50,6 +145,7 @@ class BuilderHomeScreen extends StatelessWidget {
                     // Main Content (Scrollable)
                     Expanded(
                       child: SingleChildScrollView(
+                        controller: _scrollController,
                         padding: EdgeInsets.only(
                           left: horizontalPadding,
                           right: horizontalPadding,
@@ -84,14 +180,25 @@ class BuilderHomeScreen extends StatelessWidget {
                   ],
                 ),
 
-                // Post a job or task Button - Fijo sobre el header
+                // Post a job or task Button - Fijo sobre el header con animaciones
                 Positioned(
                   top:
                       verticalSpacing *
                       6, // Ajustado para que se vea sobre el header
                   left: horizontalPadding,
                   right: horizontalPadding,
-                  child: _buildPostJobButton(),
+                  child: AnimatedBuilder(
+                    animation: _buttonAnimationController,
+                    builder: (context, child) {
+                      return SlideTransition(
+                        position: _buttonSlideAnimation,
+                        child: FadeTransition(
+                          opacity: _buttonOpacityAnimation,
+                          child: _buildPostJobButton(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -147,64 +254,69 @@ class BuilderHomeScreen extends StatelessWidget {
     final titleFontSize = screenWidth * 0.055;
     final profileImageSize = screenWidth * 0.12;
 
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.only(
-        left: horizontalPadding,
-        right: horizontalPadding,
-        top: verticalSpacing * 2.5, // Aumentado el padding top
-        bottom: verticalSpacing * 3, // Reducido un poco la altura
-      ),
-      decoration: BoxDecoration(
-        color: Colors.grey[800], // Cambiado a gris
-      ),
-      child: Row(
-        children: [
-          // Profile Image (circular avatar a la izquierda)
-          GestureDetector(
-            onTap: _toggleSidebar,
-            child: Container(
-              width: profileImageSize,
-              height: profileImageSize,
-              decoration: BoxDecoration(
-                color: Colors.grey[600],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: profileImageSize * 0.5,
-              ),
-            ),
+    return AnimatedBuilder(
+      animation: _headerHeightAnimation,
+      builder: (context, child) {
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.only(
+            left: horizontalPadding,
+            right: horizontalPadding,
+            top: verticalSpacing * 2.5 * _headerHeightAnimation.value, // Aplicar animación
+            bottom: verticalSpacing * 3 * _headerHeightAnimation.value, // Aplicar animación
           ),
-
-          SizedBox(width: horizontalPadding),
-
-          // App Name
-          Expanded(
-            child: Text(
-              "YAKKA",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: titleFontSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.2,
+          decoration: BoxDecoration(
+            color: Colors.grey[800], // Cambiado a gris
+          ),
+          child: Row(
+            children: [
+              // Profile Image (circular avatar a la izquierda)
+              GestureDetector(
+                onTap: _toggleSidebar,
+                child: Container(
+                  width: profileImageSize,
+                  height: profileImageSize,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: profileImageSize * 0.5,
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          // Notification Icon (en la misma fila)
-          IconButton(
-            onPressed: () => controller.navigateToNotifications(),
-            icon: Icon(
-              Icons.notifications_none_outlined,
-              color: Colors.white,
-              size: screenWidth * 0.06,
-            ),
+              SizedBox(width: horizontalPadding),
+
+              // App Name
+              Expanded(
+                child: Text(
+                  "YAKKA",
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+
+              // Notification Icon (en la misma fila)
+              IconButton(
+                onPressed: () => controller.navigateToNotifications(),
+                icon: Icon(
+                  Icons.notifications_none_outlined,
+                  color: Colors.white,
+                  size: screenWidth * 0.06,
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

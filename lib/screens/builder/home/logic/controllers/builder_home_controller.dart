@@ -45,7 +45,13 @@ class BuilderHomeController extends GetxController {
     // Navigate to different screens based on index
     if (index == 1) { // Map
       print('Navigating to MapScreen with flavor: ${currentFlavor.value}');
-      Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+      try {
+        Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+      } catch (e) {
+        print('Error navigating to map from selectTab: $e');
+        // Fallback: intentar navegación alternativa
+        Get.offAllNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+      }
     } else if (index == 2) { // Messages
       print('Navigating to MessagesScreen with flavor: ${currentFlavor.value}');
       Get.toNamed(MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
@@ -96,6 +102,12 @@ class BuilderHomeController extends GetxController {
 
   void navigateToMap() {
     print('=== navigateToMap called directly ===');
-    Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+    try {
+      Get.toNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+    } catch (e) {
+      print('Error navigating to map: $e');
+      // Fallback: intentar navegación alternativa
+      Get.offAllNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
+    }
   }
 }

@@ -5,7 +5,6 @@ import '../../screens/builder/home/logic/controllers/messages_screen_controller.
 import '../../screens/builder/home/logic/controllers/notifications_screen_controller.dart';
 import '../../screens/builder/home/logic/controllers/edit_personal_details_controller.dart';
 import '../../screens/builder/home/logic/controllers/job_sites_list_controller.dart';
-import '../../screens/builder/home/logic/controllers/map_screen_controller.dart';
 import '../../screens/builder/home/logic/controllers/worker_list_controller.dart';
 import '../../screens/builder/home/logic/controllers/chat_screen_controller.dart';
 import '../../screens/builder/post_job/logic/controllers/post_job_controller.dart';
@@ -24,10 +23,10 @@ class BuilderBinding extends Bindings {
   void dependencies() {
     // Inyectar controladores del módulo builder
     Get.lazyPut<BuilderHomeController>(() => BuilderHomeController());
-    Get.lazyPut<ProfileScreenController>(() => ProfileScreenController());
+    Get.lazyPut<ProfileScreenController>(() => ProfileScreenController(), tag: 'builder');
     Get.lazyPut<MessagesScreenController>(() => MessagesScreenController());
     Get.lazyPut<NotificationsScreenController>(() => NotificationsScreenController());
-    Get.lazyPut<EditPersonalDetailsController>(() => EditPersonalDetailsController());
+    Get.lazyPut<EditPersonalDetailsController>(() => EditPersonalDetailsController(), tag: 'builder');
     Get.lazyPut<JobSitesListController>(() => JobSitesListController());
     // Get.put<MapScreenController>(MapScreenController()); // Temporalmente comentado para debug
     Get.lazyPut<WorkerListController>(() => WorkerListController());

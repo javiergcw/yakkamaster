@@ -64,19 +64,12 @@ class ServiceJobs {
       print('ServiceJobs.getJobs - Response jsonListBody: ${response.jsonListBody}');
       
       // Procesar la respuesta y convertir a List<DtoReceiveJob>
-      // La nueva estructura es: {"jobs": [...], "message": "..."}
+      // Usar fromJsonList para manejar arrays automáticamente
       final result = await _responseHandler.handleResponse<List<DtoReceiveJob>>(
         response,
-        fromJson: (json) {
-          print('ServiceJobs.getJobs - fromJson called with keys: ${json.keys.toList()}');
-          // Extraer el array 'jobs' de la respuesta
-          if (json.containsKey('jobs') && json['jobs'] != null) {
-            final jobsList = json['jobs'] as List;
-            print('ServiceJobs.getJobs - Found jobs array with ${jobsList.length} items');
-            return jobsList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
-          }
-          print('ServiceJobs.getJobs - Jobs array not found in response');
-          throw Exception('Jobs array not found in response');
+        fromJsonList: (jsonList) {
+          print('ServiceJobs.getJobs - fromJsonList called with ${jsonList.length} items');
+          return jsonList.map((item) => DtoReceiveJob.fromJson(item as Map<String, dynamic>)).toList();
         },
       );
 
@@ -100,8 +93,10 @@ class ServiceJobs {
       final response = await _crudService.getById(ApiBuilderConstants.jobs, id);
       
       // Debug: imprimir la respuesta
+      print('ServiceJobs.getJobById - Response status: ${response.statusCode}');
       print('ServiceJobs.getJobById - Response body: ${response.body}');
       print('ServiceJobs.getJobById - Response jsonBody: ${response.jsonBody}');
+      print('ServiceJobs.getJobById - Response headers: ${response.headers}');
       
       // Procesar la respuesta y convertir a DtoReceiveJob
       // La respuesta tiene estructura: {"job": {...}, "message": "..."}
@@ -110,12 +105,29 @@ class ServiceJobs {
         response,
         fromJson: (json) {
           print('ServiceJobs.getJobById - fromJson called with keys: ${json.keys.toList()}');
+          print('ServiceJobs.getJobById - fromJson called with full json: $json');
+          
           // Extraer el objeto 'job' de la respuesta
           if (json.containsKey('job') && json['job'] != null) {
             print('ServiceJobs.getJobById - Found job key, parsing...');
-            return DtoReceiveJob.fromJson(json['job'] as Map<String, dynamic>);
+            final jobData = json['job'] as Map<String, dynamic>;
+            print('ServiceJobs.getJobById - Job data keys: ${jobData.keys.toList()}');
+            print('ServiceJobs.getJobById - Job data id: ${jobData['id']}');
+            print('ServiceJobs.getJobById - Job data description: ${jobData['description']}');
+            print('ServiceJobs.getJobById - Job data many_labours: ${jobData['many_labours']}');
+            print('ServiceJobs.getJobById - Job data total_wage: ${jobData['total_wage']}');
+            
+            try {
+              final parsedJob = DtoReceiveJob.fromJson(jobData);
+              print('ServiceJobs.getJobById - Successfully parsed job: ${parsedJob.id}');
+              return parsedJob;
+            } catch (parseError) {
+              print('ServiceJobs.getJobById - Error parsing job data: $parseError');
+              throw Exception('Error parsing job data: $parseError');
+            }
           }
           print('ServiceJobs.getJobById - Job data not found in response');
+          print('ServiceJobs.getJobById - Available keys: ${json.keys.toList()}');
           throw Exception('Job data not found in response');
         },
       );
