@@ -17,7 +17,7 @@ class RegisterCompanyController extends GetxController {
   final websiteController = TextEditingController();
   final descriptionController = TextEditingController();
   
-  // Use case para operaciones de companies
+  // Use case para crear empresas
   final MasterUseCase _masterUseCase = MasterUseCase();
   
   final Rx<String?> selectedCategory = Rx<String?>(null);
@@ -65,6 +65,71 @@ class RegisterCompanyController extends GetxController {
 
   void selectCategory(String? category) {
     selectedCategory.value = category;
+  }
+
+  /// Crea una nueva empresa usando el API
+  Future<bool> createCompany() async {
+    try {
+      print('Creating company with API...');
+      
+      // Crear el objeto DtoSendCompany con los datos del formulario
+      final companyData = DtoSendCompany(
+        name: companyNameController.text.trim(),
+        description: descriptionController.text.trim().isNotEmpty 
+            ? descriptionController.text.trim() 
+            : 'Company registered through Yakka Sports platform',
+        website: websiteController.text.trim().isNotEmpty 
+            ? websiteController.text.trim() 
+            : 'https://www.yakka.com', // URL por defecto si no se proporciona
+      );
+
+      // Validar datos antes de enviar
+      if (!companyData.isValid) {
+        Get.snackbar(
+          'Error',
+          'Los datos de la empresa no son válidos',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      if (!companyData.hasValidWebsite) {
+        Get.snackbar(
+          'Error',
+          'La URL del sitio web no es válida',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+
+      // Llamar al use case para crear la empresa
+      final result = await _masterUseCase.createCompany(companyData);
+      
+      if (result.isSuccess && result.data != null) {
+        print('Company created successfully: ${result.data!.company.name}');
+        return true;
+      } else {
+        print('Error creating company: ${result.message}');
+        Get.snackbar(
+          'Error',
+          result.message ?? 'Error creating company',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return false;
+      }
+    } catch (e) {
+      print('Exception creating company: $e');
+      Get.snackbar(
+        'Error',
+        'Error creating company: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      return false;
+    }
   }
 
   void showImageSourceDialog() {
@@ -148,11 +213,7 @@ class RegisterCompanyController extends GetxController {
       if (formKey.currentState!.validate()) {
         print('Form validation passed');
         final companyName = companyNameController.text;
-        final website = websiteController.text;
-        final description = descriptionController.text;
         print('Company name: $companyName');
-        print('Website: $website');
-        print('Description: $description');
       
         // Mostrar indicador de carga
         Get.dialog(
@@ -163,15 +224,8 @@ class RegisterCompanyController extends GetxController {
         );
         
         try {
-          // Crear el objeto de datos de la empresa
-          final companyData = DtoSendCompany(
-            name: companyName,
-            description: description.isNotEmpty ? description : 'No description provided',
-            website: website.isNotEmpty ? website : 'https://example.com',
-          );
-          
           // Crear la empresa usando el API
-          final result = await _masterUseCase.createCompany(companyData);
+          final success = await createCompany();
           
           // Cerrar el loading
           if (Get.isDialogOpen!) {
@@ -179,10 +233,8 @@ class RegisterCompanyController extends GetxController {
             Get.back();
           }
           
-          if (result.isSuccess && result.data != null) {
-            print('Company created successfully: ${result.data!.company.name}');
-            
-            // Agregar la empresa a los controladores locales para mantener la lista actualizada
+          if (success) {
+            // Agregar la empresa a los controladores locales para mantener compatibilidad
             try {
               if (sourceScreen == 'edit_personal_details') {
                 print('Trying to find EditPersonalDetailsController...');
@@ -196,8 +248,26 @@ class RegisterCompanyController extends GetxController {
                 createProfileController.addUserCompany(companyName);
               }
             } catch (e) {
-              print('Error updating local controllers: $e');
-              // Continuar aunque no se pueda actualizar los controladores locales
+              print('Error finding controller with tag: $e');
+              // Intentar obtener el controller sin tag como fallback
+              try {
+                print('Trying to find CreateProfileBuilderController without tag...');
+                final createProfileController = Get.find<CreateProfileBuilderController>();
+                print('Found controller without tag, adding company...');
+                createProfileController.addUserCompany(companyName);
+              } catch (e2) {
+                print('Error finding CreateProfileBuilderController: $e2');
+                // Intentar encontrar EditPersonalDetailsController como fallback
+                try {
+                  print('Trying to find EditPersonalDetailsController...');
+                  final editController = Get.find<EditPersonalDetailsController>();
+                  print('Found EditPersonalDetailsController, adding company...');
+                  editController.addUserCompany(companyName);
+                } catch (e3) {
+                  print('Error finding EditPersonalDetailsController: $e3');
+                  // Continuar sin agregar a controladores locales
+                }
+              }
             }
             
             // Mostrar mensaje de éxito
@@ -213,14 +283,8 @@ class RegisterCompanyController extends GetxController {
             _navigateAfterSuccess();
             
           } else {
-            print('Error creating company: ${result.message}');
-            Get.snackbar(
-              'Error',
-              'Failed to create company: ${result.message ?? 'Unknown error'}',
-              backgroundColor: Colors.red,
-              colorText: Colors.white,
-              duration: const Duration(seconds: 3),
-            );
+            // El error ya se mostró en createCompany()
+            print('Company creation failed');
           }
           
         } catch (e) {
@@ -229,13 +293,12 @@ class RegisterCompanyController extends GetxController {
             Get.back();
           }
           
-          print('Exception creating company: $e');
+          print('Exception in handleSubmit: $e');
           Get.snackbar(
             'Error',
-            'Error creating company: $e',
+            'Unexpected error: $e',
             backgroundColor: Colors.red,
             colorText: Colors.white,
-            duration: const Duration(seconds: 3),
           );
         }
       } else {

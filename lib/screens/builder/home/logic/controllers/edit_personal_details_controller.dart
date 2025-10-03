@@ -4,18 +4,89 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../features/logic/builder/use_case/builder_use_case.dart';
+import '../../../../../features/logic/builder/use_case/auth_profile_use_case.dart';
+import '../../../../../features/logic/builder/models/receive/dto_receive_auth_profile_response.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/receive/dto_receive_company.dart';
 import '../../presentation/pages/builder_home_screen.dart';
 import '../../presentation/pages/camera_with_overlay_screen.dart';
 
 class EditPersonalDetailsController extends GetxController {
   final Rx<AppFlavor> currentFlavor = AppFlavorConfig.currentFlavor.obs;
   
+  // Use cases
+  final BuilderUseCase _builderUseCase = BuilderUseCase();
+  final AuthProfileUseCase _authProfileUseCase = AuthProfileUseCase();
+  final MasterUseCase _masterUseCase = MasterUseCase();
+  
+  // Estados reactivos para el perfil
+  final RxBool _isLoading = false.obs;
+  final RxString _errorMessage = ''.obs;
+  final Rx<DtoReceiveAuthProfileResponse?> _authProfile = Rx<DtoReceiveAuthProfileResponse?>(null);
+  
+  // Variables para manejar empresas
+  final RxList<DtoReceiveCompany> availableCompanies = <DtoReceiveCompany>[].obs;
+  final RxString selectedCompanyId = ''.obs;
+  
+  // Getters
+  bool get isLoading => _isLoading.value;
+  String get errorMessage => _errorMessage.value;
+  DtoReceiveAuthProfileResponse? get authProfile => _authProfile.value;
+  
+  // Getters para datos del perfil
+  String get userFullName => _authProfile.value != null 
+      ? _authProfileUseCase.getUserFullName(_authProfile.value!) 
+      : 'Usuario';
+  
+  // Display name del builder (prioridad sobre user full name)
+  String get builderDisplayName => _authProfile.value != null 
+      ? _authProfileUseCase.getBuilderDisplayName(_authProfile.value!) 
+      : 'Usuario';
+  
+  String get userEmail => _authProfile.value != null 
+      ? _authProfileUseCase.getUserEmail(_authProfile.value!) 
+      : '';
+  
+  String get userId => _authProfile.value != null 
+      ? _authProfileUseCase.getUserId(_authProfile.value!).length > 5 
+          ? _authProfileUseCase.getUserId(_authProfile.value!).substring(0, 5)
+          : _authProfileUseCase.getUserId(_authProfile.value!)
+      : '';
+  
+  // ID del builder profile (recortado a 5 caracteres)
+  String get builderProfileId => _authProfile.value != null 
+      ? _authProfileUseCase.getBuilderProfileId(_authProfile.value!).length > 5 
+          ? _authProfileUseCase.getBuilderProfileId(_authProfile.value!).substring(0, 5)
+          : _authProfileUseCase.getBuilderProfileId(_authProfile.value!)
+      : '';
+  
+  String get currentRole => _authProfile.value != null 
+      ? _authProfileUseCase.getCurrentRole(_authProfile.value!) 
+      : '';
+  
+  String get builderCompanyName => _authProfile.value != null 
+      ? _authProfileUseCase.getBuilderCompanyName(_authProfile.value!) 
+      : 'Sin perfil de builder';
+  
+  bool get hasBuilderProfile => _authProfile.value != null 
+      ? _authProfileUseCase.hasBuilderProfile(_authProfile.value!) 
+      : false;
+  
+  bool get hasLabourProfile => _authProfile.value != null 
+      ? _authProfileUseCase.hasLabourProfile(_authProfile.value!) 
+      : false;
+  
+  bool get isBuilderProfileComplete => _authProfile.value != null 
+      ? _authProfileUseCase.getBuilderProfileInfo(_authProfile.value!)['isComplete'] as bool
+      : false;
+
   // Controllers para los campos de texto - precargados con datos actuales
-  final TextEditingController firstNameController = TextEditingController(text: 'testing');
-  final TextEditingController lastNameController = TextEditingController(text: 'builder');
-  final TextEditingController companyNameController = TextEditingController(text: 'Test company by Yakka');
-  final TextEditingController phoneController = TextEditingController(text: '2222222');
-  final TextEditingController emailController = TextEditingController(text: 'testingbuilder@gmail.com');
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController companyNameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
   
   // Variable reactiva para el nombre de empresa
   final RxString selectedCompanyName = 'Test company by Yakka'.obs;
@@ -34,6 +105,78 @@ class EditPersonalDetailsController extends GetxController {
     print('Initial profileImage.value: ${profileImage.value?.path}');
     if (Get.arguments != null && Get.arguments['flavor'] != null) {
       currentFlavor.value = Get.arguments['flavor'];
+    }
+    // Cargar perfil automáticamente
+    loadAuthProfile();
+  }
+
+  /// Carga el perfil de autenticación del usuario
+  Future<void> loadAuthProfile() async {
+    try {
+      _isLoading.value = true;
+      _errorMessage.value = '';
+      
+      print('EditPersonalDetailsController.loadAuthProfile - Iniciando carga de perfil...');
+      
+      final result = await _authProfileUseCase.getAuthProfile();
+      
+      if (result.isSuccess && result.data != null) {
+        _authProfile.value = result.data!;
+        print('EditPersonalDetailsController.loadAuthProfile - Perfil cargado exitosamente:');
+        print('  - Usuario: $userFullName');
+        print('  - Email: $userEmail');
+        print('  - Rol: $currentRole');
+        print('  - Tiene perfil builder: $hasBuilderProfile');
+        print('  - Empresa: $builderCompanyName');
+        
+        // Precargar los campos con los datos del perfil
+        _loadProfileData();
+      } else {
+        _errorMessage.value = result.message ?? 'Error loading profile';
+        print('EditPersonalDetailsController.loadAuthProfile - Error: ${result.message}');
+      }
+    } catch (e) {
+      _errorMessage.value = 'Error loading profile: $e';
+      print('EditPersonalDetailsController.loadAuthProfile - Excepción: $e');
+    } finally {
+      _isLoading.value = false;
+    }
+  }
+
+  /// Precarga los datos del perfil en los campos de texto
+  void _loadProfileData() {
+    try {
+      // Precargar datos del usuario desde el auth profile
+      if (_authProfile.value != null) {
+        final user = _authProfile.value!.user;
+        
+        // Mapear datos del usuario
+        firstNameController.text = user.firstName ?? '';
+        lastNameController.text = user.lastName ?? '';
+        emailController.text = user.email;
+        phoneController.text = user.phone ?? '';
+        
+        print('User data loaded:');
+        print('  - First name: ${user.firstName}');
+        print('  - Last name: ${user.lastName}');
+        print('  - Email: ${user.email}');
+        print('  - Phone: ${user.phone}');
+        
+        // Precargar datos del builder si existe
+        if (hasBuilderProfile && _authProfile.value!.builderProfile != null) {
+          final builderProfile = _authProfile.value!.builderProfile!;
+          companyNameController.text = builderProfile.companyName ?? '';
+          selectedCompanyName.value = builderProfile.companyName ?? '';
+          
+          print('Builder profile data loaded:');
+          print('  - Company name: ${builderProfile.companyName}');
+          print('  - Display name: ${builderProfile.displayName}');
+        }
+      }
+      
+      print('Profile data loaded successfully');
+    } catch (e) {
+      print('Error loading profile data: $e');
     }
   }
 
@@ -309,22 +452,20 @@ class EditPersonalDetailsController extends GetxController {
     }
   }
 
-  void handleSave() {
+  void handleSave() async {
     print('=== handleSave called ===');
     print('First name: "${firstNameController.text}"');
     print('Last name: "${lastNameController.text}"');
     print('Company name: "${selectedCompanyName.value}"');
     print('Email: "${emailController.text}"');
+    print('Selected company ID: "${selectedCompanyId.value}"');
     
-    // Validar campos requeridos
-    if (firstNameController.text.isEmpty || 
-        lastNameController.text.isEmpty ||
-        selectedCompanyName.value.isEmpty ||
-        emailController.text.isEmpty) {
-      print('Validation failed - missing required fields');
+    // Solo validar que se haya seleccionado una empresa válida
+    if (selectedCompanyId.value.isEmpty) {
+      print('Validation failed - no company selected');
       Get.snackbar(
         'Error',
-        'Please fill in all required fields',
+        'Please select a company',
         backgroundColor: Colors.red,
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
@@ -334,19 +475,65 @@ class EditPersonalDetailsController extends GetxController {
     
     print('Validation passed - saving changes');
     
-    // TODO: Aquí se guardarían los cambios en el backend
-    // Por ahora solo mostramos un mensaje de éxito y navegamos al home
-    Get.snackbar(
-      'Success',
-      'Personal details updated successfully',
-      backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-      colorText: Colors.white,
-      duration: const Duration(seconds: 2),
+    // Mostrar indicador de carga
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(),
+      ),
+      barrierDismissible: false,
     );
     
-    // Navegar al BuilderHomeScreen
-    print('Navigating to BuilderHomeScreen');
-    Get.offAllNamed(BuilderHomeScreen.id);
+    try {
+      // Asignar la empresa al builder usando el use case
+      final result = await _builderUseCase.assignCompanyWithValidation(selectedCompanyId.value);
+      
+      // Cerrar el loading
+      if (Get.isDialogOpen!) {
+        Get.back();
+      }
+      
+      if (result.isSuccess && result.data != null) {
+        print('Company assigned successfully: ${result.data!.builderProfile.displayName}');
+        
+        // Mostrar mensaje de éxito
+        Get.snackbar(
+          'Success',
+          'Company assigned successfully! Personal details updated.',
+          backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 2),
+        );
+        
+        // Navegar al BuilderHomeScreen
+        print('Navigating to BuilderHomeScreen');
+        Get.offAllNamed(BuilderHomeScreen.id);
+        
+      } else {
+        print('Error assigning company: ${result.message}');
+        Get.snackbar(
+          'Error',
+          result.message ?? 'Error assigning company',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
+      
+    } catch (e) {
+      // Cerrar el loading si está abierto
+      if (Get.isDialogOpen!) {
+        Get.back();
+      }
+      
+      print('Exception in handleSave: $e');
+      Get.snackbar(
+        'Error',
+        'Unexpected error: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   void navigateBack() {
@@ -369,6 +556,44 @@ class EditPersonalDetailsController extends GetxController {
       print('Updated companyNameController and selectedCompanyName with: $company');
     } catch (e) {
       print('Warning: Could not update companyNameController, it may be disposed: $e');
+    }
+  }
+
+  /// Selecciona una empresa y actualiza el companyId
+  void selectCompany(String companyName, String companyId) {
+    print('Selecting company: $companyName with ID: $companyId');
+    selectedCompanyName.value = companyName;
+    selectedCompanyId.value = companyId;
+    companyNameController.text = companyName;
+  }
+
+  /// Carga las empresas disponibles del API
+  Future<void> loadAvailableCompanies() async {
+    try {
+      print('Loading available companies...');
+      final result = await _masterUseCase.getCompaniesList();
+      
+      if (result.isSuccess && result.data != null) {
+        availableCompanies.value = result.data!;
+        print('Loaded ${availableCompanies.length} companies');
+      } else {
+        print('Error loading companies: ${result.message}');
+      }
+    } catch (e) {
+      print('Exception loading companies: $e');
+    }
+  }
+
+  /// Obtiene el ID de una empresa por su nombre
+  String? getCompanyIdByName(String companyName) {
+    try {
+      final company = availableCompanies.firstWhere(
+        (company) => company.name == companyName,
+      );
+      return company.id;
+    } catch (e) {
+      print('Company not found: $companyName');
+      return null;
     }
   }
 }

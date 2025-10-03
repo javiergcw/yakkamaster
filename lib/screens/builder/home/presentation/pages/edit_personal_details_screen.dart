@@ -52,9 +52,13 @@ class EditPersonalDetailsScreen extends StatelessWidget {
           child: CompanySelectionDialogV2(
             flavor: controller.currentFlavor.value,
             onCompanySelected: (String company) {
-              print('Company selected: $company');
+              print('Company selected (fallback): $company');
               controller.companyNameController.text = company;
               controller.selectedCompanyName.value = company;
+            },
+            onCompanySelectedWithId: (String company, String companyId) {
+              print('Company selected with ID: $company (ID: $companyId)');
+              controller.selectCompany(company, companyId);
             },
             onRegisterNewCompany: () {
               print('Register new company tapped');

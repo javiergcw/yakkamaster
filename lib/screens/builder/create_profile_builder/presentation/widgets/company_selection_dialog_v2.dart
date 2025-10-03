@@ -7,6 +7,7 @@ import '../../../../../features/logic/masters/models/receive/dto_receive_company
 class CompanySelectionDialogV2 extends StatefulWidget {
   final AppFlavor? flavor;
   final Function(String) onCompanySelected;
+  final Function(String, String)? onCompanySelectedWithId; // Nueva función que incluye ID
   final Function() onRegisterNewCompany;
   final List<String>? additionalCompanies;
 
@@ -14,6 +15,7 @@ class CompanySelectionDialogV2 extends StatefulWidget {
     super.key,
     this.flavor,
     required this.onCompanySelected,
+    this.onCompanySelectedWithId,
     required this.onRegisterNewCompany,
     this.additionalCompanies,
   });
@@ -334,7 +336,26 @@ class _CompanySelectionDialogV2State extends State<CompanySelectionDialogV2> {
         return GestureDetector(
           onTap: () {
             Navigator.pop(context);
-            widget.onCompanySelected(_filteredCompanies[index]);
+            // Buscar la empresa en la lista de empresas del API para obtener el ID
+            final companyName = _filteredCompanies[index];
+            final company = _apiCompanies.firstWhere(
+              (company) => company.name == companyName,
+              orElse: () => DtoReceiveCompany(
+                id: '', // ID vacío para empresas adicionales
+                name: companyName,
+                description: '',
+                website: '',
+                createdAt: '',
+                updatedAt: '',
+              ),
+            );
+            
+            // Si tiene ID, usar la función con ID, sino usar la función básica
+            if (company.id.isNotEmpty && widget.onCompanySelectedWithId != null) {
+              widget.onCompanySelectedWithId!(companyName, company.id);
+            } else {
+              widget.onCompanySelected(companyName);
+            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),

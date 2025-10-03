@@ -182,7 +182,6 @@ class RegisterNewCompanyScreen extends StatelessWidget {
                     },
                     type: ButtonType.primary,
                     flavor: controller.currentFlavor.value,
-                    showShadow: false,
                   ),
                 ),
               ),
