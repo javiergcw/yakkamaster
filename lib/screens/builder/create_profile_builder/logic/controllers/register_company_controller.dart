@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../../config/app_flavor.dart';
+import '../../../../../features/logic/masters/use_case/master_use_case.dart';
+import '../../../../../features/logic/masters/models/send/dto_send_company.dart';
 import 'create_profile_builder_controller.dart';
 import '../../../../builder/home/presentation/pages/builder_home_screen.dart';
 import '../../../../builder/home/logic/controllers/edit_personal_details_controller.dart';
@@ -14,6 +16,9 @@ class RegisterCompanyController extends GetxController {
   final abnController = TextEditingController();
   final websiteController = TextEditingController();
   final descriptionController = TextEditingController();
+  
+  // Use case para operaciones de companies
+  final MasterUseCase _masterUseCase = MasterUseCase();
   
   final Rx<String?> selectedCategory = Rx<String?>(null);
   final List<String> categories = [
@@ -134,7 +139,7 @@ class RegisterCompanyController extends GetxController {
     }
   }
 
-  void handleSubmit() {
+  void handleSubmit() async {
     print('=== handleSubmit called ===');
     print('Form key current state: ${formKey.currentState}');
     
@@ -143,119 +148,108 @@ class RegisterCompanyController extends GetxController {
       if (formKey.currentState!.validate()) {
         print('Form validation passed');
         final companyName = companyNameController.text;
+        final website = websiteController.text;
+        final description = descriptionController.text;
         print('Company name: $companyName');
+        print('Website: $website');
+        print('Description: $description');
       
-      // Mostrar indicador de carga
-      Get.dialog(
-        const Center(
-          child: CircularProgressIndicator(),
-        ),
-        barrierDismissible: false,
-      );
-      
-      // Simular un pequeño delay para mostrar el loading
-      Future.delayed(const Duration(milliseconds: 500), () {
-        // Cerrar el loading
-        if (Get.isDialogOpen!) {
-          print('Closing loading dialog');
-          Get.back();
-        }
+        // Mostrar indicador de carga
+        Get.dialog(
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
+          barrierDismissible: false,
+        );
         
-        // Obtener el controller principal y agregar la empresa
         try {
-          if (sourceScreen == 'edit_personal_details') {
-            print('Trying to find EditPersonalDetailsController...');
-            final editController = Get.find<EditPersonalDetailsController>();
-            print('Found EditPersonalDetailsController, adding company...');
-            editController.addUserCompany(companyName);
-          } else {
-            print('Trying to find CreateProfileBuilderController with tag...');
-            final createProfileController = Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
-            print('Found controller with tag, adding company...');
-            createProfileController.addUserCompany(companyName);
-          }
-          
-          // Mostrar mensaje de éxito
-          Get.snackbar(
-            'Success',
-            'Company "$companyName" registered successfully! Redirecting to home...',
-            backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-            colorText: Colors.black,
-            duration: const Duration(seconds: 2),
+          // Crear el objeto de datos de la empresa
+          final companyData = DtoSendCompany(
+            name: companyName,
+            description: description.isNotEmpty ? description : 'No description provided',
+            website: website.isNotEmpty ? website : 'https://example.com',
           );
           
-          // Navegar según la pantalla de origen
-          _navigateAfterSuccess();
+          // Crear la empresa usando el API
+          final result = await _masterUseCase.createCompany(companyData);
           
-        } catch (e) {
-          print('Error finding controller with tag: $e');
-          // Intentar obtener el controller sin tag como fallback
-          try {
-            print('Trying to find CreateProfileBuilderController without tag...');
-            final createProfileController = Get.find<CreateProfileBuilderController>();
-            print('Found controller without tag, adding company...');
-            createProfileController.addUserCompany(companyName);
+          // Cerrar el loading
+          if (Get.isDialogOpen!) {
+            print('Closing loading dialog');
+            Get.back();
+          }
+          
+          if (result.isSuccess && result.data != null) {
+            print('Company created successfully: ${result.data!.company.name}');
             
+            // Agregar la empresa a los controladores locales para mantener la lista actualizada
+            try {
+              if (sourceScreen == 'edit_personal_details') {
+                print('Trying to find EditPersonalDetailsController...');
+                final editController = Get.find<EditPersonalDetailsController>();
+                print('Found EditPersonalDetailsController, adding company...');
+                editController.addUserCompany(companyName);
+              } else {
+                print('Trying to find CreateProfileBuilderController with tag...');
+                final createProfileController = Get.find<CreateProfileBuilderController>(tag: 'builder_profile');
+                print('Found controller with tag, adding company...');
+                createProfileController.addUserCompany(companyName);
+              }
+            } catch (e) {
+              print('Error updating local controllers: $e');
+              // Continuar aunque no se pueda actualizar los controladores locales
+            }
+            
+            // Mostrar mensaje de éxito
             Get.snackbar(
               'Success',
-              'Company "$companyName" registered successfully! Redirecting to home...',
+              'Company "$companyName" registered successfully! Redirecting...',
               backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-              colorText: Colors.black,
+              colorText: Colors.white,
               duration: const Duration(seconds: 2),
             );
             
             // Navegar según la pantalla de origen
             _navigateAfterSuccess();
             
-          } catch (e2) {
-            print('Error finding CreateProfileBuilderController: $e2');
-            // Intentar encontrar EditPersonalDetailsController como fallback
-            try {
-              print('Trying to find EditPersonalDetailsController...');
-              final editController = Get.find<EditPersonalDetailsController>();
-              print('Found EditPersonalDetailsController, adding company...');
-              editController.addUserCompany(companyName);
-              
-              Get.snackbar(
-                'Success',
-                'Company "$companyName" registered successfully! Redirecting to home...',
-                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-                colorText: Colors.black,
-                duration: const Duration(seconds: 2),
-              );
-              
-              // Navegar directamente al BuilderHomeScreen
-              Get.offAllNamed(BuilderHomeScreen.id);
-              
-            } catch (e3) {
-              print('Error finding EditPersonalDetailsController: $e3');
-              // Si no se puede encontrar ningún controlador, al menos mostrar éxito y navegar al home
-              Get.snackbar(
-                'Success',
-                'Company "$companyName" registered successfully! Redirecting to home...',
-                backgroundColor: Color(AppFlavorConfig.getPrimaryColor(currentFlavor.value)),
-                colorText: Colors.black,
-                duration: const Duration(seconds: 2),
-              );
-              
-              // Navegar directamente al BuilderHomeScreen
-              Get.offAllNamed(BuilderHomeScreen.id);
-            }
+          } else {
+            print('Error creating company: ${result.message}');
+            Get.snackbar(
+              'Error',
+              'Failed to create company: ${result.message ?? 'Unknown error'}',
+              backgroundColor: Colors.red,
+              colorText: Colors.white,
+              duration: const Duration(seconds: 3),
+            );
           }
+          
+        } catch (e) {
+          // Cerrar el loading si está abierto
+          if (Get.isDialogOpen!) {
+            Get.back();
+          }
+          
+          print('Exception creating company: $e');
+          Get.snackbar(
+            'Error',
+            'Error creating company: $e',
+            backgroundColor: Colors.red,
+            colorText: Colors.white,
+            duration: const Duration(seconds: 3),
+          );
         }
-      });
-    } else {
-      print('Form validation failed - checking field values:');
-      print('Company name: "${companyNameController.text}"');
-      print('ABN: "${abnController.text}"');
-      Get.snackbar(
-        'Error',
-        'Please fill in all required fields (Company Name and ABN)',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        duration: const Duration(seconds: 3),
-      );
-    }
+      } else {
+        print('Form validation failed - checking field values:');
+        print('Company name: "${companyNameController.text}"');
+        print('ABN: "${abnController.text}"');
+        Get.snackbar(
+          'Error',
+          'Please fill in all required fields (Company Name and ABN)',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+        );
+      }
     } else {
       print('Form key is null!');
       Get.snackbar(

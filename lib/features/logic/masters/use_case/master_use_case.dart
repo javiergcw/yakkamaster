@@ -8,6 +8,10 @@ import '../models/receive/dto_receive_skill.dart';
 import '../models/receive/dto_receive_payment_constant.dart';
 import '../models/receive/dto_receive_job_requirement.dart';
 import '../models/receive/dto_receive_job_type.dart';
+import '../models/receive/dto_receive_company.dart';
+import '../models/receive/dto_receive_companies_response.dart';
+import '../models/send/dto_send_company.dart';
+import '../models/receive/dto_receive_create_company_response.dart';
 
 /// Caso de uso para operaciones de masters
 class MasterUseCase {
@@ -484,5 +488,98 @@ class MasterUseCase {
   /// Retorna un [ApiResult] con los tipos para visa de trabajo y vacaciones
   Future<ApiResult<List<DtoReceiveJobType>>> getWorkingHolidayJobTypes({bool activeOnly = true}) async {
     return getJobTypesByEmploymentType('working_holiday', activeOnly: activeOnly);
+  }
+
+  /// Obtiene las empresas disponibles
+  /// 
+  /// Retorna un [ApiResult] con la respuesta completa de empresas
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceiveCompaniesResponse>> getCompanies() async {
+    try {
+      // Llamar al servicio para obtener las empresas
+      final result = await _serviceMaster.getCompanies();
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveCompaniesResponse>.error(
+        message: 'Error en el caso de uso al obtener empresas: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene solo las empresas disponibles (lista filtrada)
+  /// 
+  /// Retorna un [ApiResult] con la lista de empresas
+  /// o un error si la operación falla
+  Future<ApiResult<List<DtoReceiveCompany>>> getCompaniesList() async {
+    try {
+      // Obtener la respuesta completa de empresas
+      final result = await getCompanies();
+      
+      if (result.isSuccess && result.data != null && result.data!.hasCompanies) {
+        // Retornar solo la lista de empresas
+        return ApiResult<List<DtoReceiveCompany>>.success(result.data!.companies!);
+      }
+      
+      return ApiResult<List<DtoReceiveCompany>>.error(
+        message: result.message ?? 'No se encontraron empresas disponibles',
+        error: result.error,
+      );
+    } catch (e) {
+      return ApiResult<List<DtoReceiveCompany>>.error(
+        message: 'Error al obtener lista de empresas: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Crea una nueva empresa
+  /// 
+  /// [companyData] - Datos de la empresa a crear
+  /// Retorna un [ApiResult] con la respuesta de creación
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceiveCreateCompanyResponse>> createCompany(DtoSendCompany companyData) async {
+    try {
+      // Llamar al servicio para crear la empresa
+      final result = await _serviceMaster.createCompany(companyData);
+      
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveCreateCompanyResponse>.error(
+        message: 'Error en el caso de uso al crear empresa: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Crea una nueva empresa con validación adicional
+  /// 
+  /// [name] - Nombre de la empresa
+  /// [description] - Descripción de la empresa
+  /// [website] - Sitio web de la empresa
+  /// Retorna un [ApiResult] con la respuesta de creación
+  /// o un error si la operación falla
+  Future<ApiResult<DtoReceiveCreateCompanyResponse>> createCompanyWithData({
+    required String name,
+    required String description,
+    required String website,
+  }) async {
+    try {
+      // Crear el objeto de datos de la empresa
+      final companyData = DtoSendCompany(
+        name: name,
+        description: description,
+        website: website,
+      );
+
+      // Llamar al método de creación
+      return await createCompany(companyData);
+    } catch (e) {
+      return ApiResult<DtoReceiveCreateCompanyResponse>.error(
+        message: 'Error al crear empresa con datos: $e',
+        error: e,
+      );
+    }
   }
 }

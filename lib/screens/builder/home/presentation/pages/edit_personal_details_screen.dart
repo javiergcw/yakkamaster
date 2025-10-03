@@ -5,7 +5,7 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../features/widgets/custom_button.dart';
 import '../../../../../features/widgets/custom_text_field.dart';
 import '../../../../../features/widgets/phone_input.dart';
-import '../../../create_profile_builder/presentation/widgets/company_selection_dialog.dart';
+import '../../../create_profile_builder/presentation/widgets/company_selection_dialog_v2.dart';
 import '../../../create_profile_builder/presentation/widgets/profile_image_section.dart';
 import '../../../create_profile_builder/presentation/pages/register_new_company_screen.dart';
 import '../../logic/controllers/edit_personal_details_controller.dart';
@@ -49,7 +49,7 @@ class EditPersonalDetailsScreen extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          child: CompanySelectionDialog(
+          child: CompanySelectionDialogV2(
             flavor: controller.currentFlavor.value,
             onCompanySelected: (String company) {
               print('Company selected: $company');
@@ -227,17 +227,12 @@ class EditPersonalDetailsScreen extends StatelessWidget {
 
                     SizedBox(height: MediaQuery.of(context).viewInsets.bottom + verticalSpacing * 3),
 
-                    // Botón Save con sombra personalizada
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: strongCardShadows,
-                      ),
-                      child: CustomButton(
-                        text: "Save Changes",
-                        onPressed: _handleSave,
-                        isLoading: false,
-                      ),
+                    // Botón Save sin sombra
+                    CustomButton(
+                      text: "Save Changes",
+                      onPressed: _handleSave,
+                      isLoading: false,
+                      showShadow: false,
                     ),
 
                     SizedBox(height: verticalSpacing * 2),

@@ -5,6 +5,10 @@ import '../../../../../config/app_flavor.dart';
 import '../../../../../config/constants.dart';
 import '../../../../../features/logic/builder/use_case/auth_profile_use_case.dart';
 import '../../../../../features/logic/builder/models/receive/dto_receive_auth_profile_response.dart';
+import '../../presentation/pages/builder_home_screen.dart';
+import '../../presentation/pages/map_screen.dart';
+import '../../presentation/pages/messages_screen.dart' as builder_messages;
+import '../../presentation/pages/edit_personal_details_screen.dart';
 
 class ProfileScreenController extends GetxController {
   final RxInt selectedIndex = 3.obs; // Profile tab selected
@@ -224,18 +228,18 @@ class ProfileScreenController extends GetxController {
 
     if (index == 0) {
       // Home
-      Get.offAllNamed('/builder/home', arguments: {'flavor': currentFlavor.value});
+      Get.offAllNamed(BuilderHomeScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 1) {
       // Map
-      Get.offAllNamed('/builder/map', arguments: {'flavor': currentFlavor.value});
+      Get.offAllNamed(MapScreen.id, arguments: {'flavor': currentFlavor.value});
     } else if (index == 2) {
       // Messages
-      Get.offAllNamed('/builder/messages', arguments: {'flavor': currentFlavor.value});
+      Get.offAllNamed(builder_messages.MessagesScreen.id, arguments: {'flavor': currentFlavor.value});
     }
     // Profile (index == 3) - already on this screen
   }
 
   void navigateToEditPersonalDetails() {
-    Get.toNamed('/builder/edit-personal-details', arguments: {'flavor': currentFlavor.value});
+    Get.toNamed(EditPersonalDetailsScreen.id, arguments: {'flavor': currentFlavor.value});
   }
 }

@@ -9,6 +9,9 @@ import '../models/receive/dto_receive_skill.dart';
 import '../models/receive/dto_receive_payment_constant.dart';
 import '../models/receive/dto_receive_job_requirement.dart';
 import '../models/receive/dto_receive_job_type.dart';
+import '../models/receive/dto_receive_companies_response.dart';
+import '../models/send/dto_send_company.dart';
+import '../models/receive/dto_receive_create_company_response.dart';
 
 /// Servicio para operaciones de masters del API
 class ServiceMaster {
@@ -269,6 +272,70 @@ class ServiceMaster {
     } catch (e) {
       return ApiResult<DtoReceiveJobTypes>.error(
         message: 'Error getting job types: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Obtiene las empresas disponibles
+  Future<ApiResult<DtoReceiveCompaniesResponse>> getCompanies() async {
+    try {
+      // Asegurar que el header de licencia esté configurado
+      await _crudService.headerManager.loadLicenseKey();
+      
+      // Realizar petición GET al endpoint /api/v1/companies
+      final response = await _crudService.getAll(ApiMasterConstants.companies);
+      
+      // Procesar la respuesta y convertir a DtoReceiveCompaniesResponse
+      final result = await _responseHandler.handleResponse<DtoReceiveCompaniesResponse>(
+        response,
+        fromJson: DtoReceiveCompaniesResponse.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveCompaniesResponse>.error(
+        message: 'Error getting companies: $e',
+        error: e,
+      );
+    }
+  }
+
+  /// Crea una nueva empresa
+  Future<ApiResult<DtoReceiveCreateCompanyResponse>> createCompany(DtoSendCompany companyData) async {
+    try {
+      // Validar datos de entrada
+      if (!companyData.isValid) {
+        return ApiResult<DtoReceiveCreateCompanyResponse>.error(
+          message: 'Los datos de la empresa no son válidos',
+        );
+      }
+
+      if (!companyData.hasValidWebsite) {
+        return ApiResult<DtoReceiveCreateCompanyResponse>.error(
+          message: 'La URL del sitio web no es válida',
+        );
+      }
+
+      // Asegurar que el header de licencia esté configurado
+      await _crudService.headerManager.loadLicenseKey();
+      
+      // Realizar petición POST al endpoint /api/v1/companies
+      final response = await _crudService.create(
+        ApiMasterConstants.companies,
+        companyData.toJson(),
+      );
+      
+      // Procesar la respuesta y convertir a DtoReceiveCreateCompanyResponse
+      final result = await _responseHandler.handleResponse<DtoReceiveCreateCompanyResponse>(
+        response,
+        fromJson: DtoReceiveCreateCompanyResponse.fromJson,
+      );
+
+      return result;
+    } catch (e) {
+      return ApiResult<DtoReceiveCreateCompanyResponse>.error(
+        message: 'Error creating company: $e',
         error: e,
       );
     }
