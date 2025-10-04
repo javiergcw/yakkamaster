@@ -76,24 +76,24 @@ class DtoReceiveJobDetail {
   factory DtoReceiveJobDetail.fromJson(Map<String, dynamic> json) {
     return DtoReceiveJobDetail(
       id: json['id']?.toString() ?? '',
-      manyLabours: json['many_labours'] as int? ?? 0,
-      ongoingWork: json['ongoing_work'] as bool? ?? false,
-      wageSiteAllowance: (json['wage_site_allowance'] as num?)?.toDouble() ?? 0.0,
-      wageLeadingHandAllowance: (json['wage_leading_hand_allowance'] as num?)?.toDouble() ?? 0.0,
-      wageProductivityAllowance: (json['wage_productivity_allowance'] as num?)?.toDouble() ?? 0.0,
-      extrasOvertimeRate: (json['extras_overtime_rate'] as num?)?.toDouble() ?? 0.0,
-      wageHourlyRate: json['wage_hourly_rate'] != null ? (json['wage_hourly_rate'] as num).toDouble() : null,
-      travelAllowance: json['travel_allowance'] != null ? (json['travel_allowance'] as num).toDouble() : null,
-      gst: json['gst'] != null ? (json['gst'] as num).toDouble() : null,
+      manyLabours: json['many_labours'] ?? 0,
+      ongoingWork: json['ongoing_work'] ?? false,
+      wageSiteAllowance: (json['wage_site_allowance'] ?? 0).toDouble(),
+      wageLeadingHandAllowance: (json['wage_leading_hand_allowance'] ?? 0).toDouble(),
+      wageProductivityAllowance: (json['wage_productivity_allowance'] ?? 0).toDouble(),
+      extrasOvertimeRate: (json['extras_overtime_rate'] ?? 0).toDouble(),
+      wageHourlyRate: json['wage_hourly_rate']?.toDouble(),
+      travelAllowance: json['travel_allowance']?.toDouble(),
+      gst: json['gst']?.toDouble(),
       startDateWork: json['start_date_work']?.toString() ?? '',
       endDateWork: json['end_date_work']?.toString() ?? '',
-      workSaturday: json['work_saturday'] as bool? ?? false,
-      workSunday: json['work_sunday'] as bool? ?? false,
+      workSaturday: json['work_saturday'] ?? false,
+      workSunday: json['work_sunday'] ?? false,
       startTime: json['start_time']?.toString() ?? '',
       endTime: json['end_time']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       paymentDay: json['payment_day']?.toString() ?? '',
-      requiresSupervisorSignature: json['requires_supervisor_signature'] as bool? ?? false,
+      requiresSupervisorSignature: json['requires_supervisor_signature'] ?? false,
       supervisorName: json['supervisor_name']?.toString() ?? '',
       visibility: json['visibility']?.toString() ?? 'PUBLIC',
       paymentType: json['payment_type']?.toString() ?? 'WEEKLY',
@@ -101,31 +101,31 @@ class DtoReceiveJobDetail {
       createdAt: json['created_at']?.toString() ?? '',
       updatedAt: json['updated_at']?.toString() ?? '',
       builderProfile: json['builder_profile'] != null 
-          ? DtoReceiveBuilder.fromJson(json['builder_profile'] as Map<String, dynamic>)
+          ? DtoReceiveBuilder.fromJson(json['builder_profile'] ?? {})
           : null,
       jobsite: json['jobsite'] != null 
-          ? DtoReceiveJobsite.fromJson(json['jobsite'] as Map<String, dynamic>)
+          ? DtoReceiveJobsite.fromJson(json['jobsite'] ?? {})
           : null,
       jobType: json['job_type'] != null 
-          ? DtoReceiveJobType.fromJson(json['job_type'] as Map<String, dynamic>)
+          ? DtoReceiveJobType.fromJson(json['job_type'] ?? {})
           : null,
       jobLicenses: json['job_licenses'] != null 
           ? (json['job_licenses'] as List)
-              .map((license) => DtoReceiveJobLicense.fromJson(license as Map<String, dynamic>))
+              .map((license) => DtoReceiveJobLicense.fromJson(license ?? {}))
               .toList()
           : [],
       jobSkills: json['job_skills'] != null 
           ? (json['job_skills'] as List)
-              .map((skill) => DtoReceiveJobSkill.fromJson(skill as Map<String, dynamic>))
+              .map((skill) => DtoReceiveJobSkill.fromJson(skill ?? {}))
               .toList()
           : [],
       jobRequirements: json['job_requirements'] != null 
           ? (json['job_requirements'] as List)
-              .map((req) => DtoReceiveJobRequirement.fromJson(req as Map<String, dynamic>))
+              .map((req) => DtoReceiveJobRequirement.fromJson(req ?? {}))
               .toList()
           : [],
       application: json['application'] != null 
-          ? DtoReceiveApplication.fromJson(json['application'] as Map<String, dynamic>)
+          ? DtoReceiveApplication.fromJson(json['application'] ?? {})
           : null,
     );
   }
@@ -236,7 +236,7 @@ class DtoReceiveJobLicense {
       id: json['id']?.toString() ?? '',
       jobId: json['job_id']?.toString() ?? '',
       licenseId: json['license_id']?.toString() ?? '',
-      license: DtoReceiveLicense.fromJson(json['license'] as Map<String, dynamic>),
+      license: DtoReceiveLicense.fromJson(json['license'] ?? {}),
       createdAt: json['created_at']?.toString() ?? '',
     );
   }
@@ -291,10 +291,10 @@ class DtoReceiveJobSkill {
       skillSubcategoryId: json['skill_subcategory_id']?.toString() ?? '',
       createdAt: json['created_at']?.toString() ?? '',
       skillCategory: json['skill_category'] != null 
-          ? DtoReceiveSkillCategory.fromJson(json['skill_category'] as Map<String, dynamic>)
+          ? DtoReceiveSkillCategory.fromJson(json['skill_category'] ?? {})
           : null,
       skillSubcategory: json['skill_subcategory'] != null 
-          ? DtoReceiveSkillSubcategory.fromJson(json['skill_subcategory'] as Map<String, dynamic>)
+          ? DtoReceiveSkillSubcategory.fromJson(json['skill_subcategory'] ?? {})
           : null,
     );
   }

@@ -44,22 +44,10 @@ class DtoSendHireDecision {
 
   /// Convierte a JSON
   Map<String, dynamic> toJson() {
-    final json = {
+    return {
       'application_id': applicationId,
       'hired': hired,
     };
-
-    if (startDate != null) {
-      json['start_date'] = startDate!;
-    }
-    if (endDate != null) {
-      json['end_date'] = endDate!;
-    }
-    if (reason != null) {
-      json['reason'] = reason!;
-    }
-
-    return json;
   }
 
   /// Valida los datos antes de enviar

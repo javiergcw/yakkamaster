@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/constants.dart';
 import '../../data/applied_job_dto.dart';
-import '../../../../job_listings/data/dto/job_dto.dart';
 import '../../../../job_listings/presentation/widgets/job_card.dart';
 import '../../logic/controllers/applied_jobs_screen_controller.dart';
 
@@ -35,10 +34,7 @@ class AppliedJobsScreen extends StatelessWidget {
     final screenWidth = mediaQuery.size.width;
     final screenHeight = mediaQuery.size.height;
     
-    final horizontalPadding = screenWidth * 0.06;
-    final verticalSpacing = screenHeight * 0.025;
     final titleFontSize = screenWidth * 0.055;
-    final bodyFontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
 
     return Scaffold(
@@ -64,10 +60,66 @@ class AppliedJobsScreen extends StatelessWidget {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.white,
+            ),
+            onPressed: controller.refreshApplications,
+            tooltip: 'Refresh applications',
+          ),
+        ],
       ),
-      body: Obx(() => controller.jobCards.isEmpty
-          ? _buildEmptyState()
-          : _buildJobList()),
+      body: Obx(() {
+        if (controller.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        
+        if (controller.errorMessage.isNotEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading applications',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  controller.errorMessage,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: controller.refreshApplications,
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+        
+        return controller.jobCards.isEmpty
+            ? _buildEmptyState()
+            : _buildJobList();
+      }),
     );
   }
 

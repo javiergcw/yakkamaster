@@ -5,7 +5,6 @@ import '../../../../features/logic/labour/use_case/jobs_use_case.dart';
 import '../../../../features/logic/labour/use_case/applications_use_case.dart';
 import '../../../../features/logic/labour/models/receive/dto_receive_job_detail_response.dart';
 import '../../../../features/logic/labour/models/receive/dto_receive_labour_job_detail.dart';
-import '../../../../features/logic/labour/models/receive/dto_receive_job_application.dart';
 import '../../../../screens/job_listings/data/dto/job_details_dto.dart';
 
 class LabourJobDetailsController extends GetxController {
@@ -25,7 +24,7 @@ class LabourJobDetailsController extends GetxController {
 
   // Getters para facilitar el acceso a los datos
   DtoReceiveLabourJobDetail? get job => jobDetailResponse.value?.job;
-  DtoReceiveJobApplication? get application => jobDetailResponse.value?.application;
+  DtoReceiveApplication? get application => jobDetailResponse.value?.application;
   bool get isJobLoaded => jobDetailResponse.value != null;
   bool get isApplicationLoaded => application != null;
 
@@ -37,28 +36,14 @@ class LabourJobDetailsController extends GetxController {
 
       print('LabourJobDetailsController - Loading job detail for ID: $jobId');
 
-      final result = await _jobsUseCase.getJobDetailWithApplication(jobId);
-
-      print('LabourJobDetailsController - Result isSuccess: ${result.isSuccess}');
-      print('LabourJobDetailsController - Result data: ${result.data}');
-      print('LabourJobDetailsController - Result message: ${result.message}');
+      final result = await _jobsUseCase.getJobById(jobId);
 
       if (result.isSuccess && result.data != null) {
-        print('LabourJobDetailsController - Setting jobDetailResponse');
         jobDetailResponse.value = result.data!;
-        
-        print('LabourJobDetailsController - Setting hasApplied');
         hasApplied.value = result.data!.hasApplied;
-        
-        print('LabourJobDetailsController - Setting applicationStatus');
         applicationStatus.value = result.data!.applicationStatus ?? '';
-        
-        print('LabourJobDetailsController - Job loaded successfully');
-        print('LabourJobDetailsController - Has applied: ${hasApplied.value}');
-        print('LabourJobDetailsController - Application status: ${applicationStatus.value}');
       } else {
         errorMessage.value = result.message ?? 'Error loading job details';
-        print('LabourJobDetailsController - Error: ${errorMessage.value}');
       }
     } catch (e) {
       errorMessage.value = 'Error loading job details: $e';

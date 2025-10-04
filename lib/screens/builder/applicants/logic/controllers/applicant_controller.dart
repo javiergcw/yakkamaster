@@ -115,8 +115,8 @@ class ApplicantController extends GetxController {
           _jobsiteApplicants[i].applicants.removeWhere((applicant) => applicant.id == applicantId);
         }
         
-        // Verificar si aún hay nuevos applicants
-        await checkForNewApplicants();
+        // Recargar applicants del servidor
+        await loadJobsiteApplicants();
         
         // Mostrar mensaje de éxito
         Get.snackbar(
@@ -178,8 +178,8 @@ class ApplicantController extends GetxController {
           _jobsiteApplicants[i].applicants.removeWhere((applicant) => applicant.id == applicantId);
         }
         
-        // Verificar si aún hay nuevos applicants
-        await checkForNewApplicants();
+        // Recargar applicants del servidor
+        await loadJobsiteApplicants();
         
         // Mostrar mensaje de éxito
         Get.snackbar(
@@ -348,8 +348,8 @@ class ApplicantController extends GetxController {
           _jobsiteApplicants[i].applicants.removeWhere((applicant) => applicant.id == applicantId);
         }
         
-        // Verificar si aún hay nuevos applicants
-        await checkForNewApplicants();
+        // Recargar applicants del servidor
+        await loadJobsiteApplicants();
         
         // Mostrar mensaje de éxito
         Get.snackbar(
@@ -417,8 +417,8 @@ class ApplicantController extends GetxController {
           _jobsiteApplicants[i].applicants.removeWhere((applicant) => applicant.id == applicantId);
         }
         
-        // Verificar si aún hay nuevos applicants
-        await checkForNewApplicants();
+        // Recargar applicants del servidor
+        await loadJobsiteApplicants();
         
         // Mostrar mensaje de éxito
         Get.snackbar(

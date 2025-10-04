@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../../config/app_flavor.dart';
 import '../../../../../config/constants.dart';
 import '../../../../job_listings/logic/controllers/job_search_results_screen_controller.dart';
+import '../../../../job_listings/presentation/pages/job_search_screen.dart';
 import '../../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
 
 class JobSearchResultsScreen extends StatefulWidget {
@@ -136,7 +137,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
               // Navegar a la pantalla de búsqueda
               print('Navigate to search screen');
               Get.toNamed(
-                '/job-search',
+                JobSearchScreen.id,
                 arguments: {
                   'flavor': controller.currentFlavor.value,
                 },
@@ -391,7 +392,7 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
             
             // Botón de ver detalles
             GestureDetector(
-              onTap: () => _handleViewDetails(job),
+              onTap: () => controller.handleViewDetails(job),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: verticalSpacing * 0.6),
@@ -483,33 +484,6 @@ class _JobSearchResultsScreenState extends State<JobSearchResultsScreen> {
     );
   }
 
-  void _handleViewDetails(DtoReceiveLabourJob job) async {
-    print('_handleViewDetails called with job: ${job.jobId}');
-    print('_handleViewDetails - Job data: ${job.toString()}');
-    print('_handleViewDetails - Current flavor: ${controller.currentFlavor.value}');
-    
-    try {
-      // Navegar a la pantalla de detalles específica de labour
-      // Pasar solo el jobId para que la pantalla de detalles use el use case
-      Get.toNamed('/labour-job-details', arguments: {
-        'jobId': job.jobId,
-        'flavor': controller.currentFlavor.value,
-        'isFromAppliedJobs': false,
-      });
-      
-      print('_handleViewDetails - Navigation completed successfully');
-    } catch (e) {
-      print('_handleViewDetails - Error: $e');
-      print('_handleViewDetails - Error type: ${e.runtimeType}');
-      print('_handleViewDetails - Stack trace: ${StackTrace.current}');
-      Get.snackbar(
-        'Error',
-        'Failed to navigate to job details: $e',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: Duration(seconds: 2),
-      );
-    }
-  }
 
 
 

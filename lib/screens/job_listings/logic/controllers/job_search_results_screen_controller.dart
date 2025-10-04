@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../../../../config/app_flavor.dart';
 import '../../../../features/logic/labour/use_case/jobs_use_case.dart';
 import '../../../../features/logic/labour/models/receive/dto_receive_labour_job.dart';
+import '../../../labour/home/presentation/pages/labour_job_details_screen.dart';
 
 
 class JobSearchResultsScreenController extends GetxController {
@@ -249,5 +250,34 @@ class JobSearchResultsScreenController extends GetxController {
   /// Obtiene el número de labours para el título de la card
   int getManyLabours(DtoReceiveLabourJob job) {
     return job.manyLabours;
+  }
+
+  /// Maneja la navegación a los detalles del trabajo
+  void handleViewDetails(DtoReceiveLabourJob job) async {
+    print('JobSearchResultsScreenController.handleViewDetails called with job: ${job.jobId}');
+    print('JobSearchResultsScreenController.handleViewDetails - Job data: ${job.toString()}');
+    print('JobSearchResultsScreenController.handleViewDetails - Current flavor: ${currentFlavor.value}');
+    
+    try {
+      // Navegar a la pantalla de detalles específica de labour
+      // Pasar solo el jobId para que la pantalla de detalles use el use case
+      Get.toNamed(LabourJobDetailsScreen.id, arguments: {
+        'jobId': job.jobId,
+        'flavor': currentFlavor.value,
+        'isFromAppliedJobs': false,
+      });
+      
+      print('JobSearchResultsScreenController.handleViewDetails - Navigation completed successfully');
+    } catch (e) {
+      print('JobSearchResultsScreenController.handleViewDetails - Error: $e');
+      print('JobSearchResultsScreenController.handleViewDetails - Error type: ${e.runtimeType}');
+      print('JobSearchResultsScreenController.handleViewDetails - Stack trace: ${StackTrace.current}');
+      Get.snackbar(
+        'Error',
+        'Failed to navigate to job details: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 }

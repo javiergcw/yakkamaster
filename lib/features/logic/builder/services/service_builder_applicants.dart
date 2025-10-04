@@ -60,13 +60,12 @@ class ServiceBuilderApplicants {
       // Asegurar que el header de JWT esté configurado
       await _crudService.headerManager.loadBearerToken();
       
-      // Construir la URL completa
-      final url = ApiBuilderConstants.hireDecision(hireDecision.applicationId);
-      print('ServiceBuilderApplicants.hireApplicant - URL: $url');
+      // Usar el mismo endpoint para hire y decline
+      print('ServiceBuilderApplicants.hireApplicant - URL: ${ApiBuilderConstants.applicants}');
       print('ServiceBuilderApplicants.hireApplicant - Body: ${hireDecision.toJson()}');
       
       // Realizar petición POST al endpoint
-      final response = await _crudService.create(url, hireDecision.toJson());
+      final response = await _crudService.create(ApiBuilderConstants.applicants, hireDecision.toJson());
       
       // Debug: imprimir la respuesta
       print('ServiceBuilderApplicants.hireApplicant - Response body: ${response.body}');
@@ -112,13 +111,12 @@ class ServiceBuilderApplicants {
       // Asegurar que el header de JWT esté configurado
       await _crudService.headerManager.loadBearerToken();
       
-      // Construir la URL completa
-      final url = ApiBuilderConstants.hireDecision(declineDecision.applicationId);
-      print('ServiceBuilderApplicants.declineApplicant - URL: $url');
+      // Usar el mismo endpoint para hire y decline
+      print('ServiceBuilderApplicants.declineApplicant - URL: ${ApiBuilderConstants.applicants}');
       print('ServiceBuilderApplicants.declineApplicant - Body: ${declineDecision.toJson()}');
       
       // Realizar petición POST al endpoint
-      final response = await _crudService.create(url, declineDecision.toJson());
+      final response = await _crudService.create(ApiBuilderConstants.applicants, declineDecision.toJson());
       
       // Debug: imprimir la respuesta
       print('ServiceBuilderApplicants.declineApplicant - Response body: ${response.body}');

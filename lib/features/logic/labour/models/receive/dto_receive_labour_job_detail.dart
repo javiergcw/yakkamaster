@@ -26,7 +26,7 @@ class DtoReceiveLabourJobDetail {
   final String description;
   final String paymentDay;
   final bool requiresSupervisorSignature;
-  final String supervisorName;
+  final String? supervisorName;
   final String visibility;
   final String paymentType;
   final double totalWage;
@@ -59,7 +59,7 @@ class DtoReceiveLabourJobDetail {
     required this.description,
     required this.paymentDay,
     required this.requiresSupervisorSignature,
-    required this.supervisorName,
+    this.supervisorName,
     required this.visibility,
     required this.paymentType,
     required this.totalWage,
@@ -95,7 +95,7 @@ class DtoReceiveLabourJobDetail {
       description: json['description']?.toString() ?? '',
       paymentDay: json['payment_day']?.toString() ?? '',
       requiresSupervisorSignature: json['requires_supervisor_signature'] ?? false,
-      supervisorName: json['supervisor_name']?.toString() ?? '',
+      supervisorName: json['supervisor_name']?.toString(),
       visibility: json['visibility']?.toString() ?? '',
       paymentType: json['payment_type']?.toString() ?? '',
       totalWage: (json['total_wage'] ?? 0).toDouble(),

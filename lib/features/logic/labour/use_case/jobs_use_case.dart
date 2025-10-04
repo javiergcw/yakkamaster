@@ -2,7 +2,6 @@ import '../../../../utils/response_handler.dart';
 import '../services/service_labour_jobs.dart';
 import '../models/receive/dto_receive_labour_jobs.dart';
 import '../models/receive/dto_receive_labour_job.dart';
-import '../models/receive/dto_receive_job_detail.dart';
 import '../models/receive/dto_receive_job_detail_response.dart';
 
 /// Caso de uso para operaciones de jobs de labour
@@ -169,37 +168,20 @@ class JobsUseCase {
     }
   }
 
-  /// Obtiene un job específico por ID con detalles completos
-  /// 
-  /// [jobId] - ID del job a buscar
-  /// Retorna un [ApiResult] con el job encontrado o null
-  Future<ApiResult<DtoReceiveJobDetail?>> getJobById(String jobId) async {
-    try {
-      // Llamar al servicio para obtener los detalles del job
-      final result = await _serviceLabourJobs.getJobById(jobId);
-      
-      return result;
-    } catch (e) {
-      return ApiResult<DtoReceiveJobDetail?>.error(
-        message: 'Error in use case getting job by ID: $e',
-        error: e,
-      );
-    }
-  }
 
   /// Obtiene los detalles completos de un job con información de aplicación
   /// 
   /// [jobId] - ID del job a buscar
   /// Retorna un [ApiResult] con el job y su aplicación (si existe)
-  Future<ApiResult<DtoReceiveJobDetailResponse?>> getJobDetailWithApplication(String jobId) async {
+  Future<ApiResult<DtoReceiveJobDetailResponse?>> getJobById(String jobId) async {
     try {
       // Llamar al servicio para obtener los detalles del job con aplicación
-      final result = await _serviceLabourJobs.getJobDetailWithApplication(jobId);
+      final result = await _serviceLabourJobs.getJobById(jobId);
       
       return result;
     } catch (e) {
       return ApiResult<DtoReceiveJobDetailResponse?>.error(
-        message: 'Error in use case getting job detail with application: $e',
+        message: 'Error in use case getting job by ID: $e',
         error: e,
       );
     }
